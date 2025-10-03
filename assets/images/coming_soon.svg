@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FFF8F4"/>
+
+  <!-- Rocket flame -->
+  <path d="M600 880 C580 920 580 960 600 1000 C620 960 620 920 600 880 Z" fill="#FF8A50"/>
+
+  <!-- Rocket body -->
+  <path d="M600 420 C570 420 540 460 540 500 L540 800 C540 840 570 880 600 880 C630 880 660 840 660 800 L660 500 C660 460 630 420 600 420 Z" fill="#F76301"/>
+
+  <!-- Rocket window -->
+  <circle cx="600" cy="600" r="40" fill="#BEE6FF" stroke="#89CFF0" stroke-width="4"/>
+
+  <!-- Left fin -->
+  <path d="M540 720 L480 780 L540 800 Z" fill="#FF8A50"/>
+
+  <!-- Right fin -->
+  <path d="M660 720 L720 780 L660 800 Z" fill="#FF8A50"/>
+
+  <!-- Clouds -->
+  <ellipse cx="400" cy="950" rx="120" ry="40" fill="#FFFFFF" opacity="0.8"/>
+  <ellipse cx="800" cy="960" rx="140" ry="50" fill="#FFFFFF" opacity="0.85"/>
+  <ellipse cx="600" cy="1000" rx="200" ry="60" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Text -->
+  <text x="600" y="1120" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" fill="#111827">
+    Coming Soon
+  </text>
+  <text x="600" y="1170" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#6B7280">
+    We’re working hard to bring this feature to you 🚀
+  </text>
+
+</svg>
