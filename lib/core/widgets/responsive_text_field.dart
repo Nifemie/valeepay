@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/responsive_utils.dart';
-import 'package:valarpayee/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 
 class ResponsiveTextField extends StatelessWidget {
   final TextEditingController controller;

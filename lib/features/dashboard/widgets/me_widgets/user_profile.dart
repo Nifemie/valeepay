@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:valarpayee/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final VoidCallback? onSecurityTipsTap;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:valarpayee/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 
 class KYCWidget extends StatelessWidget {
   const KYCWidget({Key? key, this.onSetup}) : super(key: key);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:valarpayee/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 
 class NeedHelpModal {
   static void show(BuildContext context) {
@@ -145,8 +145,8 @@ class NeedHelpModal {
   static void _launchEmail() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@valarpayee.com',
-      query: 'subject=Need Help with ValarPayee',
+      path: 'support@valarpay.com',
+      query: 'subject=Need Help with valarpay',
     );
 
     if (await canLaunchUrl(emailUri)) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpayee/core/utils/color_utils.dart';
-import 'package:valarpayee/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 
 class PasscodeLoginScreen extends StatefulWidget {
   const PasscodeLoginScreen({super.key});

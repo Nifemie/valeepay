@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "valarpayee" "\0"
+            VALUE "FileDescription", "valarpay" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "valarpayee" "\0"
+            VALUE "InternalName", "valarpay" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "valarpayee.exe" "\0"
-            VALUE "ProductName", "valarpayee" "\0"
+            VALUE "OriginalFilename", "valarpay.exe" "\0"
+            VALUE "ProductName", "valarpay" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

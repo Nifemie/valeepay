@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:valarpayee/core/themes/app_theme.dart';
+import 'package:valarpay/core/themes/app_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -130,7 +130,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     // Description
                     const Text(
-                      'Easy banking for everyone across\nall platforms',
+                      'ValarPay Beyond & Future Forward Bank',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white,
@@ -155,7 +155,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           elevation: 0,
                         ),
                         child: const Text(
-                          'Sign Up',
+                          'Open Account',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
