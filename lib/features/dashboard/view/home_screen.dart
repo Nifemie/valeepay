@@ -301,21 +301,22 @@ class _AddMoneyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: () => context.push("/add-money"),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: const Color(0xFF011131),
+          color: appTheme.whiteColor,
         ),
         child: Row(
           children: [
-            const Icon(Icons.add, color: Colors.white, size: 16),
+            const Icon(Icons.add, color: appTheme.primaryColor, size: 16),
             const SizedBox(width: 4),
             Text(
               'Add Money',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ).textTheme.bodyMedium?.copyWith(color: appTheme.primaryColor),
             ),
           ],
         ),

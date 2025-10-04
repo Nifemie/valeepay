@@ -10,10 +10,10 @@ class BiometricLoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true, // make bg cover appbar area
       appBar: AppBar(
         elevation: 0,
-        backgroundColor:appTheme.whiteColor,
+        backgroundColor: Colors.transparent, // transparent appbar
         leading: IconButton(
           onPressed: () => context.push('/signin'),
           icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
@@ -32,194 +32,196 @@ class BiometricLoginScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Brand / Logo
-              Row(
+      body: Stack(
+        children: [
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/authbg.jpg', // <-- replace with your asset
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Gradient overlay (black at bottom, transparent at top)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                    Colors.black,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Main content
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(24.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 42.w,
-                    height: 42.w,
-                    decoration: BoxDecoration(
-                      color: appTheme.primaryColor,
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    child: Icon(
-                      Icons.account_balance_wallet,
+                  SizedBox(height: 60.h),
+
+                  // User avatar/profile
+                  CircleAvatar(
+                    radius: 45.r,
+                    backgroundColor: Colors.white.withOpacity(0.9),
+                    child: const Icon(
+                      Icons.person,
+                      size: 50,
                       color: Colors.white,
-                      size: 22.sp,
                     ),
                   ),
-                  SizedBox(width: 10.w),
+
+                  SizedBox(height: 18.h),
+
+                  // Welcome text
                   Text(
-                    'Valarpay',
+                    'Welcome back, Emmanuel',
                     style: TextStyle(
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    'emmanuel@gmail.com',
+                    style: TextStyle(fontSize: 15.sp, color: Colors.grey[300]),
+                  ),
 
-              SizedBox(height: 60.h),
+                  SizedBox(height: 50.h),
 
-              // User avatar/profile
-              CircleAvatar(
-                radius: 45.r,
-                backgroundColor: appTheme.primaryColor.withOpacity(0.1),
-                child: const Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.black54,
-                ),
-              ),
-
-              SizedBox(height: 18.h),
-
-              // Welcome text
-              Text(
-                'Welcome back, Emmanuel',
-                style: TextStyle(
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                '900*0000000000',
-                style: TextStyle(fontSize: 15.sp, color: Colors.grey[600]),
-              ),
-
-              SizedBox(height: 50.h),
-
-              // Fingerprint prompt
-              Column(
-                children: [
-                  GestureDetector(
-                    onTap: () => context.push('/verify-fingerprint'),
-                    child: Container(
-                      width: 90.w,
-                      height: 90.w,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: const Offset(0, 4),
+                  // Fingerprint prompt
+                  Column(
+                    children: [
+                      GestureDetector(
+                        child: Container(
+                          width: 90.w,
+                          height: 90.w,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 6,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
+                          child: Icon(
+                            Icons.fingerprint,
+                            size: 50.sp,
+                            color: appTheme.primaryColor,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.fingerprint,
-                        size: 50.sp,
-                        color: appTheme.primaryColor,
+                      SizedBox(height: 14.h),
+                      Text(
+                        'Tap fingerprint to login',
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 50.h),
+
+                  // Actions
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => context.push('/signin'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: appTheme.primaryColor,
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                      ),
+                      child: Text(
+                        'Login with Password',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(height: 14.h),
-                  Text(
-                    'Tap fingerprint to login',
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => context.push('/passcode-login'),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        side: BorderSide(color: Colors.white70, width: 1.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                      ),
+                      child: Text(
+                        'Login with Passcode',
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
+                  SizedBox(height: 22.h),
+
+                  GestureDetector(
+                    onTap: () => context.push('/signin'),
+                    child: Text(
+                      'Switch Account',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 40.h),
+
+                  // Securely encrypted
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.shield_outlined,
+                        size: 16.sp,
+                        color: Colors.white70,
+                      ),
+                      SizedBox(width: 6.w),
+                      Text(
+                        'Securely encrypted',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
                 ],
               ),
-
-              const Spacer(),
-              SizedBox(height: 20),
-
-              // Actions
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => context.push('/signin'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appTheme.primaryColor,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                  child: Text(
-                    'Login with Password',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 14.h),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => context.push('/passcode-login'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    side: BorderSide(color: Colors.grey.shade300, width: 1.2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                  child: Text(
-                    'Login with Passcode',
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 22.h),
-
-              GestureDetector(
-                onTap: () => context.push('/signin'),
-                child: Text(
-                  'Switch Account',
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    color: appTheme.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 40.h),
-
-              // Securely encrypted
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shield_outlined,
-                    size: 16.sp,
-                    color: Colors.grey[600],
-                  ),
-                  SizedBox(width: 6.w),
-                  Text(
-                    'Securely encrypted',
-                    style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20.h),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

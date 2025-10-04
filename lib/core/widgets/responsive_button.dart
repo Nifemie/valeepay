@@ -96,7 +96,7 @@ class ResponsiveButton extends StatelessWidget {
 /*
 ResponsiveButton(
   text: 'Continue',
-  onPressed: () => context.push('/next-screen'),
+  onPressed: () => context.push('/next'),
 )
 
 ResponsiveButton(
