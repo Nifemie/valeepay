@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpayee/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
 
 class SignupScreen extends StatefulWidget {

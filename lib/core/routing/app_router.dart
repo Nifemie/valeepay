@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:valarpayee/features/dashboard/view/commingsoon.dart';
+import 'package:valarpay/features/dashboard/view/commingsoon.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';

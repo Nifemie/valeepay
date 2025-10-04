@@ -1,7 +1,7 @@
 # Responsive Design Setup with Flutter ScreenUtil
 
 ## Overview
-The ValarPayee app uses `flutter_screenutil` to ensure consistent responsive design across different devices and orientations. The design is based on Figma dimensions of **375px × 812px**.
+The valarpay app uses `flutter_screenutil` to ensure consistent responsive design across different devices and orientations. The design is based on Figma dimensions of **375px × 812px**.
 
 ## Configuration
 
@@ -46,7 +46,7 @@ Container(
 
 // Text styles
 Text(
-  'ValarPayee',
+  'valarpay',
   style: TextStyle(
     fontSize: 24.sp,
     fontWeight: FontWeight.bold,

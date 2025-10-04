@@ -1,4 +1,4 @@
-# valarpayee
+# valarpay
 
 A new Flutter project.
 
