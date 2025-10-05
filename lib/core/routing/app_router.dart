@@ -17,7 +17,7 @@ import '../../features/auth/views/onboarding/signup/verify_email.dart';
 import '../../features/auth/views/onboarding/signup/verify_phone.dart';
 import '../../features/auth/views/splashscreen/splashscreen.dart';
 import '../../features/dashboard/view/card.dart';
-import '../../features/dashboard/view/homescreen.dart';
+import '../../features/dashboard/view/home/homescreen.dart';
 import '../../features/dashboard/view/invest.dart';
 import '../../features/dashboard/view/me.dart';
 import '../../features/dashboard/view/savings.dart';

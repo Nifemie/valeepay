@@ -5,6 +5,7 @@ import '../widgets/me_widgets/account_widget.dart';
 import '../widgets/me_widgets/user_profile.dart';
 import '../widgets/me_widgets/security_widget.dart';
 import '../widgets/navbar.dart';
+import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 
 class MeScreen extends ConsumerWidget {
   const MeScreen({Key? key}) : super(key: key);
@@ -39,7 +40,10 @@ class MeScreen extends ConsumerWidget {
                   debugPrint('Security Tips tapped');
                 },
                 onRewardsTap: () {
-                  debugPrint('Rewards tapped');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MyRewardsPage()),
+                  );
                 },
               ),
               const SizedBox(height: 16),

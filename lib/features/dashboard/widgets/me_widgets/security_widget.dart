@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/features/dashboard/view/me/security.dart';
+import 'package:valarpay/features/dashboard/view/me/about_us.dart';
+
 
 class SecurityMenuWidget extends StatelessWidget {
   const SecurityMenuWidget({Key? key}) : super(key: key);
@@ -27,7 +30,16 @@ class SecurityMenuWidget extends StatelessWidget {
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/security.svg',
             title: 'Security Centre',
-            onTap: () {},
+            onTap: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SecurityCentrePage()),
+              );
+
+            },
+
+
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
@@ -45,7 +57,16 @@ class SecurityMenuWidget extends StatelessWidget {
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/about.svg',
             title: 'About Us',
-            onTap: () {},
+            onTap: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutUsPage()),
+              );
+
+            },
+
+
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
