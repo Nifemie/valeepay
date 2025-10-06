@@ -16,7 +16,7 @@ class AppTheme {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      bottomAppBarTheme: const BottomAppBarThemeData(
+      bottomAppBarTheme: const BottomAppBarTheme(
         color: Colors.white,
       ),
       cardColor: Colors.grey[200],
@@ -48,7 +48,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      bottomAppBarTheme: const BottomAppBarThemeData(
+      bottomAppBarTheme: const BottomAppBarTheme(
         color: Color(0xFF2A2A2A),
       ),
       cardColor: const Color(0xFF2B2725),
@@ -66,3 +66,4 @@ class AppTheme {
     );
   }
 }
+
