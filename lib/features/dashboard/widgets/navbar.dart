@@ -12,7 +12,8 @@ class CustomBottomNavBar extends StatefulWidget {
 class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   int _selectedIndex = 0;
 
-  final List<NavItem> _navItems = const [ // Made const
+  final List<NavItem> _navItems = const [
+    // Made const
     NavItem(
       icon: 'assets/images/nav_icons/home.svg',
       label: 'Home',
@@ -47,12 +48,14 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   }
 
   void _updateSelectedIndexFromRoute() {
-    final String location = GoRouter.of(context).routerDelegate.currentConfiguration.uri.toString();
+    final String location =
+        GoRouter.of(context).routerDelegate.currentConfiguration.uri.toString();
     int newIndex = 0; // Default to Home
     int bestMatchLength = -1;
 
     for (int i = 0; i < _navItems.length; i++) {
-      if (location.startsWith(_navItems[i].route) && _navItems[i].route.length > bestMatchLength) {
+      if (location.startsWith(_navItems[i].route) &&
+          _navItems[i].route.length > bestMatchLength) {
         bestMatchLength = _navItems[i].route.length;
         newIndex = i;
       }
@@ -66,8 +69,8 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   }
 
   void _onItemTapped(int index) {
-    // Navigate using GoRouter
-    context.push(_navItems[index].route);
+    // Navigate using GoRouter with go() instead of push() for tab navigation
+    context.go(_navItems[index].route);
     // The _selectedIndex will be updated by didChangeDependencies when the route changes
   }
 
@@ -83,7 +86,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(
           _navItems.length,
-              (index) => _buildNavItem(index),
+          (index) => _buildNavItem(index),
         ),
       ),
     );
@@ -134,7 +137,8 @@ class NavItem {
   final String label;
   final String route; // Added route property
 
-  const NavItem({ // Added const
+  const NavItem({
+    // Added const
     required this.icon,
     required this.label,
     required this.route, // Added route

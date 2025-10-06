@@ -88,7 +88,7 @@ class NeedHelpModal {
                     _buildHelpOption(
                       title: 'Phone Call',
                       icon: Icons.phone_outlined,
-                      iconColor: Colors.orange,
+                      iconColor: appTheme.primaryColor,
                       onTap: () {
                         Navigator.pop(context);
                         _launchPhoneCall();

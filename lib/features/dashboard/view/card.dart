@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '/features/dashboard/widgets/navbar.dart';
 
 class CardScreen extends StatelessWidget {
   const CardScreen({super.key});
@@ -19,7 +18,6 @@ class CardScreen extends StatelessWidget {
           onPressed: () => GoRouter.of(context).pop(),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

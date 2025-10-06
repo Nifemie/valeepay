@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '/core/themes/color_utils.dart';
 
@@ -17,7 +16,7 @@ class AppTheme {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      bottomAppBarTheme: const BottomAppBarTheme(
+      bottomAppBarTheme: const BottomAppBarThemeData(
         color: Colors.white,
       ),
       cardColor: Colors.grey[200],
@@ -49,7 +48,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      bottomAppBarTheme: const BottomAppBarTheme(
+      bottomAppBarTheme: const BottomAppBarThemeData(
         color: Color(0xFF2A2A2A),
       ),
       cardColor: const Color(0xFF2B2725),

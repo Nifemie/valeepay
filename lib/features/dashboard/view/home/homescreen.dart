@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 
 import '../../widgets/home_widgets/payment_widget_icons.dart';
 import '../../widgets/home_widgets/kyc_widget.dart';
 import '../../widgets/home_widgets/ourservice.dart';
-import '/features/dashboard/widgets/navbar.dart';
+import 'notifications/notifications_screen.dart';
+import 'support/customer_service_screen.dart';
 
 class Homescreen extends StatefulWidget {
   final String firstName;
@@ -61,7 +61,6 @@ class _HomescreenState extends State<Homescreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      bottomNavigationBar: const CustomBottomNavBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -75,9 +74,8 @@ class _HomescreenState extends State<Homescreen> {
               _BalanceCard(
                 balance: widget.balance,
                 isBalanceVisible: _isBalanceVisible,
-                onToggleVisibility:
-                    () =>
-                        setState(() => _isBalanceVisible = !_isBalanceVisible),
+                onToggleVisibility: () =>
+                    setState(() => _isBalanceVisible = !_isBalanceVisible),
               ),
               const SizedBox(height: 16),
               const PaymentWidget(),
@@ -134,9 +132,9 @@ class _HomeAppBar extends StatelessWidget {
               subtitle: Text(
                 'Good Morning',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.normal,
-                  color: appTheme.primaryColor,
-                ),
+                      fontWeight: FontWeight.normal,
+                      color: appTheme.primaryColor,
+                    ),
               ),
             ),
           ),
@@ -145,6 +143,13 @@ class _HomeAppBar extends StatelessWidget {
             children: [
               _IconButton(
                 svgPath: 'assets/images/payment_wid/Grouping (1).svg',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const CustomerServiceScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 16),
               _IconButton(svgPath: 'assets/images/payment_wid/scanning.svg'),
@@ -152,6 +157,13 @@ class _HomeAppBar extends StatelessWidget {
               _IconButton(
                 svgPath: 'assets/images/payment_wid/bell.svg',
                 hasNotification: true,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -164,37 +176,42 @@ class _HomeAppBar extends StatelessWidget {
 class _IconButton extends StatelessWidget {
   final String svgPath;
   final bool hasNotification;
+  final VoidCallback? onTap;
 
   const _IconButton({
     Key? key,
     required this.svgPath,
     this.hasNotification = false,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SvgPicture.asset(
-          svgPath,
-          width: 24,
-          height: 24,
-          colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
-        ),
-        if (hasNotification)
-          Positioned(
-            right: 0,
-            top: 0,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          SvgPicture.asset(
+            svgPath,
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+          ),
+          if (hasNotification)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

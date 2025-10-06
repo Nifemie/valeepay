@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '/features/dashboard/widgets/navbar.dart';
 
 class SavingsComingSoonScreen extends StatelessWidget {
   const SavingsComingSoonScreen({super.key});
@@ -14,7 +13,6 @@ class SavingsComingSoonScreen extends StatelessWidget {
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
       ),
-      bottomNavigationBar: const CustomBottomNavBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
