@@ -13,10 +13,6 @@ class CardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
-          onPressed: () => GoRouter.of(context).pop(),
-        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
