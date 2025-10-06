@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../core/routing/app_router.dart';
 import '../core/themes/app_theme.dart';
 
+// Export the theme provider so it can be used in other files
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 class MyApp extends ConsumerWidget {

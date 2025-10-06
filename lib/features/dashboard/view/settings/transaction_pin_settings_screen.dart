@@ -32,6 +32,13 @@ class _TransactionPinSettingsScreenState
         padding: const EdgeInsets.all(16),
         children: [
           // Transaction PIN Section
+          Text(
+            'Transaction PIN',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -41,14 +48,7 @@ class _TransactionPinSettingsScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Transaction PIN',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -72,8 +72,8 @@ class _TransactionPinSettingsScreenState
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                GestureDetector(
+                const SizedBox(height: 24),
+                InkWell(
                   onTap: () {
                     // Navigate to forgot PIN
                   },
@@ -100,60 +100,63 @@ class _TransactionPinSettingsScreenState
           const SizedBox(height: 16),
 
           // Biometrics Section
+          Text(
+            'Biometrics',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 16),
+
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  'Biometrics',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                Expanded(
+                  child: Text(
+                    'Use Fingerprint',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Use Fingerprint',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                    Switch(
-                      value: fingerprintEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          fingerprintEnabled = value;
-                        });
-                      },
-                      activeTrackColor: appTheme.primaryColor,
-                    ),
-                  ],
+                Switch(
+                  value: fingerprintEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      fingerprintEnabled = value;
+                    });
+                  },
+                  activeTrackColor: appTheme.primaryColor,
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Use Face ID',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                    Switch(
-                      value: faceIdEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          faceIdEnabled = value;
-                        });
-                      },
-                      activeTrackColor: appTheme.primaryColor,
-                    ),
-                  ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Use Face ID',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                Switch(
+                  value: faceIdEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      faceIdEnabled = value;
+                    });
+                  },
+                  activeTrackColor: appTheme.primaryColor,
                 ),
               ],
             ),

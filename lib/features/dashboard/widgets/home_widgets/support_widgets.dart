@@ -19,7 +19,7 @@ class SupportOptionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
@@ -31,8 +31,8 @@ class SupportOptionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
@@ -40,10 +40,10 @@ class SupportOptionCard extends StatelessWidget {
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 24,
+                size: 14,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               title,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

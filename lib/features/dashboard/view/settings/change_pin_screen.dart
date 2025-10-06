@@ -28,55 +28,74 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Spacer(),
-            Text(
-              _getSubtitle(),
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(pinLength, (index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      index < _getCurrentPin().length ? '•' : '',
-                      style: const TextStyle(fontSize: 24),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            children: [
+              Text(
+                _getSubtitle(),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.grey[600],
                     ),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 3,
-                childAspectRatio: 1.2,
-                children: [
-                  ...List.generate(9, (index) {
-                    return _buildNumberButton('${index + 1}');
-                  }),
-                  const SizedBox(),
-                  _buildNumberButton('0'),
-                  _buildNumberButton('⌫', isDelete: true),
-                ],
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(pinLength, (index) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    width: 25,
+                    height: 25,
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        shape: BoxShape.circle),
+                    child: Center(
+                      child: Text(
+                        index < _getCurrentPin().length ? '•' : '',
+                        style: TextStyle(
+                            fontSize: 12, color: appTheme.primaryColor),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 48),
+              Flexible(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    double buttonSize = (constraints.maxWidth - 60) / 3;
+                    buttonSize = buttonSize > 80 ? 80 : buttonSize;
+
+                    return Container(
+                      constraints: BoxConstraints(
+                        maxHeight: buttonSize * 4 + 30, // 4 rows + spacing
+                      ),
+                      child: GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 15,
+                        mainAxisSpacing: 15,
+                        childAspectRatio: 1.0,
+                        children: [
+                          ...List.generate(9, (index) {
+                            return _buildNumberButton(
+                                '${index + 1}', buttonSize);
+                          }),
+                          const SizedBox.shrink(),
+                          _buildNumberButton('0', buttonSize),
+                          _buildNumberButton('⌫', buttonSize, isDelete: true),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -121,7 +140,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
     }
   }
 
-  Widget _buildNumberButton(String text, {bool isDelete = false}) {
+  Widget _buildNumberButton(String text, double size, {bool isDelete = false}) {
     return GestureDetector(
       onTap: () {
         if (isDelete) {
@@ -131,17 +150,23 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
         }
       },
       child: Container(
-        margin: const EdgeInsets.all(4),
+        width: size,
+        height: size,
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey.shade100,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
         ),
         child: Center(
           child: Text(
             text,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
+            style: TextStyle(
+              fontSize: size * 0.25, // Responsive font size
+              fontWeight: FontWeight.w600,
+              color: isDelete ? Colors.grey[700] : Colors.black87,
             ),
           ),
         ),

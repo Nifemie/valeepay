@@ -127,11 +127,12 @@ class SettingsToggleTile extends StatelessWidget {
   }
 }
 
-class SecurityQuestionDropdown extends StatelessWidget {
+class SecurityQuestionDropdown extends StatefulWidget {
   final String label;
   final String? value;
   final List<String> options;
   final ValueChanged<String?> onChanged;
+  final ValueChanged<String>? onAnswerChanged;
 
   const SecurityQuestionDropdown({
     super.key,
@@ -139,7 +140,22 @@ class SecurityQuestionDropdown extends StatelessWidget {
     this.value,
     required this.options,
     required this.onChanged,
+    this.onAnswerChanged,
   });
+
+  @override
+  State<SecurityQuestionDropdown> createState() =>
+      _SecurityQuestionDropdownState();
+}
+
+class _SecurityQuestionDropdownState extends State<SecurityQuestionDropdown> {
+  final TextEditingController _answerController = TextEditingController();
+
+  @override
+  void dispose() {
+    _answerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +163,7 @@ class SecurityQuestionDropdown extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          widget.label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[400],
               ),
@@ -163,14 +179,14 @@ class SecurityQuestionDropdown extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: value,
+              value: widget.value,
               hint: Text(
-                'Option 1',
+                'Select a question',
                 style: TextStyle(color: Colors.grey[600]),
               ),
               isExpanded: true,
-              onChanged: onChanged,
-              items: options.map((String option) {
+              onChanged: widget.onChanged,
+              items: widget.options.map((String option) {
                 return DropdownMenuItem<String>(
                   value: option,
                   child: Text(option),
@@ -182,15 +198,29 @@ class SecurityQuestionDropdown extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: widget.value != null
+                ? Theme.of(context).cardColor
+                : Theme.of(context).cardColor?.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
           ),
-          child: Text(
-            'Your Answer',
-            style: TextStyle(color: Colors.grey[600]),
+          child: TextField(
+            controller: _answerController,
+            enabled: widget.value != null,
+            onChanged: widget.onAnswerChanged,
+            decoration: InputDecoration(
+              hintText: widget.value != null
+                  ? 'Your Answer'
+                  : 'Select a question first',
+              hintStyle: TextStyle(
+                color:
+                    widget.value != null ? Colors.grey[600] : Colors.grey[400],
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+            ),
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
       ],
