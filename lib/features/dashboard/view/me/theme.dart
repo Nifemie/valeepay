@@ -1,36 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Theme options enum
-enum ThemeMode {
-  dark,
-  light,
-  system,
-}
-
-// State provider for selected theme
-final selectedThemeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+import 'package:valarpay/core/themes/color_utils.dart';
+import '../../../../app.dart';
 
 class ThemesPage extends ConsumerWidget {
-  const ThemesPage({Key? key}) : super(key: key);
+  const ThemesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedTheme = ref.watch(selectedThemeProvider);
+    final currentThemeMode = ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : const Color(0xFF111827),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Themes',
           style: TextStyle(
-            color: Color(0xFF111827),
+            color: isDark ? Colors.white : const Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -45,10 +41,10 @@ class ThemesPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Choose the look that suits you best',
                 style: TextStyle(
-                  color: Color(0xFF9CA3AF),
+                  color: isDark ? Colors.grey[400] : const Color(0xFF9CA3AF),
                   fontFamily: 'SF Pro',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -60,8 +56,10 @@ class ThemesPage extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
-                  borderRadius: BorderRadius.circular(8),
+                  color: isDark
+                      ? Theme.of(context).cardColor
+                      : const Color(0xFFFAFBFC),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   children: [
@@ -70,16 +68,18 @@ class ThemesPage extends ConsumerWidget {
                       ref,
                       title: 'Dark Mode',
                       themeMode: ThemeMode.dark,
-                      isSelected: selectedTheme == ThemeMode.dark,
+                      isSelected: currentThemeMode == ThemeMode.dark,
                       showDivider: true,
+                      isDark: isDark,
                     ),
                     _buildThemeOption(
                       context,
                       ref,
                       title: 'Light Mode',
                       themeMode: ThemeMode.light,
-                      isSelected: selectedTheme == ThemeMode.light,
+                      isSelected: currentThemeMode == ThemeMode.light,
                       showDivider: true,
+                      isDark: isDark,
                     ),
                     _buildThemeOption(
                       context,
@@ -87,8 +87,9 @@ class ThemesPage extends ConsumerWidget {
                       title: 'System Default',
                       subtitle: 'This will use your device settings',
                       themeMode: ThemeMode.system,
-                      isSelected: selectedTheme == ThemeMode.system,
+                      isSelected: currentThemeMode == ThemeMode.system,
                       showDivider: false,
+                      isDark: isDark,
                     ),
                   ],
                 ),
@@ -101,20 +102,37 @@ class ThemesPage extends ConsumerWidget {
   }
 
   Widget _buildThemeOption(
-      BuildContext context,
-      WidgetRef ref, {
-        required String title,
-        String? subtitle,
-        required ThemeMode themeMode,
-        required bool isSelected,
-        required bool showDivider,
-      }) {
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    String? subtitle,
+    required ThemeMode themeMode,
+    required bool isSelected,
+    required bool showDivider,
+    required bool isDark,
+  }) {
     return Column(
       children: [
         InkWell(
           onTap: () {
-            ref.read(selectedThemeProvider.notifier).state = themeMode;
+            print('Theme button tapped: $themeMode'); // Debug output
+
+            // Update the theme using the existing provider
+            ref.read(themeModeProvider.notifier).state = themeMode;
+
+            print(
+                'Theme provider updated to: ${ref.read(themeModeProvider)}'); // Debug output
+
+            // Show a snackbar to indicate the theme change
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Theme changed to ${title.toLowerCase()}'),
+                duration: const Duration(seconds: 2),
+                backgroundColor: appTheme.primaryColor,
+              ),
+            );
           },
+          borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
@@ -125,11 +143,12 @@ class ThemesPage extends ConsumerWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: Color(0xFF111827),
+                        style: TextStyle(
+                          color:
+                              isDark ? Colors.white : const Color(0xFF111827),
                           fontFamily: 'SF Pro',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           height: 1.43,
                           letterSpacing: 0.035,
                         ),
@@ -138,8 +157,10 @@ class ThemesPage extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: const TextStyle(
-                            color: Color(0xFF9CA3AF),
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.grey[400]
+                                : const Color(0xFF9CA3AF),
                             fontFamily: 'SF Pro',
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
@@ -160,22 +181,24 @@ class ThemesPage extends ConsumerWidget {
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFFF76301)
-                          : const Color(0xFF6B7280),
-                      width: 0.5,
+                          ? appTheme.primaryColor
+                          : (isDark
+                              ? Colors.grey[600]!
+                              : const Color(0xFF6B7280)),
+                      width: 2,
                     ),
                   ),
                   child: isSelected
                       ? Center(
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF76301),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  )
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: appTheme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        )
                       : null,
                 ),
               ],
@@ -186,8 +209,8 @@ class ThemesPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
-              height: 2,
-              color: const Color(0xFFF1F4FB),
+              height: 1,
+              color: isDark ? Colors.grey[700] : const Color(0xFFF1F4FB),
             ),
           ),
       ],

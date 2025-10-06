@@ -34,6 +34,7 @@ import '../../features/dashboard/view/settings/transaction_pin_settings_screen.d
 import '../../features/dashboard/view/settings/notification_settings_screen.dart';
 import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
+import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -181,6 +182,10 @@ final router = GoRouter(
     GoRoute(
       path: '/change-pin',
       builder: (context, state) => const ChangePinScreen(),
+    ),
+    GoRoute(
+      path: '/auto-logout-settings',
+      builder: (context, state) => const AutoLogoutSettingsScreen(),
     ),
   ],
 );

@@ -108,7 +108,7 @@ class ProfileHeaderCard extends StatelessWidget {
 
               // Settings icon
               InkWell(
-                onTap: () => context.go('/settings'),
+                onTap: () => context.push('/settings'),
                 child: Container(
                   width: 32,
                   height: 32,

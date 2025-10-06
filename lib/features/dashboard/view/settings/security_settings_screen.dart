@@ -22,6 +22,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   String? question1;
   String? question2;
   String? question3;
+  String answer1 = '';
+  String answer2 = '';
+  String answer3 = '';
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +46,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
           children: [
             Text(
               'Set up security questions to help protect and recover your account',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[400],
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(),
             ),
             const SizedBox(height: 32),
             Expanded(
@@ -59,6 +60,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       onChanged: (value) {
                         setState(() {
                           question1 = value;
+                          if (value == null) answer1 = '';
+                        });
+                      },
+                      onAnswerChanged: (value) {
+                        setState(() {
+                          answer1 = value;
                         });
                       },
                     ),
@@ -70,6 +77,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       onChanged: (value) {
                         setState(() {
                           question2 = value;
+                          if (value == null) answer2 = '';
+                        });
+                      },
+                      onAnswerChanged: (value) {
+                        setState(() {
+                          answer2 = value;
                         });
                       },
                     ),
@@ -81,6 +94,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                       onChanged: (value) {
                         setState(() {
                           question3 = value;
+                          if (value == null) answer3 = '';
+                        });
+                      },
+                      onAnswerChanged: (value) {
+                        setState(() {
+                          answer3 = value;
                         });
                       },
                     ),
@@ -117,7 +136,12 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   }
 
   bool _canSave() {
-    return question1 != null && question2 != null && question3 != null;
+    return question1 != null &&
+        question2 != null &&
+        question3 != null &&
+        answer1.isNotEmpty &&
+        answer2.isNotEmpty &&
+        answer3.isNotEmpty;
   }
 
   void _saveSecurityQuestions() {
