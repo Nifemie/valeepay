@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/me_widgets/account_widget.dart';
 import '../widgets/me_widgets/user_profile.dart';
 import '../widgets/me_widgets/security_widget.dart';
-import '../widgets/navbar.dart';
+import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 
 class MeScreen extends ConsumerWidget {
   const MeScreen({Key? key}) : super(key: key);
@@ -15,17 +15,15 @@ class MeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      bottomNavigationBar: const CustomBottomNavBar(),
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         toolbarHeight: 0, // keep it hidden
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              theme.brightness == Brightness.dark
-                  ? Brightness.light
-                  : Brightness.dark,
+          statusBarIconBrightness: theme.brightness == Brightness.dark
+              ? Brightness.light
+              : Brightness.dark,
         ),
       ),
       body: SafeArea(
@@ -39,7 +37,11 @@ class MeScreen extends ConsumerWidget {
                   debugPrint('Security Tips tapped');
                 },
                 onRewardsTap: () {
-                  debugPrint('Rewards tapped');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MyRewardsPage()),
+                  );
                 },
               ),
               const SizedBox(height: 16),

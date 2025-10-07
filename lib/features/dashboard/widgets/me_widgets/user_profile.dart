@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
@@ -8,7 +9,7 @@ class ProfileHeaderCard extends StatelessWidget {
   final VoidCallback? onRewardsTap;
 
   const ProfileHeaderCard({Key? key, this.onSecurityTipsTap, this.onRewardsTap})
-    : super(key: key);
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -106,21 +107,24 @@ class ProfileHeaderCard extends StatelessWidget {
               ),
 
               // Settings icon
-              Container(
-                width: 32,
-                height: 32,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF3F4F6),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    "assets/icons/settings_icon.svg",
-                    width: 16,
-                    height: 16,
-                    colorFilter: const ColorFilter.mode(
-                      Color(0xFF4B5563),
-                      BlendMode.srcIn,
+              InkWell(
+                onTap: () => context.push('/settings'),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF3F4F6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      "assets/icons/settings_icon.svg",
+                      width: 16,
+                      height: 16,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF4B5563),
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                 ),

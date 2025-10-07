@@ -1,0 +1,219 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/themes/color_utils.dart';
+import '../../../../app.dart';
+
+class ThemesPage extends ConsumerWidget {
+  const ThemesPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentThemeMode = ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : const Color(0xFF111827),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Themes',
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF111827),
+            fontFamily: 'SF Pro',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            height: 1.43,
+            letterSpacing: 0.035,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Choose the look that suits you best',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : const Color(0xFF9CA3AF),
+                  fontFamily: 'SF Pro',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.43,
+                  letterSpacing: 0.035,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Theme.of(context).cardColor
+                      : const Color(0xFFFAFBFC),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildThemeOption(
+                      context,
+                      ref,
+                      title: 'Dark Mode',
+                      themeMode: ThemeMode.dark,
+                      isSelected: currentThemeMode == ThemeMode.dark,
+                      showDivider: true,
+                      isDark: isDark,
+                    ),
+                    _buildThemeOption(
+                      context,
+                      ref,
+                      title: 'Light Mode',
+                      themeMode: ThemeMode.light,
+                      isSelected: currentThemeMode == ThemeMode.light,
+                      showDivider: true,
+                      isDark: isDark,
+                    ),
+                    _buildThemeOption(
+                      context,
+                      ref,
+                      title: 'System Default',
+                      subtitle: 'This will use your device settings',
+                      themeMode: ThemeMode.system,
+                      isSelected: currentThemeMode == ThemeMode.system,
+                      showDivider: false,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    String? subtitle,
+    required ThemeMode themeMode,
+    required bool isSelected,
+    required bool showDivider,
+    required bool isDark,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: () {
+            print('Theme button tapped: $themeMode'); // Debug output
+
+            // Update the theme using the existing provider
+            ref.read(themeModeProvider.notifier).state = themeMode;
+
+            print(
+                'Theme provider updated to: ${ref.read(themeModeProvider)}'); // Debug output
+
+            // Show a snackbar to indicate the theme change
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Theme changed to ${title.toLowerCase()}'),
+                duration: const Duration(seconds: 2),
+                backgroundColor: appTheme.primaryColor,
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color:
+                              isDark ? Colors.white : const Color(0xFF111827),
+                          fontFamily: 'SF Pro',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          height: 1.43,
+                          letterSpacing: 0.035,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.grey[400]
+                                : const Color(0xFF9CA3AF),
+                            fontFamily: 'SF Pro',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            height: 1.33,
+                            letterSpacing: 0.06,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Radio button
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected
+                          ? appTheme.primaryColor
+                          : (isDark
+                              ? Colors.grey[600]!
+                              : const Color(0xFF6B7280)),
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? Center(
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: appTheme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (showDivider)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              height: 1,
+              color: isDark ? Colors.grey[700] : const Color(0xFFF1F4FB),
+            ),
+          ),
+      ],
+    );
+  }
+}

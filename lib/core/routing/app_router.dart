@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
+import 'package:valarpay/features/dashboard/view/commingsoon.dart';
 import 'package:valarpay/features/dashboard/view/account/account_screen.dart';
 import 'package:valarpay/features/dashboard/view/account/account_setup_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_screen.dart';
@@ -14,6 +16,7 @@ import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/t
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_screen.dart';
+
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
@@ -30,30 +33,29 @@ import '../../features/auth/views/onboarding/signup/signup_success.dart';
 import '../../features/auth/views/onboarding/signup/verify_email.dart';
 import '../../features/auth/views/onboarding/signup/verify_phone.dart';
 import '../../features/auth/views/splashscreen/splashscreen.dart';
+import '../../features/dashboard/dashboard_wrapper.dart';
 import '../../features/dashboard/view/card.dart';
 import '../../features/dashboard/view/home_screen.dart';
 import '../../features/dashboard/view/invest.dart';
 import '../../features/dashboard/view/me.dart';
 import '../../features/dashboard/view/savings.dart';
+import '../../features/dashboard/view/settings/settings.dart';
+import '../../features/dashboard/view/settings/security_settings_screen.dart';
+import '../../features/dashboard/view/settings/login_settings_screen.dart';
+import '../../features/dashboard/view/settings/transaction_pin_settings_screen.dart';
+import '../../features/dashboard/view/settings/notification_settings_screen.dart';
+import '../../features/dashboard/view/settings/finance_settings_screen.dart';
+import '../../features/dashboard/view/settings/change_pin_screen.dart';
+import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
   routes: [
+    // Auth routes (without dashboard wrapper)
     GoRoute(
       path: '/splash',
-      builder:
-          (context, state) =>
-              SplashScreen(onAnimationComplete: () => context.push('/intro')),
-    ),
-    GoRoute(
-      path: '/',
-      builder:
-          (context, state) => const Homescreen(
-            firstName: 'John',
-            profileImageUrl:
-                'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
-            balance: '1000',
-          ),
+      builder: (context, state) =>
+          SplashScreen(onAnimationComplete: () => context.push('/intro')),
     ),
     GoRoute(path: '/intro', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
@@ -83,14 +85,13 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/signup-success',
-      builder:
-          (context, state) =>
-              SignupSuccessScreen(firstName: state.extra as String? ?? 'User'),
+      builder: (context, state) =>
+          SignupSuccessScreen(firstName: state.extra as String? ?? 'User'),
     ),
     GoRoute(
       path: '/signin',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: SignInScreen()),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: SignInScreen()),
     ),
     GoRoute(
       path: '/biometric-login',
@@ -112,19 +113,91 @@ final router = GoRouter(
       path: '/change-password',
       builder: (context, state) => const ChangePasswordScreen(),
     ),
-    GoRoute(path: '/me', builder: (context, state) => const MeScreen()),
-    GoRoute(
-      path: '/finance',
-      builder: (context, state) => const SavingsComingSoonScreen(),
+
+    // Dashboard shell route with bottom navigation
+    ShellRoute(
+      builder: (context, state, child) => DashboardWrapper(child: child),
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Homescreen(
+            firstName: 'John',
+            profileImageUrl:
+                'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
+            balance: '1000',
+          ),
+        ),
+        GoRoute(
+          path: '/finance',
+          builder: (context, state) => const SavingsComingSoonScreen(),
+        ),
+        GoRoute(
+          path: '/invest',
+          builder: (context, state) => const InvestmentsComingSoonScreen(),
+        ),
+        GoRoute(
+          path: '/cards',
+          builder: (context, state) => const CardScreen(),
+        ),
+        GoRoute(
+          path: '/me',
+          builder: (context, state) => const MeScreen(),
+        ),
+      ],
     ),
-    GoRoute(path: '/cards', builder: (context, state) => const CardScreen()),
-    GoRoute(
-      path: '/invest',
-      builder: (context, state) => const InvestmentsComingSoonScreen(),
-    ),
+
+    // Standalone routes (without dashboard wrapper)
     GoRoute(
       path: '/coming-soon',
       builder: (context, state) => const ComingSoonScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/notification-settings',
+      builder: (context, state) => const NotificationSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/customer-service',
+      builder: (context, state) => const CustomerServiceScreen(),
+    ),
+    GoRoute(
+      path: '/faq',
+      builder: (context, state) => const FAQScreen(),
+    ),
+    GoRoute(
+      path: '/visit-office',
+      builder: (context, state) => const VisitOfficeScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/security-settings',
+      builder: (context, state) => const SecuritySettingsScreen(),
+    ),
+    GoRoute(
+      path: '/login-settings',
+      builder: (context, state) => const LoginSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/transaction-pin-settings',
+      builder: (context, state) => const TransactionPinSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/finance-settings',
+      builder: (context, state) => const FinanceSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/change-pin',
+      builder: (context, state) => const ChangePinScreen(),
+    ),
+    GoRoute(
+      path: '/auto-logout-settings',
+      builder: (context, state) => const AutoLogoutSettingsScreen(),
     ),
     GoRoute(
       path: '/transfer-to-valarpay',

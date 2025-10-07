@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/features/dashboard/view/me/account_settings.dart';
+import 'package:valarpay/features/dashboard/view/me/portfolio.dart';
+import 'package:valarpay/features/dashboard/view/me/theme.dart';
+import 'package:valarpay/features/dashboard/view/me/transaction_history.dart';
+
 
 class AccountMenuWidget extends StatelessWidget {
   const AccountMenuWidget({Key? key}) : super(key: key);
@@ -27,25 +32,48 @@ class AccountMenuWidget extends StatelessWidget {
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/doc.svg',
             title: 'Transaction History',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TransactionHistoryPage()),
+              );
+            },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/account.svg',
             title: 'Account Settings',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountSettingsPage()),
+              );
+            },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/port.svg',
             title: 'My Portfolio',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyPortfolioPage()),
+              );
+
+            },
+
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/rating.svg',
             title: 'Theme',
-            onTap: () {},
+            onTap: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ThemesPage()),
+              );
+            },
           ),
         ],
       ),
