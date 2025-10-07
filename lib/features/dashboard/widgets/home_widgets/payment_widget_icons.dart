@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 class PaymentWidget extends StatelessWidget {
   const PaymentWidget({Key? key}) : super(key: key);
@@ -19,25 +20,25 @@ class PaymentWidget extends StatelessWidget {
             context,
             svgAssetPath: 'assets/images/payment_wid/valarpay.svg',
             label: 'To ValaPay',
-            onTap: () => print('To ValaPay tapped'),
+            onTap: () => context.push("/transfer-to-valarpay"),
           ),
           _buildActionItem(
             context,
             svgAssetPath: 'assets/images/payment_wid/Bank.svg',
             label: 'To Bank',
-            onTap: () => print('To Bank tapped'),
+            onTap: () => context.push("/transfer-to-bank"),
           ),
           _buildActionItem(
             context,
             svgAssetPath: 'assets/images/payment_wid/withdraw.svg',
             label: 'Withdraw',
-            onTap: () => print('Withdraw tapped'),
+            onTap: () => context.push("/withdraw"),
           ),
           _buildActionItem(
             context,
             svgAssetPath: 'assets/images/payment_wid/Account.svg',
             label: 'Account',
-            onTap: () => print('Account tapped'),
+                 onTap: () => context.push("/account"),
           ),
         ],
       ),

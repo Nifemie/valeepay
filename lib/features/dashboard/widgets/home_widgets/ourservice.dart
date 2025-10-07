@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 class OurServicesWidget extends StatelessWidget {
   const OurServicesWidget({Key? key}) : super(key: key);
 
-  static const List<ServiceItem> services = [
+  // First services page
+  static const List<ServiceItem> servicesPage1 = [
     ServiceItem(
       icon: 'assets/images/service_icon/airtime.svg',
       label: 'Airtime',
@@ -50,8 +51,42 @@ class OurServicesWidget extends StatelessWidget {
     ),
   ];
 
+  // Second services page
+  static const List<ServiceItem> servicesPage2 = [
+    ServiceItem(icon: 'assets/images/service_icon/health.svg', label: 'Health'),
+    ServiceItem(
+      icon: 'assets/images/service_icon/government.svg',
+      label: 'Government',
+    ),
+    ServiceItem(
+      icon: 'assets/images/service_icon/jamb.svg',
+      label: 'Jamb & Waec',
+    ),
+    ServiceItem(
+      icon: 'assets/images/service_icon/water.svg',
+      label: 'Pay Water',
+    ),
+    ServiceItem(icon: 'assets/images/service_icon/tax.svg', label: 'Pay Tax'),
+    ServiceItem(
+      icon: 'assets/images/service_icon/bus.svg',
+      label: 'Bus Ticket',
+    ),
+    ServiceItem(
+      icon: 'assets/images/service_icon/tsa.svg',
+      label: 'TSA & States',
+    ),
+    ServiceItem(
+      icon: 'assets/images/service_icon/movie.svg',
+      label: 'Movie Ticket',
+    ),
+    ServiceItem(icon: 'assets/images/service_icon/flight.svg', label: 'Flight'),
+    ServiceItem(icon: 'assets/images/service_icon/hotel.svg', label: 'Hotel'),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final pages = [servicesPage1, servicesPage2];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -68,28 +103,40 @@ class OurServicesWidget extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 100, // adaptive
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.9,
-            ),
-            itemCount: services.length,
+        SizedBox(
+          height: 320, // enough to contain the grid
+          child: PageView.builder(
+            itemCount: pages.length,
             itemBuilder: (context, index) {
-              return _buildServiceItem(context, services[index]);
+              return _buildGrid(context, pages[index]);
             },
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildGrid(BuildContext context, List<ServiceItem> services) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 100,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.9,
+        ),
+        itemCount: services.length,
+        itemBuilder: (context, index) {
+          return _buildServiceItem(context, services[index]);
+        },
+      ),
     );
   }
 
@@ -100,7 +147,7 @@ class OurServicesWidget extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          context.push('/coming-soon'); // navigate to coming soon
+          context.push('/coming-soon');
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,

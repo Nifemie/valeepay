@@ -75,7 +75,7 @@ class KYCWidget extends StatelessWidget {
             onPressed: onSetup ?? () {},
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: appTheme.secondaryColor, // secondary blue
+              backgroundColor: appTheme.primaryColor, // secondary blue
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
