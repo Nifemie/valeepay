@@ -1,12 +1,14 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter/material.dart';
-import 'package:valarpay/features/dashboard/view/commingsoon.dart';
 import 'package:valarpay/features/dashboard/view/account/account_screen.dart';
 import 'package:valarpay/features/dashboard/view/account/account_setup_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_qrcode_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_transfer_screen.dart';
 import 'package:valarpay/features/dashboard/view/comming_soon.dart';
+import 'package:valarpay/features/dashboard/view/home/notifications/notifications_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/select_bank_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_amount_screen.dart';
