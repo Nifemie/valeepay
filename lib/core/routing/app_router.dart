@@ -1,8 +1,47 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter/material.dart';
-import 'package:valarpay/features/dashboard/view/comming_soon.dart';
+import 'package:flutter/foundation.dart';
+import 'package:valarpay/features/dashboard/view/me/rewards.dart';
+import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
+import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/education/education.dart';
+import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
+import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
+import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/internet/internet_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/shopping/shopping.dart';
+import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
+import 'package:valarpay/features/dashboard/view/settings/close_account_screen.dart';
 import '../../features/dashboard/view/services/airtime/airtime.dart';
 import '../../features/dashboard/view/services/data/data.dart';
+import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
+import '../../features/dashboard/view/services/airtime/ussd_enquiry.dart';
+import '../../features/dashboard/view/me/transaction_history.dart';
+import '../../features/dashboard/view/me/account_settings.dart';
+import '../../features/dashboard/view/me/account_statement.dart';
+import '../../features/dashboard/view/me/theme.dart';
+import '../../features/dashboard/view/home/notifications/notification_view.dart';
+import 'package:valarpay/features/dashboard/view/account/account_screen.dart';
+import 'package:valarpay/features/dashboard/view/account/account_setup_screen.dart';
+import 'package:valarpay/features/dashboard/view/addmoney/add_money_screen.dart';
+import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_qrcode_screen.dart';
+import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_transfer_screen.dart';
+import 'package:valarpay/features/dashboard/view/comming_soon.dart';
+import 'package:valarpay/features/dashboard/view/home/notifications/notifications_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/select_bank_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_amount_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transaction_details_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_success_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
+import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
+import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
+import 'package:valarpay/features/dashboard/view/withdraw/withdraw_screen.dart';
+
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
@@ -22,10 +61,7 @@ import '../../features/auth/views/splashscreen/splashscreen.dart';
 import '../../features/dashboard/dashboard_wrapper.dart';
 import '../../features/dashboard/view/card.dart';
 import '../../features/dashboard/view/home/homescreen.dart';
-import '../../features/dashboard/view/home/notifications/notifications_screen.dart';
-import '../../features/dashboard/view/home/support/customer_service_screen.dart';
-import '../../features/dashboard/view/home/support/faq_screen.dart';
-import '../../features/dashboard/view/home/support/visit_office_screen.dart';
+import '../../features/dashboard/view/home/support/faq_detail_screen.dart';
 import '../../features/dashboard/view/invest.dart';
 import '../../features/dashboard/view/me.dart';
 import '../../features/dashboard/view/savings.dart';
@@ -37,20 +73,6 @@ import '../../features/dashboard/view/settings/notification_settings_screen.dart
 import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
-import '../../features/dashboard/view/me/transaction_history.dart';
-import '../../features/dashboard/view/me/account_statement.dart';
-import '../../features/dashboard/view/me/account_settings.dart';
-import '../../features/dashboard/view/me/portfolio.dart';
-import '../../features/dashboard/view/me/theme.dart';
-import '../../features/dashboard/view/me/security.dart';
-import '../../features/dashboard/view/me/about_us.dart';
-import '../../features/dashboard/view/account/account_screen.dart';
-import '../../features/dashboard/view/me/rewards.dart';
-import '../../features/dashboard/view/transfer/select_bank_screen.dart';
-import '../../features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
-import '../../features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
-import '../../features/dashboard/view/withdraw/withdraw_screen.dart';
-
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -204,49 +226,11 @@ final router = GoRouter(
       builder: (context, state) => const AutoLogoutSettingsScreen(),
     ),
     GoRoute(
-      path: '/transaction-history',
-      builder: (context, state) => const TransactionHistoryPage(),
-    ),
-    GoRoute(
-      path: '/account-statement',
-      builder: (context, state) => const AccountStatementPage(),
-    ),
-    GoRoute(
-      path: '/account-settings',
-      builder: (context, state) => const AccountSettingsPage(),
-    ),
-    GoRoute(
-      path: '/my-portfolio',
-      builder: (context, state) => const MyPortfolioPage(),
-    ),
-    GoRoute(
-      path: '/themes',
-      builder: (context, state) => const ThemesPage(),
-    ),
-    GoRoute(
-      path: '/security-centre',
-      builder: (context, state) => const SecurityCentrePage(),
-    ),
-    GoRoute(
-      path: '/about-us',
-      builder: (context, state) => const AboutUsPage(),
-    ),
-    GoRoute(
       path: '/my-rewards',
       builder: (context, state) => const MyRewardsPage(),
     ),
-    GoRoute(
-      path: '/transfer-to-valarpay',
-      builder: (context, state) => const TransferToValarPayScreen(),
-    ),
-    GoRoute(
-      path: '/transfer-to-bank',
-      builder: (context, state) => const TransferToBankScreen(),
-    ),
-    GoRoute(
-      path: '/withdraw',
-      builder: (context, state) => const WithdrawScreen(),
-    ),
+
+    // Services routes
     GoRoute(
       path: '/airtime',
       builder: (context, state) => const AirtimeScreen(),
@@ -256,12 +240,161 @@ final router = GoRouter(
       builder: (context, state) => const DataScreen(),
     ),
     GoRoute(
-      path: '/account',
-      builder: (context, state) => const AccountScreen(),
+      path: '/schedule-topup',
+      builder: (context, state) => const ScheduleTopupScreen(),
+    ),
+    GoRoute(
+      path: '/ussd-enquiry',
+      builder: (context, state) => const USSDEnquiryScreen(),
+    ),
+
+    // Me section routes
+    GoRoute(
+      path: '/transaction-history',
+      builder: (context, state) => const TransactionHistoryPage(),
+    ),
+    GoRoute(
+      path: '/account-settings',
+      builder: (context, state) => const AccountSettingsPage(),
+    ),
+    GoRoute(
+      path: '/account-statement',
+      builder: (context, state) => const AccountStatementPage(),
+    ),
+    GoRoute(
+      path: '/themes',
+      builder: (context, state) => const ThemesPage(),
+    ),
+
+    // Notification routes
+    GoRoute(
+      path: '/notification-view',
+      builder: (context, state) {
+        final Map<String, String> data = state.extra as Map<String, String>? ??
+            {'title': 'Notification', 'content': 'No content'};
+        return NotificationViewScreen(
+          title: data['title']!,
+          content: data['content']!,
+        );
+      },
+    ),
+
+    // FAQ Detail route
+    GoRoute(
+      path: '/faq-detail',
+      builder: (context, state) {
+        final Map<String, String> data = state.extra as Map<String, String>? ??
+            {'question': 'FAQ', 'answer': 'No answer available'};
+        return FAQDetailScreen(
+          question: data['question']!,
+          answer: data['answer']!,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/electricity',
+      builder: (context, state) => const ElectricityScreen(),
+    ),
+    GoRoute(
+      path: '/flight',
+      builder: (context, state) => const FlightScreen(),
+    ),
+    GoRoute(
+      path: '/swap-currency',
+      builder: (context, state) => const SwapCurrencyScreen(),
+    ),
+    GoRoute(
+      path: '/insurance',
+      builder: (context, state) => const InsuranceScreen(),
+    ),
+    GoRoute(
+      path: '/international-airime',
+      builder: (context, state) => const InternationalAirtimeScreen(),
+    ),
+    GoRoute(
+      path: '/education',
+      builder: (context, state) => const EducationScreen(),
+    ),
+    GoRoute(
+      path: '/internet',
+      builder: (context, state) => const InternetScreen(),
+    ),
+    GoRoute(
+      path: '/transfer-to-valarpay',
+      builder: (context, state) => const TransferToValarPayScreen(),
+    ),
+    GoRoute(
+      path: '/transfer-amount',
+      builder: (context, state) => const TransferAmountScreen(),
+    ),
+    GoRoute(
+      path: '/transaction-details',
+      builder: (context, state) => const TransactionDetailsScreen(),
+    ),
+    GoRoute(
+      path: '/transfer-success',
+      builder: (context, state) => const TransferSuccessScreen(),
+    ),
+    GoRoute(
+      path: '/transfer-to-bank',
+      builder: (context, state) => const TransferToBankScreen(),
     ),
     GoRoute(
       path: '/select-bank',
       builder: (context, state) => const SelectBankScreen(),
+    ),
+    GoRoute(
+      path: '/withdraw',
+      builder: (context, state) => const WithdrawScreen(),
+    ),
+    GoRoute(
+      path: '/withdraw-via-bank',
+      builder: (context, state) => const WithdrawBankBranchScreen(),
+    ),
+    GoRoute(
+      path: '/withdraw-via-marchant',
+      builder: (context, state) => const WithdrawMerchantScreen(),
+    ),
+    GoRoute(
+      path: '/account',
+      builder: (context, state) => const AccountScreen(),
+    ),
+    GoRoute(
+      path: '/account-setup',
+      builder: (context, state) => const AccountSetupScreen(),
+    ),
+    GoRoute(
+      path: '/add-money',
+      builder: (context, state) => const AddMoneyScreen(),
+    ),
+    GoRoute(
+      path: '/add-money-via-transfer',
+      builder: (context, state) => const AddMoneyTransferScreen(),
+    ),
+    GoRoute(
+      path: '/add-money-via-qrcode',
+      builder: (context, state) => const AddMoneyQRCode(),
+    ),
+    GoRoute(
+      path: '/close-account',
+      builder: (context, state) => const CloseAccountScreen(),
+    ),
+    GoRoute(
+      path: '/cable-tv',
+      builder: (context, state) => const CableTvScreen(),
+    ),
+    GoRoute(
+      path: '/betting',
+      builder: (context, state) => const BettingScreen(),
+    ),
+    GoRoute(
+      path: '/shopping',
+      builder: (context, state) => const ShoppingScreen(),
+    ),
+
+    GoRoute(
+      path: '/gift-card',
+      builder: (context, state) => const GiftCardScreen(),
     ),
   ],
 );

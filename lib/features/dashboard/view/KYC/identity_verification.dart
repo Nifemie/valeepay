@@ -35,9 +35,6 @@ class _IdentityVerificationTipsPageState
         return ProfileSetupSuccessDialog(
           onContinue: () {
             Navigator.of(context).pop();
-            // Navigate to passcode setup
-            print('Navigate to passcode setup');
-            Navigator.push(context, MaterialPageRoute(builder: (context) => SetupTransactionPinPage()));
           },
         );
       },
@@ -49,12 +46,10 @@ class _IdentityVerificationTipsPageState
     final currentStep = ref.watch(kycStepProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             ref.read(kycStepProvider.notifier).state = 2;
             Navigator.pop(context);
@@ -104,7 +99,6 @@ class _IdentityVerificationTipsPageState
                 'Tips for a Successful Identity Verification',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -158,7 +152,6 @@ class _IdentityVerificationTipsPageState
                 child: const Text(
                   'Retake',
                   style: TextStyle(
-                    color: Color(0xFF111827),
                     fontFamily: 'SF Pro',
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

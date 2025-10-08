@@ -22,8 +22,8 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '+234 000000000';
-    _amountController.text = '₦ 000000000';
+    _phoneController.text = '000000000';
+    _amountController.text = '000000000';
   }
 
   void _showContactAccessDialog() {
@@ -92,33 +92,28 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            ResponsiveTextField(
-                controller: _phoneController,
-                label: 'Phone number',
-                hint: _phoneController.text),
+
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
+                color: Theme.of(context).cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade700),
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 4,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      _phoneController.text,
+                    child: TextField(
+                      controller: _phoneController,
+                      decoration: InputDecoration(
+                          prefix: const Text(
+                            '🇳🇬 +234 ',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          border: InputBorder.none),
                       style: const TextStyle(
-                        color: Colors.white,
                         fontSize: 16,
                       ),
                     ),
@@ -165,16 +160,17 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
             ),
             const SizedBox(height: 12),
             Container(
+              width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
+                color: Theme.of(context).cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade700),
               ),
-              child: Text(
-                _amountController.text,
+              child: TextField(
+                controller: _amountController,
+                decoration: InputDecoration(
+                    border: InputBorder.none, prefix: Text('₦ ')),
                 style: const TextStyle(
-                  color: Colors.white,
                   fontSize: 16,
                 ),
               ),

@@ -14,17 +14,14 @@ class CameraPermissionPage extends ConsumerWidget {
     final currentStep = ref.watch(kycStepProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
-          onPressed: () {
-            ref.read(kycStepProvider.notifier).state = 2;
-            Navigator.pop(context);
-          }
-        ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              ref.read(kycStepProvider.notifier).state = 2;
+              Navigator.pop(context);
+            }),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -41,7 +38,7 @@ class CameraPermissionPage extends ConsumerWidget {
                 height: 120,
                 padding: const EdgeInsets.all(36),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color: Theme.of(context).cardColor.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
                 child: SvgPicture.asset(
@@ -58,7 +55,6 @@ class CameraPermissionPage extends ConsumerWidget {
                 'Camera Permission Required',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -101,7 +97,9 @@ class CameraPermissionPage extends ConsumerWidget {
                   ref.read(kycStepProvider.notifier).state = 3;
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const IdentityVerificationTipsPage()),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const IdentityVerificationTipsPage()),
                   );
                 },
               ),
@@ -112,4 +110,3 @@ class CameraPermissionPage extends ConsumerWidget {
     );
   }
 }
-

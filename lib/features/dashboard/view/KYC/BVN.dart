@@ -18,12 +18,10 @@ class BVNPage extends ConsumerWidget {
     final currentStep = ref.watch(kycStepProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             ref.read(kycStepProvider.notifier).state = 1;
             Navigator.pop(context);
@@ -44,7 +42,6 @@ class BVNPage extends ConsumerWidget {
                 'Your BVN',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -73,7 +70,6 @@ class BVNPage extends ConsumerWidget {
                   const Text(
                     'Your BVN',
                     style: TextStyle(
-                      color: Color(0xFF9CA3AF),
                       fontFamily: 'SF Pro',
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
@@ -84,11 +80,10 @@ class BVNPage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   // Input Container
                   Container(
-                    width: 335,
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFAFBFC),
+                      color: Theme.of(context).cardColor.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
@@ -98,7 +93,6 @@ class BVNPage extends ConsumerWidget {
                       keyboardType: TextInputType.number,
                       maxLength: 11,
                       style: const TextStyle(
-                        color: Color(0xFF111827),
                         fontFamily: 'SF Pro',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -128,7 +122,6 @@ class BVNPage extends ConsumerWidget {
                     'Why we need your BVN?',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Color(0xFF111827),
                       fontFamily: 'SF Pro',
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

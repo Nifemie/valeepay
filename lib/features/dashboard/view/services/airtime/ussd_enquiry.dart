@@ -32,7 +32,7 @@ class USSDEnquiryScreen extends StatelessWidget {
             NetworkSection(
               networkName: 'MTN',
               networkColor: Colors.yellow,
-              networkIcon: 'M',
+              networkIcon: Image.asset('assets/images/mtn.png'),
               services: const [
                 USSDService(
                   title: 'Check mobile phone number',
@@ -62,7 +62,7 @@ class USSDEnquiryScreen extends StatelessWidget {
             NetworkSection(
               networkName: 'Airtel',
               networkColor: Colors.red,
-              networkIcon: 'A',
+              networkIcon: Image.asset('assets/images/airtel.png'),
               services: const [
                 USSDService(
                   title: 'Check mobile phone number',
@@ -92,7 +92,7 @@ class USSDEnquiryScreen extends StatelessWidget {
             NetworkSection(
               networkName: 'Glo',
               networkColor: Colors.green,
-              networkIcon: 'G',
+              networkIcon: Image.asset('assets/images/glo.png'),
               services: const [
                 USSDService(
                   title: 'Check mobile phone number',
@@ -122,7 +122,7 @@ class USSDEnquiryScreen extends StatelessWidget {
             NetworkSection(
               networkName: '9mobile',
               networkColor: Colors.green,
-              networkIcon: '9',
+              networkIcon: Image.asset('assets/images/9mobile.png'),
               services: const [
                 USSDService(
                   title: 'Check mobile phone number',

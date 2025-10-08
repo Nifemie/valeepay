@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/app.dart';
 import '../../widgets/me_widgets/modal/calendar_picker_moadal.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
 // State providers
 final startDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -21,18 +22,15 @@ class AccountStatementPage extends ConsumerWidget {
     final email = ref.watch(emailProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Account Statement',
           style: TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w400,
@@ -71,7 +69,6 @@ class AccountStatementPage extends ConsumerWidget {
                 );
               },
               child: Container(
-                width: 335,
                 height: 40,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -128,7 +125,6 @@ class AccountStatementPage extends ConsumerWidget {
                 );
               },
               child: Container(
-                width: 335,
                 height: 40,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -179,7 +175,6 @@ class AccountStatementPage extends ConsumerWidget {
                 _showAccountSelection(context, ref);
               },
               child: Container(
-                width: 335,
                 height: 40,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -233,7 +228,6 @@ class AccountStatementPage extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Container(
-              width: 335,
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
@@ -276,7 +270,6 @@ class AccountStatementPage extends ConsumerWidget {
                 _handleGenerate(context, ref);
               },
               child: Container(
-                width: 335,
                 height: 40,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF76301),
@@ -434,7 +427,8 @@ class AccountStatementPage extends ConsumerWidget {
 
     // Validate email
     if (email.isEmpty) {
-      CustomToast.showErrorToast(context:context, message: 'Please enter an email address');
+      CustomToast.showErrorToast(
+          context: context, message: 'Please enter an email address');
 
       return;
     }
@@ -447,6 +441,7 @@ class AccountStatementPage extends ConsumerWidget {
     print('Email: $email');
 
     // Show success message
-    CustomToast.showAppToast(context:context, message: 'tatement will be sent to your email');
+    CustomToast.showAppToast(
+        context: context, message: 'tatement will be sent to your email');
   }
 }

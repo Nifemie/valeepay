@@ -39,18 +39,15 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "Transfer to Bank Account",
           style: TextStyle(
-            color: Colors.black87,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -64,7 +61,7 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
             // Beneficiary Account Number
             const Text(
               "Beneficiary Account Number",
-              style: TextStyle(color: Colors.black54, fontSize: 14),
+              style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -86,40 +83,40 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
             // Select Bank
             const Text(
               "Select Bank",
-              style: TextStyle(color: Colors.black54, fontSize: 14),
+              style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 8),
 
             GestureDetector(
-              onTap: ()=> context.push('/select-bank'),
-              child: 
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.black,
-                    child: Icon(Icons.apple, color: Colors.white, size: 18),
+                onTap: () => context.push('/select-bank'),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      selectedBank,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.black,
+                        child: Icon(Icons.apple, color: Colors.white, size: 18),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          selectedBank,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: Colors.black54),
+                    ],
                   ),
-                  const Icon(Icons.chevron_right, color: Colors.black54),
-                ],
-              ),
-            )),
+                )),
 
             const SizedBox(height: 20),
 
@@ -174,10 +171,7 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color:
-                              isRecentTab
-                                  ? appTheme.primaryColor
-                                  : Colors.black54,
+                          color: isRecentTab ? appTheme.primaryColor : null,
                         ),
                       ),
                       if (isRecentTab)
@@ -200,10 +194,7 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color:
-                              !isRecentTab
-                                  ? appTheme.primaryColor
-                                  : Colors.black54,
+                          color: !isRecentTab ? appTheme.primaryColor : null,
                         ),
                       ),
                       if (!isRecentTab)
@@ -225,7 +216,7 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
             TextField(
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, color: Colors.black54),
-                hintText: "Searching",
+                hintText: "Search",
                 filled: true,
                 fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
@@ -247,7 +238,7 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Theme.of(context).cardColor.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(

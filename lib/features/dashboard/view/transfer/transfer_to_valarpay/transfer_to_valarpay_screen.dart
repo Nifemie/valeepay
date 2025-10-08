@@ -1,27 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
-class TransferToValarPayScreen extends StatelessWidget {
+class TransferToValarPayScreen extends StatefulWidget {
   const TransferToValarPayScreen({super.key});
+
+  @override
+  State<TransferToValarPayScreen> createState() =>
+      _TransferToValarPayScreenState();
+}
+
+class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
+  final TextEditingController _accountController = TextEditingController();
+
+  Future<void> pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData != null && clipboardData.text != null) {
+      setState(() {
+        _accountController.text = clipboardData.text!;
+      });
+      CustomToast.showAppToast(
+          context: context, message: 'ValarPay pasted from clipboard');
+    } else {
+      CustomToast.showAppToast(context: context, message: 'Clipboard is empty');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back),
         ),
         title: Text(
           'Transfer to ValarPay Account',
           style: TextStyle(
-            color: Colors.black,
-            fontSize: 17.sp,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -43,40 +63,44 @@ class TransferToValarPayScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.bolt, color: Colors.blue, size: 18.sp),
-                    SizedBox(width: 6.w),
+                    SizedBox(width: 6),
                     Text(
                       'Quick, Free, No-delays',
                       style: TextStyle(
                         color: Colors.blue[800],
-                        fontSize: 13.sp,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20.h),
+              SizedBox(height: 20),
 
               Text(
                 'Recipient Account Number',
                 style: TextStyle(
-                  color: Colors.grey[800],
                   fontWeight: FontWeight.w600,
-                  fontSize: 15.sp,
+                  fontSize: 15,
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: 8),
               TextField(
+                controller: _accountController,
                 decoration: InputDecoration(
                   hintText: 'Enter ValarPay account name/number',
                   hintStyle: TextStyle(
                     color: Colors.grey[500],
-                    fontSize: 14.sp,
+                    fontSize: 14,
                   ),
-                  suffixIcon: Icon(
-                    Icons.content_paste,
-                    color: Colors.grey[500],
-                  ),
+                  suffixIcon: IconButton(
+                      onPressed: () {
+                        pasteFromClipboard();
+                      },
+                      icon: Icon(
+                        Icons.content_paste,
+                        color: Colors.grey[500],
+                      )),
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: EdgeInsets.symmetric(
@@ -99,14 +123,13 @@ class TransferToValarPayScreen extends StatelessWidget {
                   Text(
                     'Emmy John Smith',
                     style: TextStyle(
-                      color: Colors.black,
                       fontWeight: FontWeight.w600,
-                      fontSize: 15.sp,
+                      fontSize: 15,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 25.h),
+              SizedBox(height: 25),
 
               // Continue Button
               SizedBox(
@@ -127,12 +150,12 @@ class TransferToValarPayScreen extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
-                      fontSize: 16.sp,
+                      fontSize: 16,
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 25.h),
+              SizedBox(height: 25),
 
               // Tabs
               DefaultTabController(
@@ -146,14 +169,14 @@ class TransferToValarPayScreen extends StatelessWidget {
                         indicatorColor: appTheme.primaryColor,
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 15.sp,
+                          fontSize: 15,
                         ),
                         tabs: const [
                           Tab(text: 'Recent'),
                           Tab(text: 'Saved Beneficiary'),
                         ],
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: 8),
                       Expanded(
                         child: TabBarView(
                           children: [
@@ -182,7 +205,7 @@ class TransferToValarPayScreen extends StatelessWidget {
 
     return ListView.builder(
       itemCount: recipients.length,
-      padding: EdgeInsets.only(top: 8.h),
+      padding: EdgeInsets.only(top: 8),
       itemBuilder: (context, index) {
         final user = recipients[index];
         return ListTile(
@@ -192,11 +215,11 @@ class TransferToValarPayScreen extends StatelessWidget {
           ),
           title: Text(
             user['name']!,
-            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
           subtitle: Text(
             user['type']!,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
+            style: TextStyle(color: Colors.grey[600], fontSize: 13),
           ),
           trailing: Icon(
             index == 1 ? Icons.bookmark : Icons.add,

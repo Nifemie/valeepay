@@ -8,22 +8,20 @@ import '../../widgets/Kyc/Dialog/passcode_success.dart';
 import '../../view/home/homescreen.dart';
 import '../KYC/KYCSetupPage.dart';
 
-
 class ConfirmTransactionPinPage extends ConsumerWidget {
   const ConfirmTransactionPinPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pinState = ref.watch(pinControllerProvider);
-    final isFormValid = ref.read(pinControllerProvider.notifier).isConfirmPinValid();
+    final isFormValid =
+        ref.read(pinControllerProvider.notifier).isConfirmPinValid();
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -39,7 +37,6 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                 'Confirm Your Transaction Pin',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -63,7 +60,9 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
               // PIN Input Boxes
               PinInputField(
                 onChanged: (value) {
-                  ref.read(pinControllerProvider.notifier).updateConfirmPin(value);
+                  ref
+                      .read(pinControllerProvider.notifier)
+                      .updateConfirmPin(value);
                 },
               ),
               const SizedBox(height: 40),
@@ -76,7 +75,9 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                     context,
                     onSuccess: () async {
                       // Save PIN securely
-                      await ref.read(pinControllerProvider.notifier).savePinSecurely(pinState.pin);
+                      await ref
+                          .read(pinControllerProvider.notifier)
+                          .savePinSecurely(pinState.pin);
 
                       // Show success dialog
                       _showSuccessDialog(context, ref);
@@ -121,7 +122,6 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -179,7 +179,9 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                           onPressed: () {
                             Navigator.of(context).pop();
                             // Clear only the confirm PIN field
-                            ref.read(pinControllerProvider.notifier).clearConfirmPin();
+                            ref
+                                .read(pinControllerProvider.notifier)
+                                .clearConfirmPin();
                           },
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),

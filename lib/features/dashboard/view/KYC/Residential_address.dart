@@ -5,7 +5,6 @@ import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'BVN.dart';
 import 'kyc_step_provider.dart';
 
-
 // State providers for form fields
 final stateProvider = StateProvider<String>((ref) => '');
 final lgaProvider = StateProvider<String>((ref) => '');
@@ -30,17 +29,14 @@ class ResidentialAddressPage extends ConsumerWidget {
         landmark.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
-          onPressed: () {
-            ref.read(kycStepProvider.notifier).state = 1;
-            Navigator.pop(context);
-          }
-        ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              ref.read(kycStepProvider.notifier).state = 1;
+              Navigator.pop(context);
+            }),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -56,7 +52,6 @@ class ResidentialAddressPage extends ConsumerWidget {
                 'Residential Address',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -144,13 +139,13 @@ class ResidentialAddressPage extends ConsumerWidget {
   }
 
   Widget _buildInputField(
-      BuildContext context,
-      WidgetRef ref, {
-        required String label,
-        String? placeholder,
-        required String value,
-        required Function(String) onChanged,
-      }) {
+    BuildContext context,
+    WidgetRef ref, {
+    required String label,
+    String? placeholder,
+    required String value,
+    required Function(String) onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -169,17 +164,15 @@ class ResidentialAddressPage extends ConsumerWidget {
         const SizedBox(height: 8),
         // Input Container
         Container(
-          width: 335,
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFFAFBFC),
+            color: Theme.of(context).cardColor.withOpacity(0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
             onChanged: onChanged,
             style: const TextStyle(
-              color: Color(0xFF111827),
               fontFamily: 'SF Pro',
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -202,6 +195,3 @@ class ResidentialAddressPage extends ConsumerWidget {
     );
   }
 }
-
-
-

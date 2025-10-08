@@ -13,7 +13,6 @@ class AirtimeServicesSection extends StatelessWidget {
         const Text(
           'Airtime Services',
           style: TextStyle(
-            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -61,9 +60,8 @@ class _ServiceTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
+          color: Theme.of(context).cardColor.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade700),
         ),
         child: Row(
           children: [
@@ -88,7 +86,6 @@ class _ServiceTile extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

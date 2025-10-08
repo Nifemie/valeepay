@@ -14,12 +14,10 @@ class SetupTransactionPinPage extends ConsumerWidget {
     final isFormValid = ref.read(pinControllerProvider.notifier).isPinValid();
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -35,7 +33,6 @@ class SetupTransactionPinPage extends ConsumerWidget {
                 'Set Up Your Transaction Pin',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -75,7 +72,8 @@ class SetupTransactionPinPage extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ConfirmTransactionPinPage(),
+                          builder: (context) =>
+                              const ConfirmTransactionPinPage(),
                         ),
                       );
                     },

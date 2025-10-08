@@ -9,12 +9,10 @@ class KYCSetupPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -52,7 +50,6 @@ class KYCSetupPage extends ConsumerWidget {
                 'What do i need to complete my profile setup?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -75,7 +72,8 @@ class KYCSetupPage extends ConsumerWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ResidentialAddressPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const ResidentialAddressPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(

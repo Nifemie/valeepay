@@ -11,7 +11,6 @@ class ProfileSetupSuccessDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -40,7 +39,6 @@ class ProfileSetupSuccessDialog extends StatelessWidget {
               'Profile Setup Successfully',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFF111827),
                 fontFamily: 'SF Pro',
                 fontSize: 20,
                 fontWeight: FontWeight.w600,

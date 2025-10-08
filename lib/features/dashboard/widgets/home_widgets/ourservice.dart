@@ -19,43 +19,47 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/betting.svg',
           label: 'Betting',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/betting')),
       ServiceItem(
           icon: 'assets/images/service_icon/light.svg',
           label: 'Electricity',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/electricity')),
       ServiceItem(
           icon: 'assets/images/service_icon/cable.svg',
           label: 'Cable Tv',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/cable-tv')),
       ServiceItem(
           icon: 'assets/images/service_icon/arrow-swap-horizontal.svg',
           label: 'Swap Currency',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/swap-currency')),
       ServiceItem(
           icon: 'assets/images/service_icon/internet.svg',
           label: 'Internet',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/internet')),
       ServiceItem(
           icon: 'assets/images/service_icon/gift.svg',
           label: 'Giftcard',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/gift-card')),
       ServiceItem(
           icon: 'assets/images/service_icon/int.svg',
           label: 'Intl. Airtime',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/international-airtime')),
       ServiceItem(
           icon: 'assets/images/service_icon/Education.svg',
           label: 'Education',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/education')),
       ServiceItem(
           icon: 'assets/images/service_icon/shoping.svg',
           label: 'Shopping',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/shopping')),
       ServiceItem(
           icon: 'assets/images/service_icon/Insurance.svg',
           label: 'Insurance',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/insurance')),
+      ServiceItem(
+          icon: 'assets/images/service_icon/flight.svg',
+          label: 'Flight',
+          onTap: () => context.push('/flight')),
     ];
 
     return Column(
@@ -157,3 +161,4 @@ class ServiceItem {
   const ServiceItem(
       {required this.icon, required this.label, required this.onTap});
 }
+

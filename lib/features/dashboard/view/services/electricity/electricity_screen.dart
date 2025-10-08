@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/themes/app_theme.dart';
 import '../../../widgets/services_widgets/electricity_widgets/disco_selector_modal.dart';
 import '../../../widgets/services_widgets/electricity_widgets/meter_type_modal.dart';
+import 'saved_beneficiary_screen.dart';
+import 'transaction_details_screen.dart';
 
 class ElectricityScreen extends StatefulWidget {
   const ElectricityScreen({super.key});
@@ -40,7 +41,12 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              // Navigate to saved beneficiary
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SavedBeneficiaryScreen(),
+                ),
+              );
             },
             child: const Text(
               'Saved Beneficiary',
@@ -195,7 +201,23 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Handle continue
+                  if (meterNumberController.text.isNotEmpty &&
+                      amountController.text.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TransactionDetailsScreen(
+                          transactionData: {
+                            'meterNumber': meterNumberController.text,
+                            'disco': selectedDisco,
+                            'meterType': selectedMeterType,
+                            'amount': amountController.text,
+                            'totalAmount': amountController.text,
+                          },
+                        ),
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF76301),

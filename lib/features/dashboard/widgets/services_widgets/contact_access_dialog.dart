@@ -15,11 +15,9 @@ class ContactAccessDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -29,7 +27,6 @@ class ContactAccessDialog extends StatelessWidget {
               'Allow ValarPay to access your contacts so you can easily pick phone numbers without typing them manually',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
                 fontSize: 16,
                 height: 1.5,
               ),
