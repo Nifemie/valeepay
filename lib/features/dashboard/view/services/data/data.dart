@@ -4,6 +4,8 @@ import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/data_plans_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+
 
 class DataScreen extends StatefulWidget {
   const DataScreen({super.key});
@@ -21,7 +23,7 @@ class _DataScreenState extends State<DataScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '+234 000000000';
+    _phoneController.text = '000000000';
   }
 
   void _showContactAccessDialog() {
@@ -48,7 +50,7 @@ class _DataScreenState extends State<DataScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -93,26 +95,34 @@ class _DataScreenState extends State<DataScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
+                color: Theme.of(context).cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey.shade700),
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 4,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(2),
+                  const Text(
+                    '🇳🇬 +234 ',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(
+                    height: 24,
+                    child: VerticalDivider(
+                      color: Colors.grey,
+                      thickness: 1,
+                    ),
+                  ),
                   Expanded(
-                    child: Text(
-                      _phoneController.text,
+                    child: TextField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      ),
                       style: const TextStyle(
-                        color: Colors.white,
                         fontSize: 16,
                       ),
                     ),

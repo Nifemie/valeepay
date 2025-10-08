@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // State provider for the PIN
 final pinProvider = StateNotifierProvider.autoDispose<PinNotifier, List<String>>(
@@ -114,7 +115,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -123,9 +124,10 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                     widget.title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontFamily: 'SF Pro',
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                      color: Color(0xFF111827),
                     ),
                   ),
                 ),
@@ -141,7 +143,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                 4,
                     (index) => Padding(
                   padding: EdgeInsets.only(
-                    right: index < 3 ? 12 : 0,
+                    right: index < 3 ? 16 : 0,
                   ),
                   child: _PinBox(
                     value: pin[index],
@@ -149,7 +151,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             // Forgot Pin
             TextButton(
@@ -157,13 +159,14 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
               child: const Text(
                 'Forgot Pin?',
                 style: TextStyle(
+                  fontFamily: 'SF Pro',
                   fontSize: 14,
-                  color: Color(0xFFF59E0B),
-                  fontWeight: FontWeight.w500,
+                  color: Color(0xFFF76301),
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Number Pad
             _NumberPad(
@@ -189,13 +192,13 @@ class _PinBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 55,
+      width: 64,
+      height: 64,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF9CA3AF),
-          width: 1,
+          color: const Color(0xFFE5E7EB),
+          width: 1.5,
         ),
       ),
       alignment: Alignment.center,
@@ -204,7 +207,7 @@ class _PinBox extends StatelessWidget {
         width: 12,
         height: 12,
         decoration: const BoxDecoration(
-          color: Color(0xFF1F2937),
+          color: Color(0xFF111827),
           shape: BoxShape.circle,
         ),
       )
@@ -228,11 +231,11 @@ class _NumberPad extends StatelessWidget {
     return Column(
       children: [
         _buildRow(['1', '2', '3']),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _buildRow(['4', '5', '6']),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _buildRow(['7', '8', '9']),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _buildRow(['', '0', 'delete']),
       ],
     );
@@ -240,24 +243,20 @@ class _NumberPad extends StatelessWidget {
 
   Widget _buildRow(List<String> numbers) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: numbers.map((number) {
         if (number.isEmpty) {
-          return const Expanded(child: SizedBox());
+          return const SizedBox(width: 80);
         }
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: _NumberButton(
-              value: number,
-              onPressed: () {
-                if (number == 'delete') {
-                  onDeletePressed();
-                } else {
-                  onNumberPressed(number);
-                }
-              },
-            ),
-          ),
+        return _NumberButton(
+          value: number,
+          onPressed: () {
+            if (number == 'delete') {
+              onDeletePressed();
+            } else {
+              onNumberPressed(number);
+            }
+          },
         );
       }).toList(),
     );
@@ -278,34 +277,37 @@ class _NumberButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDelete = value == 'delete';
 
-    return Material(
-      color: const Color(0xFFFAFBFC),
-      borderRadius: BorderRadius.circular(4),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          height: 52,
-          padding: const EdgeInsets.all(10),
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(40),
+      child: Container(
+        width: 80,
+        height: 60,
+        alignment: Alignment.center,
+        child: isDelete
+            ? Container(
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Center(
-            child: isDelete
-                ? SvgPicture.asset(
-              'assets/icons/close_icon.svg',
-              width: 24,
-              height: 24,
-              color: const Color(0xFF1F2937),
-            )
-                : Text(
-              value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2937),
-              ),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFF111827),
+              width: 1.5,
             ),
+          ),
+          child: const Icon(
+            Icons.close,
+            size: 18,
+            color: Color(0xFF111827),
+          ),
+        )
+            : Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'SF Pro',
+            fontSize: 28,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF111827),
           ),
         ),
       ),
