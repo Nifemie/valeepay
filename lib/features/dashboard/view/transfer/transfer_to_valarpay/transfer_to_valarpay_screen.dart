@@ -15,6 +15,7 @@ class TransferToValarPayScreen extends StatefulWidget {
 
 class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
   final TextEditingController _accountController = TextEditingController();
+  bool isEmpty = true;
 
   Future<void> pasteFromClipboard() async {
     final clipboardData = await Clipboard.getData('text/plain');
@@ -87,20 +88,33 @@ class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
               SizedBox(height: 8),
               TextField(
                 controller: _accountController,
+                onChanged: (value) {
+                  if (value.isEmpty) {
+                    setState(() {
+                      isEmpty = true;
+                    });
+                  } else {
+                    setState(() {
+                      isEmpty = false;
+                    });
+                  }
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter ValarPay account name/number',
                   hintStyle: TextStyle(
                     color: Colors.grey[500],
                     fontSize: 14,
                   ),
-                  suffixIcon: IconButton(
-                      onPressed: () {
-                        pasteFromClipboard();
-                      },
-                      icon: Icon(
-                        Icons.content_paste,
-                        color: Colors.grey[500],
-                      )),
+                  suffixIcon: isEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            pasteFromClipboard();
+                          },
+                          icon: Icon(
+                            Icons.content_paste,
+                            color: Colors.grey[500],
+                          ))
+                      : null,
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: EdgeInsets.symmetric(

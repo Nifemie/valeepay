@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/reuseable_appbar_text_button.dart';
 import 'saved_beneficiary_screen.dart';
 import 'provider_payment_screen.dart';
 
@@ -23,12 +24,9 @@ class _InternetScreenState extends State<InternetScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -40,23 +38,17 @@ class _InternetScreenState extends State<InternetScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
+          ReuseableAppbarTextButton(
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const InternetSavedBeneficiaryScreen(),
                 ),
               );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
+            }, 
+          text: 'Saved Beneficiary')
+         
         ],
       ),
       body: Padding(
