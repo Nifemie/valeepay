@@ -28,7 +28,7 @@ class VisitOfficeScreen extends StatelessWidget {
               width: 200,
               height: 200,
               decoration: BoxDecoration(
-                color: appTheme.primaryColor.withValues(alpha: 0.1),
+                color: appTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Center(
@@ -36,7 +36,7 @@ class VisitOfficeScreen extends StatelessWidget {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: appTheme.primaryColor.withValues(alpha: 0.2),
+                    color: appTheme.primaryColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(60),
                   ),
                   child: Icon(
@@ -237,7 +237,7 @@ class BranchTile extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.2),
+          color: Colors.grey.withOpacity(0.2),
         ),
       ),
       child: Column(

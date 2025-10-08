@@ -1,24 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/features/dashboard/view/account/account_screen.dart';
-import 'package:valarpay/features/dashboard/view/account/account_setup_screen.dart';
-import 'package:valarpay/features/dashboard/view/addmoney/add_money_screen.dart';
-import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_qrcode_screen.dart';
-import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_transfer_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:valarpay/features/dashboard/view/comming_soon.dart';
-import 'package:valarpay/features/dashboard/view/home/notifications/notifications_screen.dart';
-import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
-import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
-import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/select_bank_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_amount_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transaction_details_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_success_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
-import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
-import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
-import 'package:valarpay/features/dashboard/view/withdraw/withdraw_screen.dart';
-
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
@@ -37,7 +19,11 @@ import '../../features/auth/views/onboarding/signup/verify_phone.dart';
 import '../../features/auth/views/splashscreen/splashscreen.dart';
 import '../../features/dashboard/dashboard_wrapper.dart';
 import '../../features/dashboard/view/card.dart';
-import '../../features/dashboard/view/home_screen.dart';
+import '../../features/dashboard/view/home/homescreen.dart';
+import '../../features/dashboard/view/home/notifications/notifications_screen.dart';
+import '../../features/dashboard/view/home/support/customer_service_screen.dart';
+import '../../features/dashboard/view/home/support/faq_screen.dart';
+import '../../features/dashboard/view/home/support/visit_office_screen.dart';
 import '../../features/dashboard/view/invest.dart';
 import '../../features/dashboard/view/me.dart';
 import '../../features/dashboard/view/savings.dart';
@@ -49,6 +35,7 @@ import '../../features/dashboard/view/settings/notification_settings_screen.dart
 import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
+import '../../features/dashboard/view/me/transaction_history.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -202,60 +189,8 @@ final router = GoRouter(
       builder: (context, state) => const AutoLogoutSettingsScreen(),
     ),
     GoRoute(
-      path: '/transfer-to-valarpay',
-      builder: (context, state) => const TransferToValarPayScreen(),
-    ),
-    GoRoute(
-      path: '/transfer-amount',
-      builder: (context, state) => const TransferAmountScreen(),
-    ),
-    GoRoute(
-      path: '/transaction-details',
-      builder: (context, state) => const TransactionDetailsScreen(),
-    ),
-    GoRoute(
-      path: '/transfer-success',
-      builder: (context, state) => const TransferSuccessScreen(),
-    ),
-    GoRoute(
-      path: '/transfer-to-bank',
-      builder: (context, state) => const TransferToBankScreen(),
-    ),
-    GoRoute(
-      path: '/select-bank',
-      builder: (context, state) => const SelectBankScreen(),
-    ),
-    GoRoute(
-      path: '/withdraw',
-      builder: (context, state) => const WithdrawScreen(),
-    ),
-    GoRoute(
-      path: '/withdraw-via-bank',
-      builder: (context, state) => const WithdrawBankBranchScreen(),
-    ),
-    GoRoute(
-      path: '/withdraw-via-marchant',
-      builder: (context, state) => const WithdrawMerchantScreen(),
-    ),
-    GoRoute(
-      path: '/account',
-      builder: (context, state) => const AccountScreen(),
-    ),
-    GoRoute(
-      path: '/account-setup',
-      builder: (context, state) => const AccountSetupScreen(),
-    ),
-    GoRoute(
-      path: '/add-money',
-      builder: (context, state) => const AddMoneyScreen(),
-    ),
-    GoRoute(
-      path: '/add-money-via-transfer',
-      builder: (context, state) => const AddMoneyTransferScreen(),
-    ),
-    GoRoute(
-      path: '/add-money-via-qrcode',
-      builder: (context, state) => const AddMoneyQRCode(),
+      path: '/transaction-history',
+      builder: (context, state) => const TransactionHistoryPage(),
     ),
   ],
 );

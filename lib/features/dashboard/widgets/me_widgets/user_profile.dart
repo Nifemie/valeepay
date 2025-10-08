@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final VoidCallback? onSecurityTipsTap;
@@ -24,7 +25,7 @@ class ProfileHeaderCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -62,7 +63,6 @@ class ProfileHeaderCard extends StatelessWidget {
                     Text(
                       "Hello $userName",
                       style: const TextStyle(
-                        color: Color(0xFF111827),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -75,7 +75,7 @@ class ProfileHeaderCard extends StatelessWidget {
                           child: Text(
                             accountNumber,
                             style: const TextStyle(
-                              color: Color(0xFF6B7280),
+                              color: Color.fromARGB(255, 200, 202, 206),
                               fontSize: 12,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -87,12 +87,9 @@ class ProfileHeaderCard extends StatelessWidget {
                             Clipboard.setData(
                               const ClipboardData(text: accountNumber),
                             );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Account number copied"),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
+                            CustomToast.showAppToast(
+                                context: context,
+                                message: 'Account number copied');
                           },
                           child: const Icon(
                             Icons.copy,
@@ -166,7 +163,6 @@ class ProfileHeaderCard extends StatelessWidget {
                           ? "₦${balance.toStringAsFixed(2)}"
                           : "₦****",
                       style: const TextStyle(
-                        color: Color(0xFF111827),
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -181,7 +177,6 @@ class ProfileHeaderCard extends StatelessWidget {
                           const Text(
                             "Your Rewards",
                             style: TextStyle(
-                              color: appTheme.secondaryColor,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -190,7 +185,6 @@ class ProfileHeaderCard extends StatelessWidget {
                           Text(
                             "₦${rewardsAmount.toStringAsFixed(0)}",
                             style: const TextStyle(
-                              color: appTheme.secondaryColor,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -198,7 +192,6 @@ class ProfileHeaderCard extends StatelessWidget {
                           const Icon(
                             Icons.chevron_right,
                             size: 16,
-                            color: appTheme.secondaryColor,
                           ),
                         ],
                       ),

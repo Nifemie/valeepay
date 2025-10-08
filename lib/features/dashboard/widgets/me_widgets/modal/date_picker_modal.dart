@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class DatePickerModal {
   static void show(
-      BuildContext context, {
-        required String currentMonth,
-        required Function(String) onDateSelected,
-      }) {
+    BuildContext context, {
+    required String currentMonth,
+    required Function(String) onDateSelected,
+  }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -58,7 +58,8 @@ class _DatePickerContentState extends State<_DatePickerContent> {
     super.initState();
     // Generate years from current year back to 1900
     final currentYear = DateTime.now().year;
-    years = List.generate(currentYear - 1900 + 1, (index) => (currentYear - index).toString());
+    years = List.generate(
+        currentYear - 1900 + 1, (index) => (currentYear - index).toString());
 
     _monthScrollController = ScrollController();
     _yearScrollController = ScrollController();
@@ -113,7 +114,7 @@ class _DatePickerContentState extends State<_DatePickerContent> {
             margin: const EdgeInsets.symmetric(horizontal: 40),
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -139,7 +140,8 @@ class _DatePickerContentState extends State<_DatePickerContent> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
                                 alignment: Alignment.center,
                                 child: Text(
                                   month,
@@ -149,7 +151,9 @@ class _DatePickerContentState extends State<_DatePickerContent> {
                                         : const Color(0xFFD1D5DB),
                                     fontFamily: 'SF Pro',
                                     fontSize: 16,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
                                   ),
                                 ),
                               ),
@@ -172,7 +176,8 @@ class _DatePickerContentState extends State<_DatePickerContent> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
                                 alignment: Alignment.center,
                                 child: Text(
                                   year,
@@ -182,7 +187,9 @@ class _DatePickerContentState extends State<_DatePickerContent> {
                                         : const Color(0xFFD1D5DB),
                                     fontFamily: 'SF Pro',
                                     fontSize: 16,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
                                   ),
                                 ),
                               ),
@@ -198,7 +205,8 @@ class _DatePickerContentState extends State<_DatePickerContent> {
                 GestureDetector(
                   onTap: () {
                     // Convert full month name to short form
-                    final monthShort = selectedMonth.substring(0, 3).toUpperCase();
+                    final monthShort =
+                        selectedMonth.substring(0, 3).toUpperCase();
                     widget.onDateSelected('$monthShort $selectedYear');
                     Navigator.pop(context);
                   },

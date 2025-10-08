@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 import '../../widgets/me_widgets/modal/calendar_picker_moadal.dart';
 
 // State providers
 final startDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
-final endDateProvider = StateProvider<DateTime>((ref) => DateTime.now().add(const Duration(days: 5)));
+final endDateProvider = StateProvider<DateTime>(
+    (ref) => DateTime.now().add(const Duration(days: 5)));
 final selectedAccountProvider = StateProvider<String>((ref) => 'NGN Account');
 final emailProvider = StateProvider<String>((ref) => '');
 
@@ -71,7 +73,8 @@ class AccountStatementPage extends ConsumerWidget {
               child: Container(
                 width: 335,
                 height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
@@ -127,7 +130,8 @@ class AccountStatementPage extends ConsumerWidget {
               child: Container(
                 width: 335,
                 height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
@@ -177,7 +181,8 @@ class AccountStatementPage extends ConsumerWidget {
               child: Container(
                 width: 335,
                 height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
@@ -301,8 +306,18 @@ class AccountStatementPage extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${date.day} ${months[date.month - 1]}, ${date.year}';
   }
@@ -369,11 +384,11 @@ class AccountStatementPage extends ConsumerWidget {
   }
 
   Widget _buildAccountOption(
-      BuildContext context,
-      WidgetRef ref,
-      String accountName,
-      String iconPath,
-      ) {
+    BuildContext context,
+    WidgetRef ref,
+    String accountName,
+    String iconPath,
+  ) {
     return GestureDetector(
       onTap: () {
         ref.read(selectedAccountProvider.notifier).state = accountName;
@@ -419,12 +434,8 @@ class AccountStatementPage extends ConsumerWidget {
 
     // Validate email
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an email address'),
-          backgroundColor: Color(0xFFF11515),
-        ),
-      );
+      CustomToast.showErrorToast(context:context, message: 'Please enter an email address');
+
       return;
     }
 
@@ -436,11 +447,6 @@ class AccountStatementPage extends ConsumerWidget {
     print('Email: $email');
 
     // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Statement will be sent to your email'),
-        backgroundColor: Color(0xFF216EB2),
-      ),
-    );
+    CustomToast.showAppToast(context:context, message: 'tatement will be sent to your email');
   }
 }

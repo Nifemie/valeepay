@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/me_widgets/account_widget.dart';
 import '../widgets/me_widgets/user_profile.dart';
 import '../widgets/me_widgets/security_widget.dart';
@@ -37,11 +38,7 @@ class MeScreen extends ConsumerWidget {
                   debugPrint('Security Tips tapped');
                 },
                 onRewardsTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const MyRewardsPage()),
-                  );
+                  context.push('/my-rewards');
                 },
               ),
               const SizedBox(height: 16),

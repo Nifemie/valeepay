@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 import '../../widgets/me_widgets/delete_confirmation_dialog.dart';
 
 // State providers
@@ -26,24 +27,24 @@ class LinkedAccount {
 }
 
 final linkedAccountsProvider = StateProvider<List<LinkedAccount>>((ref) => [
-  LinkedAccount(
-    name: 'Valarpay Bank',
-    number: '0000000000',
-    iconPath: 'assets/images/valarpay.png',
-  ),
-  LinkedAccount(
-    name: 'First Bank of Nigeria',
-    number: '00000000',
-    iconPath: 'assets/images/firstbank.png',
-    isAccount: true,
-  ),
-  LinkedAccount(
-    name: 'Wema Bank',
-    number: '00000000',
-    iconPath: 'assets/images/wema.png',
-    isAccount: true,
-  ),
-]);
+      LinkedAccount(
+        name: 'Valarpay Bank',
+        number: '0000000000',
+        iconPath: 'assets/images/valarpay.png',
+      ),
+      LinkedAccount(
+        name: 'First Bank of Nigeria',
+        number: '00000000',
+        iconPath: 'assets/images/firstbank.png',
+        isAccount: true,
+      ),
+      LinkedAccount(
+        name: 'Wema Bank',
+        number: '00000000',
+        iconPath: 'assets/images/wema.png',
+        isAccount: true,
+      ),
+    ]);
 
 class AccountSettingsPage extends ConsumerWidget {
   const AccountSettingsPage({Key? key}) : super(key: key);
@@ -225,12 +226,12 @@ class AccountSettingsPage extends ConsumerWidget {
   }
 
   Widget _buildInfoRow(
-      BuildContext context,
-      WidgetRef ref,
-      String label,
-      String value, {
-        bool showCopy = false,
-      }) {
+    BuildContext context,
+    WidgetRef ref,
+    String label,
+    String value, {
+    bool showCopy = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -263,12 +264,7 @@ class AccountSettingsPage extends ConsumerWidget {
               GestureDetector(
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: value));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Copied to clipboard'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+                  CustomToast.showAppToast(context:context, message:  'Copied to clipboard');
                 },
                 child: const Icon(
                   Icons.copy,
@@ -284,128 +280,128 @@ class AccountSettingsPage extends ConsumerWidget {
   }
 
   Widget _buildLinkedAccountRow(
-      BuildContext context,
-      WidgetRef ref,
-      LinkedAccount account,
-      int index,
-      ) {
+    BuildContext context,
+    WidgetRef ref,
+    LinkedAccount account,
+    int index,
+  ) {
     return Row(
-        children: [
-          // Bank Icon
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              account.iconPath,
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.account_balance,
-                    color: Color(0xFF9CA3AF),
-                    size: 20,
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Bank Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  account.name,
-                  style: const TextStyle(
-                    color: Color(0xFF111827),
-                    fontFamily: 'SF Pro',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    height: 1.33,
-                    letterSpacing: 0.06,
-                  ),
+      children: [
+        // Bank Icon
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            account.iconPath,
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      account.number,
-                      style: const TextStyle(
-                        color: Color(0xFF9CA3AF),
-                        fontFamily: 'SF Pro',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        height: 1.33,
-                        letterSpacing: 0.06,
-                      ),
-                    ),
-                    if (account.isAccount) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF216EB2).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Account',
-                          style: TextStyle(
-                            color: Color(0xFF216EB2),
-                            fontFamily: 'SF Pro',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w400,
-                            height: 1.4,
-                            letterSpacing: 0.1,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                child: const Icon(
+                  Icons.account_balance,
+                  color: Color(0xFF9CA3AF),
+                  size: 20,
                 ),
-              ],
-            ),
-          ),
-          // Delete Button
-          GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                barrierDismissible: true,
-                builder: (BuildContext context) {
-                  return DeleteConfirmationDialog(
-                    onConfirm: () {
-                      final accounts = ref.read(linkedAccountsProvider);
-                      ref.read(linkedAccountsProvider.notifier).state = [
-                        ...accounts.sublist(0, index),
-                        ...accounts.sublist(index + 1),
-                      ];
-                    },
-                  );
-                },
               );
             },
-            child: SvgPicture.asset(
-              'assets/icons/Delete.svg',
-              width: 20,
-              height: 20,
-              colorFilter: const ColorFilter.mode(
-                Color(0xFF9CA3AF),
-                BlendMode.srcIn,
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Bank Details
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                account.name,
+                style: const TextStyle(
+                  color: Color(0xFF111827),
+                  fontFamily: 'SF Pro',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 1.33,
+                  letterSpacing: 0.06,
+                ),
               ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    account.number,
+                    style: const TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontFamily: 'SF Pro',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      height: 1.33,
+                      letterSpacing: 0.06,
+                    ),
+                  ),
+                  if (account.isAccount) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF216EB2).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Account',
+                        style: TextStyle(
+                          color: Color(0xFF216EB2),
+                          fontFamily: 'SF Pro',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          height: 1.4,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+        // Delete Button
+        GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              barrierDismissible: true,
+              builder: (BuildContext context) {
+                return DeleteConfirmationDialog(
+                  onConfirm: () {
+                    final accounts = ref.read(linkedAccountsProvider);
+                    ref.read(linkedAccountsProvider.notifier).state = [
+                      ...accounts.sublist(0, index),
+                      ...accounts.sublist(index + 1),
+                    ];
+                  },
+                );
+              },
+            );
+          },
+          child: SvgPicture.asset(
+            'assets/icons/Delete.svg',
+            width: 20,
+            height: 20,
+            colorFilter: const ColorFilter.mode(
+              Color(0xFF9CA3AF),
+              BlendMode.srcIn,
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 }
