@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 import '../../../widgets/home_widgets/notification_widgets.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -40,11 +42,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const NotificationSettingsScreen(),
-                ),
-              );
+              context.push('/notification-settings');
             },
           ),
         ],
@@ -52,6 +50,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           controller: _tabController,
           isScrollable: true,
           labelColor: Theme.of(context).primaryColor,
+          dividerColor: Colors.transparent,
           unselectedLabelColor: Colors.grey,
           indicatorColor: Theme.of(context).primaryColor,
           tabs: const [
@@ -66,21 +65,25 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         controller: _tabController,
         children: [
           NotificationTabView(
+            tab: 'Transaction',
             notifications: _getTransactionNotifications(),
             emptyMessage:
                 'No new transactions yet. Start making payments to see your transaction notifications here.',
           ),
           NotificationTabView(
+            tab: 'Other',
             notifications: _getServiceNotifications(),
             emptyMessage:
                 'No service notifications yet. Service updates and service notifications will appear here.',
           ),
           NotificationTabView(
+            tab: 'Other',
             notifications: _getUpdateNotifications(),
             emptyMessage:
                 'No updates yet. Stay tuned for the latest news and updates.',
           ),
           NotificationTabView(
+            tab: 'Other',
             notifications: _getMessageNotifications(),
             emptyMessage: 'No new messages from ValarPay right now.',
           ),
@@ -90,47 +93,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   List<NotificationItem> _getTransactionNotifications() {
-    return [
-      NotificationItem(
-        icon: 'assets/images/payment_wid/bell.svg',
-        title: 'Your profile verification is complete',
-        subtitle:
-            'Congratulations! Your profile has been successfully verified.',
-        time: '2 mins ago',
-        isRead: false,
-      ),
-      NotificationItem(
-        icon: 'assets/images/payment_wid/bell.svg',
-        title: 'Welcome to ValarPay!',
-        subtitle: 'Get started with seamless payments, savings, and more.',
-        time: '5 mins ago',
-        isRead: false,
-      ),
-      NotificationItem(
-        icon: 'assets/images/payment_wid/bell.svg',
-        title: 'Electricity bill payment successful',
-        subtitle:
-            'Your payment of ₦5,000 for electricity has been processed successfully.',
-        time: '1 hour ago',
-        isRead: true,
-      ),
-      NotificationItem(
-        icon: 'assets/images/payment_wid/bell.svg',
-        title: 'Electricity bill payment successful',
-        subtitle:
-            'Your payment of ₦5,000 for electricity has been processed successfully.',
-        time: '2 hours ago',
-        isRead: true,
-      ),
-      NotificationItem(
-        icon: 'assets/images/payment_wid/bell.svg',
-        title: 'Electricity bill payment successful',
-        subtitle:
-            'Your payment of ₦5,000 for electricity has been processed successfully.',
-        time: '3 hours ago',
-        isRead: true,
-      ),
-    ];
+    return [];
   }
 
   List<NotificationItem> _getServiceNotifications() {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/features/dashboard/view/home/notifications/notification_view.dart';
 
 class NotificationItem {
   final String icon;
@@ -21,24 +23,33 @@ class NotificationItem {
 class NotificationTabView extends StatelessWidget {
   final List<NotificationItem> notifications;
   final String emptyMessage;
+  final String tab;
 
   const NotificationTabView({
     super.key,
     required this.notifications,
     required this.emptyMessage,
+    required this.tab,
   });
 
   @override
   Widget build(BuildContext context) {
     if (notifications.isEmpty) {
-      return NotificationEmptyState(message: emptyMessage);
+      return NotificationEmptyState(tab: tab, message: emptyMessage);
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: notifications.length,
       itemBuilder: (context, index) {
-        return NotificationTile(notification: notifications[index]);
+        return InkWell(
+            onTap: () {
+              context.push('/notification-view', extra: {
+                'title': notifications[index].title,
+                'content': notifications[index].subtitle,
+              });
+            },
+            child: NotificationTile(notification: notifications[index]));
       },
     );
   }
@@ -46,10 +57,12 @@ class NotificationTabView extends StatelessWidget {
 
 class NotificationEmptyState extends StatelessWidget {
   final String message;
+  final String tab;
 
   const NotificationEmptyState({
     super.key,
     required this.message,
+    required this.tab,
   });
 
   @override
@@ -64,23 +77,22 @@ class NotificationEmptyState extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: appTheme.primaryColor.withValues(alpha: 0.1),
+                color: appTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(60),
               ),
               child: Center(
                 child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: appTheme.primaryColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    size: 40,
-                    color: appTheme.primaryColor,
-                  ),
-                ),
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: appTheme.primaryColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: tab == 'Transaction'
+                        ? Image.asset('assets/images/notransaction_notif.png',
+                            height: 40)
+                        : Image.asset('assets/images/noother_notif.png',
+                            height: 40)),
               ),
             ),
             const SizedBox(height: 24),
@@ -114,13 +126,13 @@ class NotificationTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: notification.isRead
-            ? Theme.of(context).cardColor!.withValues(alpha: 0.5)
+            ? Theme.of(context).cardColor!.withOpacity(0.5)
             : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: notification.isRead
               ? Colors.transparent
-              : Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              : Theme.of(context).primaryColor.withOpacity(0.1),
         ),
       ),
       child: Row(
@@ -130,7 +142,7 @@ class NotificationTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Center(

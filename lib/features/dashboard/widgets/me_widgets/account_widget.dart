@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/features/dashboard/view/me/account_settings.dart';
 import 'package:valarpay/features/dashboard/view/me/portfolio.dart';
 import 'package:valarpay/features/dashboard/view/me/theme.dart';
 import 'package:valarpay/features/dashboard/view/me/transaction_history.dart';
-
 
 class AccountMenuWidget extends StatelessWidget {
   const AccountMenuWidget({Key? key}) : super(key: key);
@@ -15,9 +16,8 @@ class AccountMenuWidget extends StatelessWidget {
       width: double.infinity, // Full width
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.05),
@@ -33,10 +33,7 @@ class AccountMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/doc.svg',
             title: 'Transaction History',
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const TransactionHistoryPage()),
-              );
+              context.push('/transaction-history');
             },
           ),
           const SizedBox(height: 20),
@@ -44,10 +41,7 @@ class AccountMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/account.svg',
             title: 'Account Settings',
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AccountSettingsPage()),
-              );
+              context.push('/account-settings');
             },
           ),
           const SizedBox(height: 20),
@@ -55,24 +49,15 @@ class AccountMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/port.svg',
             title: 'My Portfolio',
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MyPortfolioPage()),
-              );
-
+              context.push('/coming-soon');
             },
-
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/rating.svg',
             title: 'Theme',
             onTap: () {
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ThemesPage()),
-              );
+              context.push('/themes');
             },
           ),
         ],
@@ -97,10 +82,6 @@ class AccountMenuWidget extends StatelessWidget {
               svgPath,
               width: 24,
               height: 24,
-              colorFilter: const ColorFilter.mode(
-                Colors.black54,
-                BlendMode.srcIn,
-              ),
             ),
             const SizedBox(width: 12),
             // Title text
@@ -108,7 +89,6 @@ class AccountMenuWidget extends StatelessWidget {
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: Colors.black87,
                   fontFamily: 'SF Pro',
                   fontSize: 15,
                   fontWeight: FontWeight.w500,

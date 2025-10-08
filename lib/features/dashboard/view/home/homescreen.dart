@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 
 import '../../widgets/home_widgets/payment_widget_icons.dart';
 import '../../widgets/home_widgets/kyc_widget.dart';
 import '../../widgets/home_widgets/ourservice.dart';
-import 'notifications/notifications_screen.dart';
-import 'support/customer_service_screen.dart';
 
 class Homescreen extends StatefulWidget {
   final String firstName;
@@ -143,11 +144,7 @@ class _HomeAppBar extends StatelessWidget {
               _IconButton(
                 svgPath: 'assets/images/payment_wid/Grouping (1).svg',
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CustomerServiceScreen(),
-                    ),
-                  );
+                  context.push('/customer-service');
                 },
               ),
               const SizedBox(width: 16),
@@ -157,11 +154,7 @@ class _HomeAppBar extends StatelessWidget {
                 svgPath: 'assets/images/payment_wid/bell.svg',
                 hasNotification: true,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
-                    ),
-                  );
+                  context.push('/notifications');
                 },
               ),
             ],
@@ -194,7 +187,9 @@ class _IconButton extends StatelessWidget {
             svgPath,
             width: 24,
             height: 24,
-            colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+            colorFilter: Theme.of(context) == AppTheme.lightTheme
+                ? const ColorFilter.mode(Colors.black, BlendMode.srcIn)
+                : null,
           ),
           if (hasNotification)
             Positioned(

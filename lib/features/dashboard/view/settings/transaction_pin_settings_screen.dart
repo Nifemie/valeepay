@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'change_pin_screen.dart';
 
@@ -50,11 +51,7 @@ class _TransactionPinSettingsScreenState
               children: [
                 InkWell(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ChangePinScreen(),
-                      ),
-                    );
+                    context.push('/change-pin');
                   },
                   child: Row(
                     children: [

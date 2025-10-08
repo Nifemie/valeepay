@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class NeedHelpModal {
   static void show(BuildContext context) {
@@ -169,12 +170,7 @@ class NeedHelpModal {
   }
 
   static void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature coming soon!'),
-        backgroundColor: appTheme.primaryColor,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    CustomToast.showInfoToast(
+        context: context, message: '$feature coming soon!');
   }
 }

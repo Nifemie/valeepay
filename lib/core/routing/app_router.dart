@@ -1,6 +1,16 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:valarpay/features/dashboard/view/commingsoon.dart';
+import 'package:valarpay/features/dashboard/view/me/rewards.dart';
+import '../../features/dashboard/view/services/airtime/airtime.dart';
+import '../../features/dashboard/view/services/data/data.dart';
+import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
+import '../../features/dashboard/view/services/airtime/ussd_enquiry.dart';
+import '../../features/dashboard/view/me/transaction_history.dart';
+import '../../features/dashboard/view/me/account_settings.dart';
+import '../../features/dashboard/view/me/account_statement.dart';
+import '../../features/dashboard/view/me/theme.dart';
+import '../../features/dashboard/view/home/notifications/notification_view.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
@@ -23,6 +33,7 @@ import '../../features/dashboard/view/home/homescreen.dart';
 import '../../features/dashboard/view/home/notifications/notifications_screen.dart';
 import '../../features/dashboard/view/home/support/customer_service_screen.dart';
 import '../../features/dashboard/view/home/support/faq_screen.dart';
+import '../../features/dashboard/view/home/support/faq_detail_screen.dart';
 import '../../features/dashboard/view/home/support/visit_office_screen.dart';
 import '../../features/dashboard/view/invest.dart';
 import '../../features/dashboard/view/me.dart';
@@ -37,7 +48,7 @@ import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
-  initialLocation: '/splash',
+  initialLocation: kDebugMode ? '/' : '/splash', // Skip splash in debug mode
   routes: [
     // Auth routes (without dashboard wrapper)
     GoRoute(
@@ -186,6 +197,72 @@ final router = GoRouter(
     GoRoute(
       path: '/auto-logout-settings',
       builder: (context, state) => const AutoLogoutSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/my-rewards',
+      builder: (context, state) => const MyRewardsPage(),
+    ),
+
+    // Services routes
+    GoRoute(
+      path: '/airtime',
+      builder: (context, state) => const AirtimeScreen(),
+    ),
+    GoRoute(
+      path: '/data',
+      builder: (context, state) => const DataScreen(),
+    ),
+    GoRoute(
+      path: '/schedule-topup',
+      builder: (context, state) => const ScheduleTopupScreen(),
+    ),
+    GoRoute(
+      path: '/ussd-enquiry',
+      builder: (context, state) => const USSDEnquiryScreen(),
+    ),
+
+    // Me section routes
+    GoRoute(
+      path: '/transaction-history',
+      builder: (context, state) => const TransactionHistoryPage(),
+    ),
+    GoRoute(
+      path: '/account-settings',
+      builder: (context, state) => const AccountSettingsPage(),
+    ),
+    GoRoute(
+      path: '/account-statement',
+      builder: (context, state) => const AccountStatementPage(),
+    ),
+    GoRoute(
+      path: '/themes',
+      builder: (context, state) => const ThemesPage(),
+    ),
+
+    // Notification routes
+    GoRoute(
+      path: '/notification-view',
+      builder: (context, state) {
+        final Map<String, String> data = state.extra as Map<String, String>? ??
+            {'title': 'Notification', 'content': 'No content'};
+        return NotificationViewScreen(
+          title: data['title']!,
+          content: data['content']!,
+        );
+      },
+    ),
+
+    // FAQ Detail route
+    GoRoute(
+      path: '/faq-detail',
+      builder: (context, state) {
+        final Map<String, String> data = state.extra as Map<String, String>? ??
+            {'question': 'FAQ', 'answer': 'No answer available'};
+        return FAQDetailScreen(
+          question: data['question']!,
+          answer: data['answer']!,
+        );
+      },
     ),
   ],
 );

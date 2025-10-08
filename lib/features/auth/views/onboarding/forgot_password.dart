@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -107,13 +108,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       // Show success message and navigate back
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Password reset link sent to your email'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      CustomToast.showAppToast(context:context, message: 'Password reset link sent to your email');
+                      
                       Future.delayed(const Duration(seconds: 2), () {
                         context.push('/signin');
                       });

@@ -11,14 +11,13 @@ class FinanceSettingsScreen extends StatefulWidget {
 class _FinanceSettingsScreenState extends State<FinanceSettingsScreen> {
   bool targetSavingsEnabled = true;
   bool fixedDepositEnabled = true;
+  bool fixedSavingsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Finance Settings'),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -45,10 +44,10 @@ class _FinanceSettingsScreenState extends State<FinanceSettingsScreen> {
             title: 'Fixed Savings',
             subtitle:
                 'Enable or disable the auto-save and target savings wallet',
-            value: fixedDepositEnabled,
+            value: fixedSavingsEnabled,
             onChanged: (value) {
               setState(() {
-                fixedDepositEnabled = value;
+                fixedSavingsEnabled = value;
               });
             },
           ),

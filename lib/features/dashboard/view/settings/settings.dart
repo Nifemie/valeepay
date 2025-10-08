@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 import '../../widgets/home_widgets/settings_widgets.dart';
 import 'close_account_screen.dart';
 
@@ -9,10 +10,8 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -89,11 +88,7 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.support_agent_outlined,
                 title: 'Close Account',
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CloseAccountScreen(),
-                    ),
-                  );
+                  context.push('/coming-soon');
                 },
               ),
               SizedBox(height: 16),

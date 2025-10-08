@@ -5,7 +5,7 @@ import '../core/routing/app_router.dart';
 import '../core/themes/app_theme.dart';
 
 // Export the theme provider so it can be used in other files
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -19,7 +19,7 @@ class MyApp extends ConsumerWidget {
       minTextAdapt: true,
       builder: (context, child) {
         return MaterialApp.router(
-          title: 'Valarpay - Beyond Banking',
+          title: 'ValarPay - Beyond Banking',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

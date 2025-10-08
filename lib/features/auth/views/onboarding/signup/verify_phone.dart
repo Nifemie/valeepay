@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class VerifyPhoneScreen extends StatefulWidget {
   const VerifyPhoneScreen({super.key});
@@ -148,14 +149,8 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                     if (otp.length == 4) {
                       context.push('/signup-success');
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Please enter the complete verification code',
-                          ),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      CustomToast.showErrorToast(context:context, message: 'Please enter the complete verification code');
+                      
                     }
                   },
                   style: ElevatedButton.styleFrom(

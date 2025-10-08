@@ -30,7 +30,7 @@ class SettingsListTile extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: appTheme.primaryColor.withValues(alpha: 0.1),
+            color: appTheme.primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Icon(
@@ -94,7 +94,7 @@ class SettingsToggleTile extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: appTheme.primaryColor.withValues(alpha: 0.1),
+            color: appTheme.primaryColor.withOpacity( 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Icon(
@@ -175,7 +175,7 @@ class _SecurityQuestionDropdownState extends State<SecurityQuestionDropdown> {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -201,9 +201,9 @@ class _SecurityQuestionDropdownState extends State<SecurityQuestionDropdown> {
           decoration: BoxDecoration(
             color: widget.value != null
                 ? Theme.of(context).cardColor
-                : Theme.of(context).cardColor?.withValues(alpha: 0.5),
+                : Theme.of(context).cardColor?.withOpacity(0.5),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
           ),
           child: TextField(
             controller: _answerController,

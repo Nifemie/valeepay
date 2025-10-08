@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../me_widgets/me_reuseable_button.dart';
 
-
 // State provider for selected categories
-final selectedCategoriesProvider = StateProvider<List<String>>((ref) => ['All Categories']);
+final selectedCategoriesProvider =
+    StateProvider<List<String>>((ref) => ['All Categories']);
 
 class CategorySelectionSheet extends ConsumerWidget {
   const CategorySelectionSheet({Key? key}) : super(key: key);
@@ -44,8 +44,8 @@ class CategorySelectionSheet extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -96,16 +96,18 @@ class CategorySelectionSheet extends ConsumerWidget {
   }
 
   Widget _buildCategoryChip(
-      BuildContext context,
-      WidgetRef ref,
-      String category,
-      bool isSelected,
-      ) {
+    BuildContext context,
+    WidgetRef ref,
+    String category,
+    bool isSelected,
+  ) {
     return GestureDetector(
       onTap: () {
         final selected = ref.read(selectedCategoriesProvider);
         if (category == 'All Categories') {
-          ref.read(selectedCategoriesProvider.notifier).state = ['All Categories'];
+          ref.read(selectedCategoriesProvider.notifier).state = [
+            'All Categories'
+          ];
         } else {
           List<String> newSelected = List.from(selected);
           newSelected.remove('All Categories');
@@ -123,8 +125,8 @@ class CategorySelectionSheet extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
+          color: Theme.of(context).cardColor.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: const Color(0xFFF1F4FB),
             width: 1,
@@ -139,25 +141,27 @@ class CategorySelectionSheet extends ConsumerWidget {
               height: 16,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? const Color(0xFFF76301) : Colors.transparent,
+                color:
+                    isSelected ? const Color(0xFFF76301) : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFFF76301) : const Color(0xFF9CA3AF),
+                  color: isSelected
+                      ? const Color(0xFFF76301)
+                      : const Color(0xFF9CA3AF),
                   width: 1.5,
                 ),
               ),
               child: isSelected
                   ? const Icon(
-                Icons.check,
-                size: 12,
-                color: Colors.white,
-              )
+                      Icons.check,
+                      size: 12,
+                      color: Colors.white,
+                    )
                   : null,
             ),
             const SizedBox(width: 8),
             Text(
               category,
               style: const TextStyle(
-                color: Color(0xFF6B7280),
                 fontFamily: 'SF Pro',
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
@@ -169,7 +173,6 @@ class CategorySelectionSheet extends ConsumerWidget {
     );
   }
 }
-
 
 // Function to show category selection
 void showCategorySelection(BuildContext context) {
