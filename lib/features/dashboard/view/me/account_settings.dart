@@ -54,18 +54,15 @@ class AccountSettingsPage extends ConsumerWidget {
     final linkedAccounts = ref.watch(linkedAccountsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Account Settings',
           style: TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -82,10 +79,9 @@ class AccountSettingsPage extends ConsumerWidget {
             children: [
               // Tier Card
               Container(
-                width: 335,
                 padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color: Theme.of(context).cardColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -173,7 +169,6 @@ class AccountSettingsPage extends ConsumerWidget {
               const Text(
                 'Linked Card/Account',
                 style: TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -183,10 +178,9 @@ class AccountSettingsPage extends ConsumerWidget {
               const SizedBox(height: 16),
               // Single Card containing all linked accounts
               Container(
-                width: 335,
                 padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color: Theme.of(context).cardColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -209,7 +203,9 @@ class AccountSettingsPage extends ConsumerWidget {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               child: Container(
                                 height: 2,
-                                color: const Color(0xFFF1F4FB),
+                                color: Theme.of(context)
+                                    .cardColor
+                                    .withOpacity(0.2),
                               ),
                             ),
                         ],
@@ -251,7 +247,6 @@ class AccountSettingsPage extends ConsumerWidget {
             Text(
               value,
               style: const TextStyle(
-                color: Color(0xFF111827),
                 fontFamily: 'SF Pro',
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
@@ -264,7 +259,8 @@ class AccountSettingsPage extends ConsumerWidget {
               GestureDetector(
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: value));
-                  CustomToast.showAppToast(context:context, message:  'Copied to clipboard');
+                  CustomToast.showAppToast(
+                      context: context, message: 'Copied to clipboard');
                 },
                 child: const Icon(
                   Icons.copy,
@@ -300,7 +296,7 @@ class AccountSettingsPage extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
+                  color: Theme.of(context).cardColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -321,7 +317,6 @@ class AccountSettingsPage extends ConsumerWidget {
               Text(
                 account.name,
                 style: const TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

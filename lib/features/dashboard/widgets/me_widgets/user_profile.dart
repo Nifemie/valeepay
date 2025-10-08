@@ -209,7 +209,7 @@ class ProfileHeaderCard extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: appTheme.secondaryColor,
+                    color: appTheme.primaryColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(

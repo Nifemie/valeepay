@@ -33,6 +33,8 @@ class _HomescreenState extends State<Homescreen> {
 
   final List<String> _bannerImages = const [
     'assets/images/valarbanner.png',
+    'assets/images/valarbanner2.png',
+    'assets/images/valarbanner3.png',
     'assets/images/valarbanner4.png',
   ];
 
@@ -82,7 +84,12 @@ class _HomescreenState extends State<Homescreen> {
               const SizedBox(height: 16),
               const KYCWidget(),
               const SizedBox(height: 16),
-              Image.asset(_bannerImages[_currentImageIndex]),
+              Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: Image.asset(
+                    _bannerImages[_currentImageIndex],
+                    fit: BoxFit.cover,
+                  )),
               const SizedBox(height: 16),
               const OurServicesWidget(),
               const SizedBox(height: 24),

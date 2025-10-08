@@ -88,7 +88,7 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.support_agent_outlined,
                 title: 'Close Account',
                 onTap: () {
-                  context.push('/coming-soon');
+                  context.push('/close-account');
                 },
               ),
               SizedBox(height: 16),

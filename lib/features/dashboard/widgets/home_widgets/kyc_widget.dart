@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import '../../view/KYC/KYCSetupPage.dart';
 
 class KYCWidget extends StatelessWidget {
   const KYCWidget({Key? key, this.onSetup}) : super(key: key);
@@ -72,10 +73,15 @@ class KYCWidget extends StatelessWidget {
 
           // Button
           ElevatedButton(
-            onPressed: onSetup ?? () {},
+            onPressed: onSetup ?? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const KYCSetupPage()),
+              );
+            },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: appTheme.secondaryColor, // secondary blue
+              backgroundColor: appTheme.primaryColor, // secondary blue
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),

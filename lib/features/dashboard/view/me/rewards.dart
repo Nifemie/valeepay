@@ -15,62 +15,62 @@ class RewardItem {
 }
 
 final rewardsListProvider = StateProvider<List<RewardItem>>((ref) => [
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Betting Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Interbank Coupons',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-  RewardItem(
-    title: 'Airtime Cashbacks',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦70',
-  ),
-]);
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Betting Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Interbank Coupons',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+      RewardItem(
+        title: 'Airtime Cashbacks',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦70',
+      ),
+    ]);
 
 class MyRewardsPage extends ConsumerWidget {
   const MyRewardsPage({Key? key}) : super(key: key);
@@ -104,7 +104,7 @@ class MyRewardsPage extends ConsumerWidget {
             children: rewards.map((reward) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 25),
-                child: _buildRewardItem(reward),
+                child: _buildRewardItem(context, reward),
               );
             }).toList(),
           ),
@@ -113,7 +113,7 @@ class MyRewardsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRewardItem(RewardItem reward) {
+  Widget _buildRewardItem(BuildContext context, RewardItem reward) {
     return Row(
       children: [
         // Icon Container
@@ -122,7 +122,7 @@ class MyRewardsPage extends ConsumerWidget {
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
           decoration: BoxDecoration(
-            color: const Color(0xFFFAFBFC),
+            color: Theme.of(context).cardColor.withOpacity(0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
@@ -158,7 +158,6 @@ class MyRewardsPage extends ConsumerWidget {
               Text(
                 reward.title,
                 style: const TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
@@ -185,7 +184,6 @@ class MyRewardsPage extends ConsumerWidget {
         Text(
           reward.amount,
           style: const TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 14,
             fontWeight: FontWeight.w400,
