@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/services_widgets/electricity_widgets/disco_selector_modal.dart';
-import '../../../widgets/services_widgets/electricity_widgets/meter_type_modal.dart';
-import 'saved_beneficiary_screen.dart';
+import '../../../widgets/services_widgets/insurance_widgets/service_plan_modal.dart';
+import '../../../widgets/services_widgets/insurance_widgets/service_duration_modal.dart';
 import 'transaction_details_screen.dart';
 
-class ElectricityScreen extends StatefulWidget {
-  const ElectricityScreen({super.key});
+class InsuranceProviderScreen extends StatefulWidget {
+  final String providerName;
+
+  const InsuranceProviderScreen({
+    super.key,
+    required this.providerName,
+  });
 
   @override
-  State<ElectricityScreen> createState() => _ElectricityScreenState();
+  State<InsuranceProviderScreen> createState() =>
+      _InsuranceProviderScreenState();
 }
 
-class _ElectricityScreenState extends State<ElectricityScreen> {
-  String selectedDisco = 'Benin Electricity';
-  String selectedMeterType = 'Prepaid';
-  final TextEditingController meterNumberController = TextEditingController();
+class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
+  final TextEditingController policyNumberController = TextEditingController();
+  String selectedPlan = 'Universal plan';
+  String selectedDuration = '1 year';
   final TextEditingController amountController = TextEditingController();
 
   @override
@@ -31,41 +36,49 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Electricity',
+          widget.providerName,
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SavedBeneficiaryScreen(),
-                ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Select Disco
+            // Policy Number
             Text(
-              'Select Disco',
+              'Policy Number',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: policyNumberController,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              decoration: InputDecoration(
+                hintText: '0000000000000',
+                hintStyle: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.grey[400]),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Service Plan
+            Text(
+              'Service Plan',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 14,
@@ -73,7 +86,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () => _showDiscoSelector(context),
+              onTap: () => _showServicePlanModal(context),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -85,7 +98,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      selectedDisco,
+                      selectedPlan,
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
@@ -102,36 +115,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
 
             const SizedBox(height: 24),
 
-            // Meter Number
+            // Duration
             Text(
-              'Meter Number',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: meterNumberController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Meter Type
-            Text(
-              'Meter Type',
+              'Duration',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 14,
@@ -139,7 +125,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () => _showMeterTypeModal(context),
+              onTap: () => _showServiceDurationModal(context),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -151,7 +137,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      selectedMeterType,
+                      selectedDuration,
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
@@ -182,7 +168,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               keyboardType: TextInputType.number,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
-                hintText: '₦ 10,000',
+                hintText: '₦',
                 hintStyle: TextStyle(
                     color: isDark ? Colors.white38 : Colors.grey[400]),
                 filled: true,
@@ -201,18 +187,18 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  if (meterNumberController.text.isNotEmpty &&
+                  if (policyNumberController.text.isNotEmpty &&
                       amountController.text.isNotEmpty) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TransactionDetailsScreen(
+                        builder: (context) => InsuranceTransactionDetailsScreen(
                           transactionData: {
-                            'meterNumber': meterNumberController.text,
-                            'disco': selectedDisco,
-                            'meterType': selectedMeterType,
+                            'provider': widget.providerName,
+                            'policyNumber': policyNumberController.text,
+                            'servicePlan': selectedPlan,
+                            'duration': selectedDuration,
                             'amount': amountController.text,
-                            'totalAmount': amountController.text,
                           },
                         ),
                       ),
@@ -242,30 +228,30 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
     );
   }
 
-  void _showDiscoSelector(BuildContext context) {
+  void _showServicePlanModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => DiscoSelectorModal(
-        selectedDisco: selectedDisco,
-        onDiscoSelected: (disco) {
+      builder: (context) => ServicePlanModal(
+        selectedPlan: selectedPlan,
+        onPlanSelected: (plan) {
           setState(() {
-            selectedDisco = disco;
+            selectedPlan = plan;
           });
         },
       ),
     );
   }
 
-  void _showMeterTypeModal(BuildContext context) {
+  void _showServiceDurationModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => MeterTypeModal(
-        selectedType: selectedMeterType,
-        onTypeSelected: (type) {
+      builder: (context) => ServiceDurationModal(
+        selectedDuration: selectedDuration,
+        onDurationSelected: (duration) {
           setState(() {
-            selectedMeterType = type;
+            selectedDuration = duration;
           });
         },
       ),

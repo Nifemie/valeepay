@@ -2,6 +2,13 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:valarpay/features/dashboard/view/commingsoon.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
+import 'package:valarpay/features/dashboard/view/services/education/education.dart';
+import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
+import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/internet/internet_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
 import '../../features/dashboard/view/services/airtime/airtime.dart';
 import '../../features/dashboard/view/services/data/data.dart';
 import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
@@ -48,7 +55,7 @@ import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
-  initialLocation: kDebugMode ? '/' : '/splash', // Skip splash in debug mode
+  initialLocation: kDebugMode ? '/splash' : '/splash', // Skip splash in debug mode
   routes: [
     // Auth routes (without dashboard wrapper)
     GoRoute(
@@ -263,6 +270,34 @@ final router = GoRouter(
           answer: data['answer']!,
         );
       },
+    ),
+    GoRoute(
+      path: '/electricity',
+      builder: (context, state) => const ElectricityScreen(),
+    ),
+    GoRoute(
+      path: '/flight',
+      builder: (context, state) => const FlightScreen(),
+    ),
+     GoRoute(
+      path: '/swap-currency',
+      builder: (context, state) => const SwapCurrencyScreen(),
+    ),
+    GoRoute(
+      path: '/insurance',
+      builder: (context, state) => const InsuranceScreen(),
+    ),
+    GoRoute(
+      path: '/international-airime',
+      builder: (context, state) => const InternationalAirtimeScreen(),
+    ),
+    GoRoute(
+      path: '/education',
+      builder: (context, state) => const EducationScreen(),
+    ),
+    GoRoute(
+      path: '/internet',
+      builder: (context, state) => const InternetScreen(),
     ),
   ],
 );

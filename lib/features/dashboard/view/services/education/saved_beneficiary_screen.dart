@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class SavedBeneficiaryScreen extends StatelessWidget {
-  const SavedBeneficiaryScreen({super.key});
+class EducationSavedBeneficiaryScreen extends StatelessWidget {
+  const EducationSavedBeneficiaryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,34 +10,34 @@ class SavedBeneficiaryScreen extends StatelessWidget {
     // Sample beneficiaries data
     final beneficiaries = [
       {
-        'id': '0000000000',
-        'provider': 'Benin Electricity',
-        'type': 'Prepaid',
+        'studentId': '0000000000',
+        'institution': 'University of Benin',
+        'serviceType': 'School Fee',
       },
       {
-        'id': '0000000000',
-        'provider': 'Benin Electricity',
-        'type': 'Prepaid',
+        'studentId': '0000000000',
+        'institution': 'University of Benin',
+        'serviceType': 'School Fee',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'studentId': '0000000000',
+        'institution': 'University of Benin',
+        'serviceType': 'School Fee',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'studentId': '0000000000',
+        'institution': 'University of Benin',
+        'serviceType': 'School Fee',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'studentId': '0000000000',
+        'institution': 'University of Benin',
+        'serviceType': 'School Fee',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'studentId': '0000000000',
+        'institution': 'University of Benin',
+        'serviceType': 'School Fee',
       },
     ];
 
@@ -89,7 +89,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.bookmark_border,
+              Icons.school,
               size: 60,
               color: Color(0xFFF76301),
             ),
@@ -105,11 +105,12 @@ class SavedBeneficiaryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add beneficiaries to make payments faster',
+            'Add beneficiaries to make education payments faster',
             style: TextStyle(
               color: isDark ? Colors.white70 : Colors.grey[600],
               fontSize: 14,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -139,7 +140,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.electrical_services,
+              Icons.school,
               color: Color(0xFFF76301),
               size: 20,
             ),
@@ -153,7 +154,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  beneficiary['id']!,
+                  beneficiary['studentId']!,
                   style: TextStyle(
                     color: isDark ? Colors.white : Colors.black,
                     fontSize: 16,
@@ -162,7 +163,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  beneficiary['provider']!,
+                  beneficiary['institution']!,
                   style: TextStyle(
                     color: isDark ? Colors.white70 : Colors.grey[600],
                     fontSize: 14,

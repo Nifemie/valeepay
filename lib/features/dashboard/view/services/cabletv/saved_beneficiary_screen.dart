@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class SavedBeneficiaryScreen extends StatelessWidget {
-  const SavedBeneficiaryScreen({super.key});
+class CableTvSavedBeneficiaryScreen extends StatelessWidget {
+  const CableTvSavedBeneficiaryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,34 +10,34 @@ class SavedBeneficiaryScreen extends StatelessWidget {
     // Sample beneficiaries data
     final beneficiaries = [
       {
-        'id': '0000000000',
-        'provider': 'Benin Electricity',
-        'type': 'Prepaid',
+        'smartcardNumber': '0000000000',
+        'provider': 'DStv',
+        'plan': 'Plan A',
       },
       {
-        'id': '0000000000',
-        'provider': 'Benin Electricity',
-        'type': 'Prepaid',
+        'smartcardNumber': '0000000000',
+        'provider': 'DStv',
+        'plan': 'Plan A',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'smartcardNumber': '0000000000',
+        'provider': 'DStv',
+        'plan': 'Plan A',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'smartcardNumber': '0000000000',
+        'provider': 'DStv',
+        'plan': 'Plan A',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'smartcardNumber': '0000000000',
+        'provider': 'DStv',
+        'plan': 'Plan A',
       },
       {
-        'id': '0000000000',
-        'provider': 'Prepaid - Benin Electricity',
-        'type': 'Prepaid',
+        'smartcardNumber': '0000000000',
+        'provider': 'DStv',
+        'plan': 'Plan A',
       },
     ];
 
@@ -89,7 +89,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.bookmark_border,
+              Icons.tv,
               size: 60,
               color: Color(0xFFF76301),
             ),
@@ -105,11 +105,12 @@ class SavedBeneficiaryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add beneficiaries to make payments faster',
+            'Add beneficiaries to make cable TV payments faster',
             style: TextStyle(
               color: isDark ? Colors.white70 : Colors.grey[600],
               fontSize: 14,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -139,7 +140,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.electrical_services,
+              Icons.tv,
               color: Color(0xFFF76301),
               size: 20,
             ),
@@ -153,7 +154,7 @@ class SavedBeneficiaryScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  beneficiary['id']!,
+                  beneficiary['smartcardNumber']!,
                   style: TextStyle(
                     color: isDark ? Colors.white : Colors.black,
                     fontSize: 16,

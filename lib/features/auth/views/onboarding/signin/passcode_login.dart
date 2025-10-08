@@ -43,10 +43,9 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: appTheme.whiteColor,
         leading: IconButton(
           onPressed: () => context.push('/signin'),
-          icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: const Icon(Icons.arrow_back),
         ),
         actions: [
           TextButton(
@@ -176,7 +175,7 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
       onTap: () => _onNumberPressed(number),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).cardColor.withOpacity(0.5),
           shape: BoxShape.circle,
         ),
         child: Center(

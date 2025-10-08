@@ -43,7 +43,6 @@ class _VerifyFingerprintScreenState extends State<VerifyFingerprintScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),

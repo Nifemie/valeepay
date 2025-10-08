@@ -1,21 +1,34 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/services_widgets/electricity_widgets/disco_selector_modal.dart';
-import '../../../widgets/services_widgets/electricity_widgets/meter_type_modal.dart';
-import 'saved_beneficiary_screen.dart';
+import '../../../widgets/services_widgets/cabletv_widgets/provider_selector_modal.dart';
+import '../../../widgets/services_widgets/cabletv_widgets/plan_selector_modal.dart';
 import 'transaction_details_screen.dart';
 
-class ElectricityScreen extends StatefulWidget {
-  const ElectricityScreen({super.key});
+class CableTvProviderPaymentScreen extends StatefulWidget {
+  final String providerName;
+
+  const CableTvProviderPaymentScreen({
+    super.key,
+    required this.providerName,
+  });
 
   @override
-  State<ElectricityScreen> createState() => _ElectricityScreenState();
+  State<CableTvProviderPaymentScreen> createState() =>
+      _CableTvProviderPaymentScreenState();
 }
 
-class _ElectricityScreenState extends State<ElectricityScreen> {
-  String selectedDisco = 'Benin Electricity';
-  String selectedMeterType = 'Prepaid';
-  final TextEditingController meterNumberController = TextEditingController();
-  final TextEditingController amountController = TextEditingController();
+class _CableTvProviderPaymentScreenState
+    extends State<CableTvProviderPaymentScreen> {
+  String selectedProvider = 'DStv';
+  final TextEditingController smartcardController = TextEditingController();
+  String selectedPlan = 'Plan A';
+  final TextEditingController amountController =
+      TextEditingController(text: '6500');
+
+  @override
+  void initState() {
+    super.initState();
+    selectedProvider = widget.providerName;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +44,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Electricity',
+          'Cable Tv',
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
@@ -41,12 +54,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SavedBeneficiaryScreen(),
-                ),
-              );
+              // Navigate to saved beneficiaries
             },
             child: const Text(
               'Saved Beneficiary',
@@ -63,9 +71,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Select Disco
+            // Select Provider
             Text(
-              'Select Disco',
+              'Select Provider',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 14,
@@ -73,7 +81,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () => _showDiscoSelector(context),
+              onTap: () => _showProviderSelector(context),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -85,7 +93,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      selectedDisco,
+                      selectedProvider,
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
@@ -102,9 +110,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
 
             const SizedBox(height: 24),
 
-            // Meter Number
+            // Smartcard Number
             Text(
-              'Meter Number',
+              'Smartcard Number',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 14,
@@ -112,7 +120,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             ),
             const SizedBox(height: 8),
             TextField(
-              controller: meterNumberController,
+              controller: smartcardController,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: '0000000000',
@@ -129,9 +137,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
 
             const SizedBox(height: 24),
 
-            // Meter Type
+            // Select Plan
             Text(
-              'Meter Type',
+              'Select Plan',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 14,
@@ -139,7 +147,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () => _showMeterTypeModal(context),
+              onTap: () => _showPlanSelector(context),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -151,7 +159,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      selectedMeterType,
+                      selectedPlan,
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
@@ -168,29 +176,29 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
 
             const SizedBox(height: 24),
 
-            // Amount
-            Text(
-              'Amount',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '₦ 10,000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+            // Current Date (Amount field with orange border)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFF76301),
+                  width: 2,
                 ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '₦${amountController.text}',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -201,18 +209,16 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  if (meterNumberController.text.isNotEmpty &&
-                      amountController.text.isNotEmpty) {
+                  if (smartcardController.text.isNotEmpty) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TransactionDetailsScreen(
+                        builder: (context) => CableTvTransactionDetailsScreen(
                           transactionData: {
-                            'meterNumber': meterNumberController.text,
-                            'disco': selectedDisco,
-                            'meterType': selectedMeterType,
+                            'provider': selectedProvider,
+                            'smartcardNumber': smartcardController.text,
+                            'plan': selectedPlan,
                             'amount': amountController.text,
-                            'totalAmount': amountController.text,
                           },
                         ),
                       ),
@@ -242,33 +248,50 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
     );
   }
 
-  void _showDiscoSelector(BuildContext context) {
+  void _showProviderSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => DiscoSelectorModal(
-        selectedDisco: selectedDisco,
-        onDiscoSelected: (disco) {
+      builder: (context) => CableTvProviderSelectorModal(
+        selectedProvider: selectedProvider,
+        onProviderSelected: (provider) {
           setState(() {
-            selectedDisco = disco;
+            selectedProvider = provider;
           });
         },
       ),
     );
   }
 
-  void _showMeterTypeModal(BuildContext context) {
+  void _showPlanSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => MeterTypeModal(
-        selectedType: selectedMeterType,
-        onTypeSelected: (type) {
+      builder: (context) => CableTvPlanSelectorModal(
+        selectedPlan: selectedPlan,
+        onPlanSelected: (plan) {
           setState(() {
-            selectedMeterType = type;
+            selectedPlan = plan;
+            // Update amount based on plan
+            amountController.text = _getPlanPrice(plan);
           });
         },
       ),
     );
+  }
+
+  String _getPlanPrice(String plan) {
+    switch (plan) {
+      case 'Plan A':
+        return '6500';
+      case 'Plan B':
+        return '4500';
+      case 'Plan C':
+        return '3500';
+      case 'Plan D':
+        return '2500';
+      default:
+        return '6500';
+    }
   }
 }

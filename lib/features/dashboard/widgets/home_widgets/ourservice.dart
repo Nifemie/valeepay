@@ -23,7 +23,7 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/light.svg',
           label: 'Electricity',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/electricity')),
       ServiceItem(
           icon: 'assets/images/service_icon/cable.svg',
           label: 'Cable Tv',
@@ -31,11 +31,11 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/arrow-swap-horizontal.svg',
           label: 'Swap Currency',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/swap-currency')),
       ServiceItem(
           icon: 'assets/images/service_icon/internet.svg',
           label: 'Internet',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/internet')),
       ServiceItem(
           icon: 'assets/images/service_icon/gift.svg',
           label: 'Giftcard',
@@ -43,11 +43,11 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/int.svg',
           label: 'Intl. Airtime',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/international-airtime')),
       ServiceItem(
           icon: 'assets/images/service_icon/Education.svg',
           label: 'Education',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/education')),
       ServiceItem(
           icon: 'assets/images/service_icon/shoping.svg',
           label: 'Shopping',
@@ -55,7 +55,11 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/Insurance.svg',
           label: 'Insurance',
-          onTap: () => context.push('/coming-soon')),
+          onTap: () => context.push('/insurance')),
+      ServiceItem(
+          icon: 'assets/images/service_icon/flight.svg',
+          label: 'Flight',
+          onTap: () => context.push('/flight')),
     ];
 
     return Column(
