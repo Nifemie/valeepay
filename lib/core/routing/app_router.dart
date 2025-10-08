@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:valarpay/features/dashboard/view/comming_soon.dart';
+import '../../features/dashboard/view/services/airtime/airtime.dart';
+import '../../features/dashboard/view/services/data/data.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
@@ -36,6 +38,19 @@ import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 import '../../features/dashboard/view/me/transaction_history.dart';
+import '../../features/dashboard/view/me/account_statement.dart';
+import '../../features/dashboard/view/me/account_settings.dart';
+import '../../features/dashboard/view/me/portfolio.dart';
+import '../../features/dashboard/view/me/theme.dart';
+import '../../features/dashboard/view/me/security.dart';
+import '../../features/dashboard/view/me/about_us.dart';
+import '../../features/dashboard/view/account/account_screen.dart';
+import '../../features/dashboard/view/me/rewards.dart';
+import '../../features/dashboard/view/transfer/select_bank_screen.dart';
+import '../../features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
+import '../../features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
+import '../../features/dashboard/view/withdraw/withdraw_screen.dart';
+
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -191,6 +206,62 @@ final router = GoRouter(
     GoRoute(
       path: '/transaction-history',
       builder: (context, state) => const TransactionHistoryPage(),
+    ),
+    GoRoute(
+      path: '/account-statement',
+      builder: (context, state) => const AccountStatementPage(),
+    ),
+    GoRoute(
+      path: '/account-settings',
+      builder: (context, state) => const AccountSettingsPage(),
+    ),
+    GoRoute(
+      path: '/my-portfolio',
+      builder: (context, state) => const MyPortfolioPage(),
+    ),
+    GoRoute(
+      path: '/themes',
+      builder: (context, state) => const ThemesPage(),
+    ),
+    GoRoute(
+      path: '/security-centre',
+      builder: (context, state) => const SecurityCentrePage(),
+    ),
+    GoRoute(
+      path: '/about-us',
+      builder: (context, state) => const AboutUsPage(),
+    ),
+    GoRoute(
+      path: '/my-rewards',
+      builder: (context, state) => const MyRewardsPage(),
+    ),
+    GoRoute(
+      path: '/transfer-to-valarpay',
+      builder: (context, state) => const TransferToValarPayScreen(),
+    ),
+    GoRoute(
+      path: '/transfer-to-bank',
+      builder: (context, state) => const TransferToBankScreen(),
+    ),
+    GoRoute(
+      path: '/withdraw',
+      builder: (context, state) => const WithdrawScreen(),
+    ),
+    GoRoute(
+      path: '/airtime',
+      builder: (context, state) => const AirtimeScreen(),
+    ),
+    GoRoute(
+      path: '/data',
+      builder: (context, state) => const DataScreen(),
+    ),
+    GoRoute(
+      path: '/account',
+      builder: (context, state) => const AccountScreen(),
+    ),
+    GoRoute(
+      path: '/select-bank',
+      builder: (context, state) => const SelectBankScreen(),
     ),
   ],
 );

@@ -30,14 +30,16 @@ class SecurityMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/security.svg',
             title: 'Security Centre',
             onTap: () {
-              context.push('/coming-soon');
+              context.push('/security-centre');
             },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/live.svg',
             title: 'Live Support',
-            onTap: () {},
+            onTap: () {
+              context.push('/customer-service');
+            },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
@@ -50,7 +52,7 @@ class SecurityMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/about.svg',
             title: 'About Us',
             onTap: () {
-              context.push('/coming-soon');
+              context.push('/about-us');
             },
           ),
           const SizedBox(height: 20),
