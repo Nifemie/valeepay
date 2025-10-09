@@ -24,6 +24,7 @@ import '../../features/dashboard/view/me/theme.dart';
 import '../../features/dashboard/view/home/notifications/notification_view.dart';
 import 'package:valarpay/features/dashboard/view/account/account_screen.dart';
 import 'package:valarpay/features/dashboard/view/account/account_setup_screen.dart';
+import '../../features/dashboard/view/me/portfolio.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_qrcode_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_transfer_screen.dart';
@@ -238,7 +239,10 @@ final router = GoRouter(
       path: '/my-rewards',
       builder: (context, state) => const MyRewardsPage(),
     ),
-
+    GoRoute(
+      path: 'My Portfolio',
+      builder: (context, state) => const MyPortfolioPage(),
+    ),
     // Services routes
     GoRoute(
       path: '/airtime',

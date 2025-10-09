@@ -262,7 +262,7 @@ android_12:
 #  - 'ios/Runner/Info-Debug.plist'
 #  - 'ios/Runner/Info-Release.plist'
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icons/new_app_logo.jpg"

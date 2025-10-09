@@ -43,7 +43,7 @@ class AboutUsPage extends ConsumerWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
-                    'assets/images/valarpay.png',
+                    'assets/icons/new_app_logo.jpg',
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
