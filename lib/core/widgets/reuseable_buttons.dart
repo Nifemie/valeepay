@@ -99,7 +99,7 @@ class FullWidthButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 335,
+      width: MediaQuery.of(context).size.width,
       height: 40,
       decoration: BoxDecoration(
         color: isEnabled ? const Color(0xFFF76301) : const Color(0xFFE5E7EB),

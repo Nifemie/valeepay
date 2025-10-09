@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../widgets/Kyc/KYC_reusable_button.dart';
+import 'package:valarpay/core/widgets/reuseable_buttons.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'identity_verification.dart';
 import 'kyc_step_provider.dart';

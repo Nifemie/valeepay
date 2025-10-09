@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/Kyc/KYC_reusable_button.dart';
+import 'package:valarpay/core/widgets/reuseable_buttons.dart';
 import '../../../../core/widgets/pin_input_fields.dart';
 import '../../../../controller/pin_controller.dart';
 import 'confirm_transaction_pin_page.dart';

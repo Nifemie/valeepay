@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 
 // State provider for the PIN
-final pinProvider = StateNotifierProvider.autoDispose<PinNotifier, List<String>>(
-      (ref) => PinNotifier(),
+final pinProvider =
+    StateNotifierProvider.autoDispose<PinNotifier, List<String>>(
+  (ref) => PinNotifier(),
 );
 
 class PinNotifier extends StateNotifier<List<String>> {
@@ -49,14 +51,15 @@ class TransactionPinModal extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<TransactionPinModal> createState() => _TransactionPinModalState();
+  ConsumerState<TransactionPinModal> createState() =>
+      _TransactionPinModalState();
 
   // Static method to show the modal
   static Future<String?> show(
-      BuildContext context, {
-        String title = 'Enter Transaction Pin',
-        VoidCallback? onForgotPin,
-      }) {
+    BuildContext context, {
+    String title = 'Enter Transaction Pin',
+    VoidCallback? onForgotPin,
+  }) {
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -97,9 +100,9 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
     });
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
@@ -109,6 +112,16 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            SizedBox(height: 10),
             // Header
             Row(
               children: [
@@ -125,7 +138,6 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
                     ),
                   ),
                 ),
@@ -139,7 +151,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 4,
-                    (index) => Padding(
+                (index) => Padding(
                   padding: EdgeInsets.only(
                     right: index < 3 ? 12 : 0,
                   ),
@@ -158,7 +170,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                 'Forgot Pin?',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFFF59E0B),
+                  color: appTheme.primaryColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -201,13 +213,13 @@ class _PinBox extends StatelessWidget {
       alignment: Alignment.center,
       child: value.isNotEmpty
           ? Container(
-        width: 12,
-        height: 12,
-        decoration: const BoxDecoration(
-          color: Color(0xFF1F2937),
-          shape: BoxShape.circle,
-        ),
-      )
+              width: 12,
+              height: 12,
+              decoration: const BoxDecoration(
+                color: appTheme.primaryColor,
+                shape: BoxShape.circle,
+              ),
+            )
           : null,
     );
   }
@@ -279,7 +291,6 @@ class _NumberButton extends StatelessWidget {
     final isDelete = value == 'delete';
 
     return Material(
-      color: const Color(0xFFFAFBFC),
       borderRadius: BorderRadius.circular(4),
       child: InkWell(
         onTap: onPressed,
@@ -293,19 +304,17 @@ class _NumberButton extends StatelessWidget {
           child: Center(
             child: isDelete
                 ? SvgPicture.asset(
-              'assets/icons/close_icon.svg',
-              width: 24,
-              height: 24,
-              color: const Color(0xFF1F2937),
-            )
+                    'assets/icons/close_icon.svg',
+                    width: 24,
+                    height: 24,
+                  )
                 : Text(
-              value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2937),
-              ),
-            ),
+                    value,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ),

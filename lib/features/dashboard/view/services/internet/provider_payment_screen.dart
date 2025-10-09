@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/current_rate_widget.dart';
+import 'package:valarpay/core/widgets/reuseable_buttons.dart';
 import '../../../widgets/services_widgets/internet_widgets/plan_selector_modal.dart';
 import 'transaction_details_screen.dart';
 
@@ -107,14 +109,6 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getPlanPrice(selectedPlan),
-                            style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -127,12 +121,14 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
               ),
             ),
 
-            const Spacer(),
+            SizedBox(height: 24),
 
-            // Pay Internet Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+            CurrentRateWidget(price: _getPlanPrice(selectedPlan)),
+
+            SizedBox(height: 40),
+
+            FullWidthButton(
+                text: 'Continue',
                 onPressed: () {
                   if (phoneNumberController.text.isNotEmpty) {
                     Navigator.push(
@@ -151,67 +147,7 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                       ),
                     );
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Pay Internet',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (phoneNumberController.text.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InternetTransactionDetailsScreen(
-                          transactionData: {
-                            'provider': widget.providerName,
-                            'phoneNumber': phoneNumberController.text,
-                            'plan': selectedPlan,
-                            'amount': _getPlanPrice(selectedPlan)
-                                .replaceAll('₦', '')
-                                .replaceAll(',', ''),
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+                })
           ],
         ),
       ),
