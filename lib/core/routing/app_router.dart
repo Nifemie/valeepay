@@ -76,6 +76,7 @@ import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart'
 
 final router = GoRouter(
   initialLocation: kDebugMode ? '/' : '/splash', // Skip splash in debug mode
+
   routes: [
     // Auth routes (without dashboard wrapper)
     GoRoute(

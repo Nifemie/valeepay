@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/current_rate_widget.dart';
 import '/core/themes/app_theme.dart';
 import '/core/themes/color_utils.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_brand_modal.dart';
@@ -27,9 +29,7 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
               color: isDark ? Colors.white : Colors.black),
@@ -64,190 +64,150 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Buy/Sell Toggle
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2B2725) : Colors.grey[200],
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => isBuySelected = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color:
-                              isBuySelected ? Colors.white : Colors.transparent,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: Text(
-                          'Buy Giftcard',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isBuySelected ? Colors.black : Colors.grey,
-                            fontWeight: FontWeight.w500,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Buy/Sell Toggle
+              Container(
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => isBuySelected = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isBuySelected
+                                ? Colors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Text(
+                            'Buy Giftcard',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isBuySelected ? Colors.black : Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => isBuySelected = false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: !isBuySelected
-                              ? Colors.white
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: Text(
-                          'Sell Giftcard',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: !isBuySelected ? Colors.black : Colors.grey,
-                            fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => isBuySelected = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !isBuySelected
+                                ? Colors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Text(
+                            'Sell Giftcard',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color:
+                                  !isBuySelected ? Colors.black : Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Select Giftcard Brand
-            _buildSectionTitle('Select Giftcard Brand'),
-            const SizedBox(height: 8),
-            _buildDropdownField(
-              value: selectedBrand,
-              icon: Icons.apple,
-              onTap: () => _showGiftCardBrandModal(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Select Country
-            _buildSectionTitle('Select Country'),
-            const SizedBox(height: 8),
-            _buildDropdownField(
-              value: selectedCountry,
-              icon: null,
-              flagCode: 'GB',
-              onTap: () => _showCountryModal(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Amount
-            _buildSectionTitle('Amount'),
-            const SizedBox(height: 8),
-            _buildDropdownField(
-              value: selectedAmount,
-              onTap: () => _showAmountModal(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Enter Code (Optional)
-            _buildSectionTitle('Enter Code(Optional)'),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                onChanged: (value) => setState(() => codeOptional = value),
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                decoration: InputDecoration(
-                  hintText: '10000',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
+                  ],
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-            // Price in Naira
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Price in Naira',
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+              // Select Giftcard Brand
+              _buildSectionTitle('Select Giftcard Brand'),
+              const SizedBox(height: 8),
+              _buildDropdownField(
+                value: selectedBrand,
+                imagePath: 'assets/images/POUNDS.png',
+                onTap: () => _showGiftCardBrandModal(),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Select Country
+              _buildSectionTitle('Select Country'),
+              const SizedBox(height: 8),
+              _buildDropdownField(
+                value: selectedCountry,
+                imagePath: 'assets/images/POUNDS.png',
+                onTap: () => _showCountryModal(),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Amount
+              _buildSectionTitle('Amount'),
+              const SizedBox(height: 8),
+              _buildDropdownField(
+                value: selectedAmount,
+                imagePath: 'assets/images/EURO.png',
+                onTap: () => _showAmountModal(),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Enter Code (Optional)
+              _buildSectionTitle('Enter Code (Optional)'),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                Text(
-                  '₦50,000',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-
-            const Spacer(),
-
-            // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const UploadImagesScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                child: TextField(
+                  onChanged: (value) => setState(() => codeOptional = value),
+                  decoration: InputDecoration(
+                    hintText: '1234',
+                    hintStyle: TextStyle(color: Colors.grey[500]),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
                   ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+
+              // Price in Naira
+              CurrentRateWidget(price: '₦50,000', text: 'Price in Naira'),
+
+              const SizedBox(height: 45),
+
+              // Continue Button
+              FullWidthButton(
+                  text: 'Continue',
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UploadImagesScreen())))
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSectionTitle(String title) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       title,
       style: TextStyle(
-        color: isDark ? Colors.white : Colors.black,
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
     );
@@ -255,45 +215,25 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
 
   Widget _buildDropdownField({
     required String value,
-    IconData? icon,
-    String? flagCode,
+    required String imagePath,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+          color: Theme.of(context).cardColor.withOpacity(0.4),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            if (icon != null) ...[
-              Icon(icon, color: Colors.grey[600], size: 20),
-              const SizedBox(width: 12),
-            ],
-            if (flagCode != null) ...[
-              Container(
-                width: 24,
-                height: 16,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(2),
-                  color: Colors.red,
-                ),
-                child: const Center(
-                  child: Text('🇬🇧', style: TextStyle(fontSize: 12)),
-                ),
-              ),
-              const SizedBox(width: 12),
-            ],
+            Image.asset(imagePath, height: 14),
+            SizedBox(width: 16),
             Expanded(
               child: Text(
                 value,
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
                   fontSize: 16,
                 ),
               ),

@@ -49,7 +49,7 @@ class AccountMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/port.svg',
             title: 'My Portfolio',
             onTap: () {
-              context.push('/coming-soon');
+              context.push('/my-portfolio');
             },
           ),
           const SizedBox(height: 20),

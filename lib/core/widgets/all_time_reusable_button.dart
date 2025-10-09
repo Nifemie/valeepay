@@ -100,7 +100,7 @@ class FullWidthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: 40,
+      height: 50,
       decoration: BoxDecoration(
         color: isEnabled ? const Color(0xFFF76301) : const Color(0xFFE5E7EB),
         borderRadius: BorderRadius.circular(24),
@@ -118,8 +118,8 @@ class FullWidthButton extends StatelessWidget {
           style: TextStyle(
             color: isEnabled ? Colors.white : const Color(0xFF9CA3AF),
             fontFamily: 'SF Pro',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),

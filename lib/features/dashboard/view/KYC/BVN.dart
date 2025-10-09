@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/core/widgets/reuseable_buttons.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'camerapermission.dart';
 import 'kyc_step_provider.dart';
@@ -21,12 +22,11 @@ class BVNPage extends ConsumerWidget {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            ref.read(kycStepProvider.notifier).state = 1;
-            Navigator.pop(context);
-          }
-        ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              ref.read(kycStepProvider.notifier).state = 1;
+              Navigator.pop(context);
+            }),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -81,7 +81,8 @@ class BVNPage extends ConsumerWidget {
                   // Input Container
                   Container(
                     height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(8),
@@ -173,8 +174,9 @@ class BVNPage extends ConsumerWidget {
                   ref.read(kycStepProvider.notifier).state = 3;
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CameraPermissionPage()),
-                  );// Navigate to next step
+                    MaterialPageRoute(
+                        builder: (context) => const CameraPermissionPage()),
+                  ); // Navigate to next step
                 },
               ),
             ],
@@ -184,4 +186,3 @@ class BVNPage extends ConsumerWidget {
     );
   }
 }
-

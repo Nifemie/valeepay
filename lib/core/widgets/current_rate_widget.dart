@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CurrentRateWidget extends StatelessWidget {
+  String text;
   String price;
-  CurrentRateWidget({required this.price, super.key});
+  CurrentRateWidget({required this.price, required this.text, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class CurrentRateWidget extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Current Rate',
+            Text(text,
                 style: TextStyle(color: Color(0XFF216EB2), fontSize: 16)),
             Text(price,
                 style: TextStyle(

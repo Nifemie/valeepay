@@ -17,25 +17,25 @@ class NetworkProviderSelector extends StatelessWidget {
       children: [
         _NetworkProviderItem(
           name: 'Airtel',
-          color: Colors.red,
+          image: Image.asset('assets/images/airtel.png'),
           isSelected: selectedNetwork == 'Airtel',
           onTap: () => onNetworkSelected('Airtel'),
         ),
         _NetworkProviderItem(
           name: 'MTN',
-          color: Colors.yellow,
+          image: Image.asset('assets/images/mtn.png'),
           isSelected: selectedNetwork == 'MTN',
           onTap: () => onNetworkSelected('MTN'),
         ),
         _NetworkProviderItem(
           name: '9mobile',
-          color: Colors.green,
+          image: Image.asset('assets/images/9mobile.png'),
           isSelected: selectedNetwork == '9mobile',
           onTap: () => onNetworkSelected('9mobile'),
         ),
         _NetworkProviderItem(
           name: 'Glo',
-          color: Colors.green,
+          image: Image.asset('assets/images/glo.png'),
           isSelected: selectedNetwork == 'Glo',
           onTap: () => onNetworkSelected('Glo'),
         ),
@@ -46,13 +46,13 @@ class NetworkProviderSelector extends StatelessWidget {
 
 class _NetworkProviderItem extends StatelessWidget {
   final String name;
-  final Color color;
+  final Widget image;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _NetworkProviderItem({
     required this.name,
-    required this.color,
+    required this.image,
     required this.isSelected,
     required this.onTap,
   });
@@ -65,10 +65,10 @@ class _NetworkProviderItem extends StatelessWidget {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.2) : const Color(0xFF2A2A2A),
+          color: isSelected ? Colors.grey.withOpacity(0.2) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : Colors.grey.shade700,
+            color: isSelected ? Colors.blue : Colors.grey.shade700,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -77,18 +77,10 @@ class _NetworkProviderItem extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: color,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
-              child: Text(
-                name.substring(0, 1).toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: image,
             ),
           ),
         ),

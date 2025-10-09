@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
@@ -59,6 +61,7 @@ class TransactionPinModal extends ConsumerStatefulWidget {
     BuildContext context, {
     String title = 'Enter Transaction Pin',
     VoidCallback? onForgotPin,
+    Function(String)? onCompletePin,
   }) {
     return showModalBottomSheet<String>(
       context: context,
@@ -67,6 +70,7 @@ class TransactionPinModal extends ConsumerStatefulWidget {
       builder: (context) => TransactionPinModal(
         title: title,
         onForgotPin: onForgotPin,
+        onComplete: onCompletePin,
       ),
     );
   }
@@ -91,11 +95,18 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
     ref.listen(pinProvider, (previous, next) {
       if (next.every((element) => element.isNotEmpty)) {
         final completePin = next.join();
-        if (widget.onComplete != null) {
-          widget.onComplete!(completePin);
-        } else {
-          Navigator.of(context).pop(completePin);
-        }
+        final navigator = Navigator.of(context);
+        // Add a small delay to prevent build conflicts
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            if (widget.onComplete != null) {
+              widget.onComplete!(completePin);
+            } else {
+              // If no onComplete callback, close modal and return PIN
+              navigator.pop(completePin);
+            }
+          }
+        });
       }
     });
 
@@ -113,7 +124,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 12),
+              margin: const EdgeInsets.only(top: 8),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -136,7 +147,8 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                     widget.title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontFamily: 'SF Pro',
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -153,7 +165,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                 4,
                 (index) => Padding(
                   padding: EdgeInsets.only(
-                    right: index < 3 ? 12 : 0,
+                    right: index < 3 ? 16 : 0,
                   ),
                   child: _PinBox(
                     value: pin[index],
@@ -161,7 +173,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             // Forgot Pin
             TextButton(
@@ -169,13 +181,14 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
               child: const Text(
                 'Forgot Pin?',
                 style: TextStyle(
+                  fontFamily: 'SF Pro',
                   fontSize: 14,
                   color: appTheme.primaryColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Number Pad
             _NumberPad(
@@ -201,13 +214,13 @@ class _PinBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 55,
+      width: 64,
+      height: 64,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF9CA3AF),
-          width: 1,
+          color: const Color(0xFFE5E7EB),
+          width: 1.5,
         ),
       ),
       alignment: Alignment.center,
@@ -240,11 +253,11 @@ class _NumberPad extends StatelessWidget {
     return Column(
       children: [
         _buildRow(['1', '2', '3']),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _buildRow(['4', '5', '6']),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _buildRow(['7', '8', '9']),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _buildRow(['', '0', 'delete']),
       ],
     );
@@ -252,24 +265,20 @@ class _NumberPad extends StatelessWidget {
 
   Widget _buildRow(List<String> numbers) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: numbers.map((number) {
         if (number.isEmpty) {
-          return const Expanded(child: SizedBox());
+          return const SizedBox(width: 80);
         }
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: _NumberButton(
-              value: number,
-              onPressed: () {
-                if (number == 'delete') {
-                  onDeletePressed();
-                } else {
-                  onNumberPressed(number);
-                }
-              },
-            ),
-          ),
+        return _NumberButton(
+          value: number,
+          onPressed: () {
+            if (number == 'delete') {
+              onDeletePressed();
+            } else {
+              onNumberPressed(number);
+            }
+          },
         );
       }).toList(),
     );
@@ -290,33 +299,37 @@ class _NumberButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDelete = value == 'delete';
 
-    return Material(
-      borderRadius: BorderRadius.circular(4),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          height: 52,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Center(
-            child: isDelete
-                ? SvgPicture.asset(
-                    'assets/icons/close_icon.svg',
-                    width: 24,
-                    height: 24,
-                  )
-                : Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                    ),
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(40),
+      child: Container(
+        width: 80,
+        height: 60,
+        alignment: Alignment.center,
+        child: isDelete
+            ? Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF111827),
+                    width: 1.5,
                   ),
-          ),
-        ),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  size: 18,
+                ),
+              )
+            : Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'SF Pro',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
       ),
     );
   }

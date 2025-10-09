@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/core/widgets/reuseable_buttons.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import '../../widgets/Kyc/Dialog/profile_setup_dialog.dart';
 import 'setup_passcode.dart';
@@ -49,12 +50,11 @@ class _IdentityVerificationTipsPageState
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            ref.read(kycStepProvider.notifier).state = 2;
-            Navigator.pop(context);
-          }
-        ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              ref.read(kycStepProvider.notifier).state = 2;
+              Navigator.pop(context);
+            }),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -109,22 +109,22 @@ class _IdentityVerificationTipsPageState
               // Tips List
               const TipItem(
                 text:
-                'Stay in a bright, well-lit environment for clear visibility',
+                    'Stay in a bright, well-lit environment for clear visibility',
               ),
               const SizedBox(height: 16),
               const TipItem(
                 text:
-                'Hold your phone steady at eye level without shaking hands',
+                    'Hold your phone steady at eye level without shaking hands',
               ),
               const SizedBox(height: 16),
               const TipItem(
                 text:
-                'Keep your entire face clearly visible inside the camera frame',
+                    'Keep your entire face clearly visible inside the camera frame',
               ),
               const SizedBox(height: 16),
               const TipItem(
                 text:
-                'Remove caps, glasses, or face coverings for accurate detection',
+                    'Remove caps, glasses, or face coverings for accurate detection',
               ),
               const SizedBox(height: 40),
               // Continue Button
@@ -135,7 +135,8 @@ class _IdentityVerificationTipsPageState
                   ref.read(kycStepProvider.notifier).state = 4;
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SetupTransactionPinPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const SetupTransactionPinPage()),
                   );
                 },
               ),

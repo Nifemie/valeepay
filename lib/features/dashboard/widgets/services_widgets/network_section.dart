@@ -4,7 +4,7 @@ import 'ussd_service_tile.dart';
 class NetworkSection extends StatelessWidget {
   final String networkName;
   final Color networkColor;
-  final String networkIcon;
+  final Widget networkIcon;
   final List<USSDService> services;
 
   const NetworkSection({
@@ -28,14 +28,7 @@ class NetworkSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Text(
-              networkIcon,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: networkIcon,
           ),
         ),
         const SizedBox(height: 16),

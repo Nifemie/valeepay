@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
-import 'package:valarpay/core/widgets/reuseable_buttons.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+
 import '../../../widgets/services_widgets/internet_widgets/plan_selector_modal.dart';
 import 'transaction_details_screen.dart';
 
@@ -123,7 +127,7 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
 
             SizedBox(height: 24),
 
-            CurrentRateWidget(price: _getPlanPrice(selectedPlan)),
+            CurrentRateWidget(text: 'Current Rate', price: _getPlanPrice(selectedPlan)),
 
             SizedBox(height: 40),
 
@@ -134,17 +138,77 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => InternetTransactionDetailsScreen(
-                          transactionData: {
-                            'provider': widget.providerName,
-                            'phoneNumber': phoneNumberController.text,
-                            'plan': selectedPlan,
-                            'amount': _getPlanPrice(selectedPlan)
-                                .replaceAll('₦', '')
-                                .replaceAll(',', ''),
-                          },
-                        ),
-                      ),
+                          builder: (context) =>
+                              ReuseableTransactionDetailsScreen(
+                                transactionsDetailsList: [
+                                  buildDetailRow('Recipient Number',
+                                      phoneNumberController.text, isDark),
+                                  buildDetailRow(
+                                      'Provider', widget.providerName, isDark),
+                                  buildDetailRow('Plan', selectedPlan, isDark),
+                                  Divider(),
+                                  buildDetailRow(
+                                    'Amount',
+                                    _getPlanPrice(selectedPlan)
+                                        .replaceAll('₦', '')
+                                        .replaceAll(',', ''),
+                                    isDark,
+                                  )
+                                ],
+                                onButtonPressed: () async {
+                                  final pin =
+                                      await TransactionPinModal.show(context);
+                                  if (pin != null &&
+                                      pin.length == 4 &&
+                                      mounted) {
+                                    if (mounted) Navigator.pop(context);
+                                    if (mounted) {
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransactionReceiptWidget(
+                                                    amount:
+                                                        amountController.text,
+                                                    topDetails: [
+                                                      TransactionDetail(
+                                                          label: 'Plan',
+                                                          value: selectedPlan),
+                                                    ],
+                                                    bottomDetails: [
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Transaction ID',
+                                                          value:
+                                                              'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                          showCopyIcon: true),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Recipient Mobile',
+                                                          value:
+                                                              phoneNumberController
+                                                                  .text),
+                                                      TransactionDetail(
+                                                          label: 'Provider',
+                                                          value: widget
+                                                              .providerName),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Payment Source',
+                                                          value:
+                                                              'ValarPay Account'),
+                                                      TransactionDetail(
+                                                          label: 'Date & Time',
+                                                          value:
+                                                              '29 Sep 2025 | 8:15 pm')
+                                                    ],
+                                                    onShareReceipt: () {},
+                                                    onDone: () {},
+                                                  )));
+                                    }
+                                  }
+                                },
+                              )),
                     );
                   }
                 })

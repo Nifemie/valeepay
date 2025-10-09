@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/core/widgets/reuseable_buttons.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'BVN.dart';
 import 'kyc_step_provider.dart';

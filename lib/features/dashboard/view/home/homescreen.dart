@@ -271,7 +271,7 @@ class _BalanceCard extends StatelessWidget {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: () => debugPrint('Transaction History tapped'),
+                onTap: () => context.push('/transaction-history'),
                 child: Row(
                   children: [
                     Text(

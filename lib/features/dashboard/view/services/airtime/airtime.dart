@@ -5,6 +5,7 @@ import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
 class AirtimeScreen extends StatefulWidget {
   const AirtimeScreen({super.key});
@@ -22,8 +23,8 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '000000000';
-    _amountController.text = '000000000';
+    _phoneController.text = '';
+    _amountController.text = '';
   }
 
   void _showContactAccessDialog() {
@@ -101,18 +102,27 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               ),
               child: Row(
                 children: [
+                  const Text(
+                    '🇳🇬 +234 ',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 24,
+                    child: VerticalDivider(
+                      color: Colors.grey,
+                      thickness: 1,
+                    ),
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _phoneController,
-                      decoration: InputDecoration(
-                          prefix: const Text(
-                            '🇳🇬 +234 ',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          border: InputBorder.none),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      ),
                       style: const TextStyle(
                         fontSize: 16,
                       ),
@@ -161,7 +171,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
             const SizedBox(height: 12),
             Container(
               width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
@@ -169,7 +179,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               child: TextField(
                 controller: _amountController,
                 decoration: InputDecoration(
-                    border: InputBorder.none, prefix: Text('₦ ')),
+                    border: InputBorder.none, prefixText: '₦ '),
                 style: const TextStyle(
                   fontSize: 16,
                 ),
@@ -215,7 +225,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
             const SizedBox(height: 32),
 
             // Continue Button
-            ResponsiveButton(
+            FullWidthButton(
               text: 'Continue',
               onPressed: () {
                 // Handle continue action

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/widgets/services_widgets/betting_widgets/provider_selector_modal.dart';
 import 'saved_beneficiary_screen.dart';
-import 'provider_payment_screen.dart';
 
 class BettingScreen extends StatefulWidget {
   const BettingScreen({super.key});
@@ -152,43 +156,74 @@ class _BettingScreenState extends State<BettingScreen> {
               ),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 50),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (userIdController.text.isNotEmpty &&
-                      amountController.text.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BettingProviderPaymentScreen(
-                          providerName: selectedProvider,
-                          userId: userIdController.text,
-                          amount: amountController.text,
-                        ),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            FullWidthButton(
+              text: 'Continue',
+              onPressed: () {
+                if (userIdController.text.isNotEmpty &&
+                    amountController.text.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ReuseableTransactionDetailsScreen(
+                              transactionsDetailsList: [
+                                buildDetailRow('Recipient ID',
+                                    userIdController.text, isDark),
+                                buildDetailRow(
+                                    'Provider', selectedProvider, isDark),
+                                buildDetailRow('Amount',
+                                    '₦${amountController.text}', isDark),
+                                Divider(),
+                                buildDetailRow('Amount',
+                                    '₦${amountController.text}', isDark,
+                                    isTotal: true)
+                              ],
+                              onButtonPressed: () async {
+                                final pin =
+                                    await TransactionPinModal.show(context);
+                                if (pin != null && pin.length == 4 && mounted) {
+                                  if (mounted) Navigator.pop(context);
+                                  if (mounted) {
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                TransactionReceiptWidget(
+                                                  amount: amountController.text,
+                                                  topDetails: [
+                                                    TransactionDetail(
+                                                        label: 'Transaction ID',
+                                                        value:
+                                                            'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                                                    TransactionDetail(
+                                                        label: 'Recipient ID',
+                                                        value: userIdController
+                                                            .text),
+                                                    TransactionDetail(
+                                                        label: 'Provider',
+                                                        value:
+                                                            selectedProvider),
+                                                    TransactionDetail(
+                                                        label: 'Payment Source',
+                                                        value:
+                                                            'ValarPay Account'),
+                                                    TransactionDetail(
+                                                        label: 'Date & Time',
+                                                        value:
+                                                            '29 Sep 2025 | 8:15 pm')
+                                                  ],
+                                                  onShareReceipt: () {},
+                                                  onDone: () {},
+                                                )));
+                                  }
+                                }
+                              },
+                            )),
+                  );
+                }
+              },
             ),
           ],
         ),
@@ -197,14 +232,16 @@ class _BettingScreenState extends State<BettingScreen> {
   }
 
   void _showProviderSelector(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BettingProviderPaymentScreen(
-          providerName: selectedProvider,
-          userId: userIdController.text,
-          amount: amountController.text,
-        ),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BettingProviderSelectorModal(
+        selectedProvider: selectedProvider,
+        onProviderSelected: (provider) {
+          setState(() {
+            selectedProvider = provider;
+          });
+        },
       ),
     );
   }
