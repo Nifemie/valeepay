@@ -97,7 +97,7 @@ class CustomToast {
     showToast(
       context: context,
       message: message,
-      iconPath: iconPath ?? 'assets/images/newlogo.png',
+      iconPath: iconPath ?? 'assets/images/VALAR PAY LOGOO.png',
       backgroundColor: const Color(0xFF4CAF50),
       duration: duration,
     );
@@ -112,7 +112,7 @@ class CustomToast {
     showToast(
       context: context,
       message: message,
-      iconPath: iconPath ?? 'assets/images/newlogo.png',
+      iconPath: iconPath ?? 'assets/images/VALAR PAY LOGOO.png',
       backgroundColor: const Color(0xFFE53E3E),
       duration: duration,
     );
@@ -127,7 +127,7 @@ class CustomToast {
     showToast(
       context: context,
       message: message,
-      iconPath: iconPath ?? 'assets/images/newlogo.png',
+      iconPath: iconPath ?? 'assets/images/VALAR PAY LOGOO.png',
       backgroundColor: const Color(0xFF2196F3),
       duration: duration,
     );
@@ -142,7 +142,7 @@ class CustomToast {
     showToast(
       context: context,
       message: message,
-      iconPath: iconPath ?? 'assets/images/newlogo.png',
+      iconPath: iconPath ?? 'assets/images/VALAR PAY LOGOO.png',
       backgroundColor: appTheme.primaryColor,
       duration: duration,
     );
@@ -156,7 +156,7 @@ class CustomToast {
     showToast(
       context: context,
       message: message,
-      iconPath: 'assets/images/newlogo.png', // Your app logo
+      iconPath: 'assets/images/VALAR PAY LOGOO.png', // Your app logo
       backgroundColor: const Color(0xFF2D2D2D),
       duration: duration,
     );

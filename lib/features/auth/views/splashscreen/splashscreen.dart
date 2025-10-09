@@ -151,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen>
                           _borderRadiusAnimation.value,
                         ),
                         child: Image.asset(
-                          'assets/images/newlogo.png',
+                          'assets/images/VALAR PAY LOGOO.png',
                           width: _scaleAnimation.value * 0.5,
                           height: _scaleAnimation.value * 0.5,
                           fit: BoxFit.contain,
@@ -184,4 +184,3 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-

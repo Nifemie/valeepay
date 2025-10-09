@@ -43,7 +43,7 @@ class AboutUsPage extends ConsumerWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
-                    'assets/images/valarpay.png',
+                    'assets/images/VALAR PAY LOGOO.png',
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
@@ -103,11 +103,11 @@ class AboutUsPage extends ConsumerWidget {
   }
 
   Widget _buildMenuItem(
-      BuildContext context, {
-        required String title,
-        required VoidCallback onTap,
-        required bool showDivider,
-      }) {
+    BuildContext context, {
+    required String title,
+    required VoidCallback onTap,
+    required bool showDivider,
+  }) {
     return Column(
       children: [
         InkWell(
