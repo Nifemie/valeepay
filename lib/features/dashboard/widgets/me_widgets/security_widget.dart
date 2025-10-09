@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:valarpay/features/dashboard/view/me/security.dart';
 import 'package:valarpay/features/dashboard/view/me/about_us.dart';
-
 
 class SecurityMenuWidget extends StatelessWidget {
   const SecurityMenuWidget({Key? key}) : super(key: key);
@@ -13,9 +13,8 @@ class SecurityMenuWidget extends StatelessWidget {
       width: double.infinity, // take full width
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.05),
@@ -31,48 +30,40 @@ class SecurityMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/security.svg',
             title: 'Security Centre',
             onTap: () {
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SecurityCentrePage()),
-              );
-
+              context.push('/security-centre');
             },
-
-
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/live.svg',
             title: 'Live Support',
-            onTap: () {},
+            onTap: () {
+              context.push('/customer-service');
+            },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/report.svg',
             title: 'Report Scam',
-            onTap: () {},
+            onTap: () {
+              context.push('/coming-soon');
+            },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/about.svg',
             title: 'About Us',
             onTap: () {
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AboutUsPage()),
-              );
-
+              context.push('/about-us');
             },
-
-
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/rate.svg',
             title: 'Rate Valarpay',
-            onTap: () {},
+            onTap: () {
+              context.push('/coming-soon');
+            },
           ),
         ],
       ),
@@ -96,10 +87,6 @@ class SecurityMenuWidget extends StatelessWidget {
               svgPath,
               width: 24,
               height: 24,
-              colorFilter: const ColorFilter.mode(
-                Colors.black54,
-                BlendMode.srcIn,
-              ),
             ),
             const SizedBox(width: 12),
             // Title text
@@ -107,7 +94,6 @@ class SecurityMenuWidget extends StatelessWidget {
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: Colors.black87,
                   fontFamily: 'SF Pro',
                   fontSize: 15,
                   fontWeight: FontWeight.w500,

@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-
 import '../../widgets/home_widgets/payment_widget_icons.dart';
 import '../../widgets/home_widgets/kyc_widget.dart';
 import '../../widgets/home_widgets/ourservice.dart';
-import 'notifications/notifications_screen.dart';
-import 'support/customer_service_screen.dart';
 
 class Homescreen extends StatefulWidget {
   final String firstName;
@@ -32,6 +32,8 @@ class _HomescreenState extends State<Homescreen> {
 
   final List<String> _bannerImages = const [
     'assets/images/valarbanner.png',
+    'assets/images/valarbanner2.png',
+    'assets/images/valarbanner3.png',
     'assets/images/valarbanner4.png',
   ];
 
@@ -81,7 +83,12 @@ class _HomescreenState extends State<Homescreen> {
               const SizedBox(height: 16),
               const KYCWidget(),
               const SizedBox(height: 16),
-              Image.asset(_bannerImages[_currentImageIndex]),
+              Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: Image.asset(
+                    _bannerImages[_currentImageIndex],
+                    fit: BoxFit.cover,
+                  )),
               const SizedBox(height: 16),
               const OurServicesWidget(),
               const SizedBox(height: 24),
@@ -143,11 +150,7 @@ class _HomeAppBar extends StatelessWidget {
               _IconButton(
                 svgPath: 'assets/images/payment_wid/Grouping (1).svg',
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CustomerServiceScreen(),
-                    ),
-                  );
+                  context.push('/customer-service');
                 },
               ),
               const SizedBox(width: 16),
@@ -157,11 +160,7 @@ class _HomeAppBar extends StatelessWidget {
                 svgPath: 'assets/images/payment_wid/bell.svg',
                 hasNotification: true,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
-                    ),
-                  );
+                  context.push('/notifications');
                 },
               ),
             ],
@@ -194,7 +193,9 @@ class _IconButton extends StatelessWidget {
             svgPath,
             width: 24,
             height: 24,
-            colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+            colorFilter: Theme.of(context) == AppTheme.darkTheme
+                ? const ColorFilter.mode(Colors.black, BlendMode.srcIn)
+                : null,
           ),
           if (hasNotification)
             Positioned(
@@ -270,7 +271,7 @@ class _BalanceCard extends StatelessWidget {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: () => debugPrint('Transaction History tapped'),
+                onTap: () => context.push('/transaction-history'),
                 child: Row(
                   children: [
                     Text(
@@ -317,6 +318,9 @@ class _AddMoneyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: () {
+        context.push('/add-money');
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(

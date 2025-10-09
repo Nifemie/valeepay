@@ -115,9 +115,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     return Container(
       width: 375,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:valarpay/core/themes/app_theme.dart';
+import 'package:valarpay/core/themes/color_utils.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -120,9 +121,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       style: Theme.of(
                         context,
                       ).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                       textAlign: TextAlign.center,
                     ),
 
@@ -147,7 +148,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: ElevatedButton(
                         onPressed: () => context.push('/signup'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF011131),
+                          backgroundColor: appTheme.primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),

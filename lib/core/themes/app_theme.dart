@@ -22,7 +22,7 @@ class AppTheme {
       ),
       cardColor: Colors.grey[200],
       textTheme: const TextTheme(
-        labelSmall: TextStyle(color: Colors.black87),
+        labelSmall: TextStyle(color: Colors.black),
         labelMedium: TextStyle(
           fontFamily: 'SF Pro',
           fontSize: 12,
@@ -43,16 +43,15 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       useMaterial3: true,
-      scaffoldBackgroundColor: const Color(0xFF011131),
+      scaffoldBackgroundColor: Colors.black,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF011131),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        surfaceTintColor: Color(0xFF011131),
+        surfaceTintColor: Colors.black,
       ),
-      bottomAppBarTheme: const BottomAppBarTheme(
-        color: Color(0xFF2A2A2A),
-      ),
+
+      bottomAppBarTheme: const BottomAppBarTheme(color: Colors.black),
       cardColor: const Color(0xFF2B2725),
       textTheme: const TextTheme(
         labelSmall: TextStyle(color: Color(0xFFF9FAFB)),

@@ -137,7 +137,7 @@ class _SelectBankScreenState extends State<SelectBankScreen> {
                         ),
                       ),
                       onTap: () {
-                        // handle bank selection
+                        context.push('/transfer-amount');
                       },
                     );
                   }),

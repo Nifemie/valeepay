@@ -19,7 +19,7 @@ class MyApp extends ConsumerWidget {
       minTextAdapt: true,
       builder: (context, child) {
         return MaterialApp.router(
-          title: 'Valarpay - Beyond Banking',
+          title: 'ValarPay - Beyond Banking',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

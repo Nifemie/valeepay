@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -191,12 +192,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   void _validateAndSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
       // Password change successful
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password changed successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      CustomToast.showAppToast(context:context, message: 'Password changed successfully');
+     
 
       // Navigate back or to signin screen
       Future.delayed(const Duration(seconds: 1), () {

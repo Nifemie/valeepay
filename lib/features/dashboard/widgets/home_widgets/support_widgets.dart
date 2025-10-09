@@ -24,7 +24,7 @@ class SupportOptionCard extends StatelessWidget {
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: Colors.grey.withOpacity(0.2),
           ),
         ),
         child: Column(
@@ -34,7 +34,7 @@ class SupportOptionCard extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
+                color: iconColor.withOpacity( 0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Icon(
@@ -84,7 +84,7 @@ class SupportListTile extends StatelessWidget {
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: Colors.grey.withOpacity(0.2),
           ),
         ),
         child: Row(
@@ -93,7 +93,7 @@ class SupportListTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
+                color: iconColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -159,7 +159,7 @@ class FAQTile extends StatelessWidget {
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: Colors.grey.withOpacity( 0.2),
           ),
         ),
         child: Row(
@@ -220,7 +220,7 @@ class SupportSearchBar extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.2),
+          color: Colors.grey.withOpacity(0.2),
         ),
       ),
       child: TextField(
@@ -267,7 +267,7 @@ class SupportCategoryChip extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).primaryColor
-                : Colors.grey.withValues(alpha: 0.2),
+                : Colors.grey.withOpacity( 0.2),
           ),
         ),
         child: Text(

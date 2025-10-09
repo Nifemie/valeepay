@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
 import 'faq_screen.dart';
@@ -31,7 +32,7 @@ class CustomerServiceScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -124,11 +125,7 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'Theme',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const ThemesPage(),
-                              ),
-                            );
+                            context.push('/themes');
                           },
                         ),
                         SupportOptionCard(
@@ -155,11 +152,7 @@ class CustomerServiceScreen extends StatelessWidget {
                     'Simple answers to your common concerns, FAQs, and more',
                 iconColor: appTheme.primaryColor,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const FAQScreen(),
-                    ),
-                  );
+                  context.push('/faq');
                 },
               ),
 
@@ -172,11 +165,7 @@ class CustomerServiceScreen extends StatelessWidget {
                     'Get in-person help for your account and financial services when you visit',
                 iconColor: appTheme.primaryColor,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const VisitOfficeScreen(),
-                    ),
-                  );
+                  context.push('/visit-office');
                 },
               ),
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/me_widgets/category.dart';
 import '../../widgets/me_widgets/status_selection.dart';
+import 'account_statement.dart'; // Import the new file
 import '../../widgets/me_widgets/modal/date_picker_modal.dart';
 import 'account_statement.dart';// Import the new file
 
@@ -30,43 +32,43 @@ final totalInProvider = StateProvider<String>((ref) => '₦7,850');
 final totalOutProvider = StateProvider<String>((ref) => '₦23,400');
 
 final transactionsProvider = StateProvider<List<Transaction>>((ref) => [
-  Transaction(
-    title: 'Interbank Transfer',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦7,850',
-    status: TransactionStatus.successful,
-  ),
-  Transaction(
-    title: 'Interbank Transfer',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦7,850',
-    status: TransactionStatus.failed,
-  ),
-  Transaction(
-    title: 'Interbank Transfer',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦7,850',
-    status: TransactionStatus.pending,
-  ),
-  Transaction(
-    title: 'Interbank Transfer',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦7,850',
-    status: TransactionStatus.pending,
-  ),
-  Transaction(
-    title: 'Interbank Transfer',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦7,850',
-    status: TransactionStatus.pending,
-  ),
-  Transaction(
-    title: 'Interbank Transfer',
-    date: 'September 10,2025 10:11 PM',
-    amount: '+₦7,850',
-    status: TransactionStatus.pending,
-  ),
-]);
+      Transaction(
+        title: 'Interbank Transfer',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦7,850',
+        status: TransactionStatus.successful,
+      ),
+      Transaction(
+        title: 'Interbank Transfer',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦7,850',
+        status: TransactionStatus.failed,
+      ),
+      Transaction(
+        title: 'Interbank Transfer',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦7,850',
+        status: TransactionStatus.pending,
+      ),
+      Transaction(
+        title: 'Interbank Transfer',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦7,850',
+        status: TransactionStatus.pending,
+      ),
+      Transaction(
+        title: 'Interbank Transfer',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦7,850',
+        status: TransactionStatus.pending,
+      ),
+      Transaction(
+        title: 'Interbank Transfer',
+        date: 'September 10,2025 10:11 PM',
+        amount: '+₦7,850',
+        status: TransactionStatus.pending,
+      ),
+    ]);
 
 class TransactionHistoryPage extends ConsumerWidget {
   const TransactionHistoryPage({Key? key}) : super(key: key);
@@ -79,18 +81,15 @@ class TransactionHistoryPage extends ConsumerWidget {
     final transactions = ref.watch(transactionsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Transaction History',
           style: TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w400,
@@ -104,10 +103,7 @@ class TransactionHistoryPage extends ConsumerWidget {
             child: Center(
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AccountStatementPage()),
-                  );
+                  context.push('/account-statement');
                 },
                 child: const Text(
                   'Statement',
@@ -133,9 +129,10 @@ class TransactionHistoryPage extends ConsumerWidget {
             children: [
               // Search Bar
               Container(
-                width: 335,
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                width: MediaQuery.of(context).size.width,
+                height: 40,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFFB0B0B0).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(24),
@@ -181,7 +178,8 @@ class TransactionHistoryPage extends ConsumerWidget {
                             context,
                             currentMonth: selectedMonth,
                             onDateSelected: (newDate) {
-                              ref.read(selectedMonthProvider.notifier).state = newDate;
+                              ref.read(selectedMonthProvider.notifier).state =
+                                  newDate;
                             },
                           );
                         },
@@ -190,7 +188,6 @@ class TransactionHistoryPage extends ConsumerWidget {
                             Text(
                               selectedMonth,
                               style: const TextStyle(
-                                color: Color(0xFF111827),
                                 fontFamily: 'SF Pro',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -200,7 +197,6 @@ class TransactionHistoryPage extends ConsumerWidget {
                             const Icon(
                               Icons.keyboard_arrow_down,
                               size: 16,
-                              color: Color(0xFF111827),
                             ),
                           ],
                         ),
@@ -274,7 +270,7 @@ class TransactionHistoryPage extends ConsumerWidget {
               ...transactions.map((transaction) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildTransactionItem(transaction),
+                  child: _buildTransactionItem(context, transaction),
                 );
               }).toList(),
             ],
@@ -287,7 +283,7 @@ class TransactionHistoryPage extends ConsumerWidget {
   void _showFilterBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -307,9 +303,10 @@ class TransactionHistoryPage extends ConsumerWidget {
                   showCategorySelection(context); // Show category selection
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFE5E7EB)),
                   ),
@@ -342,9 +339,10 @@ class TransactionHistoryPage extends ConsumerWidget {
                   showStatusSelection(context); // Show status selection
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFE5E7EB)),
                   ),
@@ -377,40 +375,71 @@ class TransactionHistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTransactionItem(Transaction transaction) {
-    return Row(
-      children: [
-        // Icon Container
-        Container(
-          width: 40,
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAFBFC),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: SvgPicture.asset(
-              'assets/images/convert.svg',
-              width: 36,
-              height: 34,
-              colorFilter: const ColorFilter.mode(
-                Color(0xFFF76301),
-                BlendMode.srcIn,
+  Widget _buildTransactionItem(BuildContext context, Transaction transaction) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8, top: 8),
+      child: Row(
+        children: [
+          // Icon Container
+          Container(
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/images/convert.svg',
+                width: 36,
+                height: 34,
+                colorFilter: const ColorFilter.mode(
+                  Color(0xFFF76301),
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        // Transaction Details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 12),
+          // Transaction Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  transaction.title,
+                  style: const TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    height: 1.43,
+                    letterSpacing: 0.035,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  transaction.date,
+                  style: const TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontFamily: 'SF Pro',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    height: 1.33,
+                    letterSpacing: 0.06,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Amount and Status
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                transaction.title,
+                transaction.amount,
                 style: const TextStyle(
-                  color: Color(0xFF111827),
                   fontFamily: 'SF Pro',
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -419,41 +448,11 @@ class TransactionHistoryPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                transaction.date,
-                style: const TextStyle(
-                  color: Color(0xFF9CA3AF),
-                  fontFamily: 'SF Pro',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  height: 1.33,
-                  letterSpacing: 0.06,
-                ),
-              ),
+              _buildStatusBadge(transaction.status),
             ],
           ),
-        ),
-        const SizedBox(width: 12),
-        // Amount and Status
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              transaction.amount,
-              style: const TextStyle(
-                color: Color(0xFF111827),
-                fontFamily: 'SF Pro',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                height: 1.43,
-                letterSpacing: 0.035,
-              ),
-            ),
-            const SizedBox(height: 4),
-            _buildStatusBadge(transaction.status),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 

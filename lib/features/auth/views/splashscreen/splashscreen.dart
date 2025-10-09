@@ -151,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen>
                           _borderRadiusAnimation.value,
                         ),
                         child: Image.asset(
-                          'assets/images/newlogo.png',
+                          'assets/icons/new_app_logo.jpg',
                           width: _scaleAnimation.value * 0.5,
                           height: _scaleAnimation.value * 0.5,
                           fit: BoxFit.contain,

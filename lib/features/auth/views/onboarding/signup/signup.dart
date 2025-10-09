@@ -310,13 +310,17 @@ class _SignupScreenState extends State<SignupScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: appTheme.primaryColor,
+            color: appTheme.primaryColor, // Keep background color if desired
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(
-            Icons.account_balance_wallet,
-            color: Colors.white,
-            size: 24,
+          child: ClipRRect( // Use ClipRRect to apply border radius to the image
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/icons/new_app_logo.jpg',
+              fit: BoxFit.cover, // Cover the container area
+              width: 40,
+              height: 40,
+            ),
           ),
         ),
         const SizedBox(width: 12),
