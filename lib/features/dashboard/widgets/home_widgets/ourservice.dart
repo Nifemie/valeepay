@@ -56,10 +56,10 @@ class OurServicesWidget extends StatelessWidget {
           icon: 'assets/images/service_icon/Insurance.svg',
           label: 'Insurance',
           onTap: () => context.push('/insurance')),
-      ServiceItem(
-          icon: 'assets/images/service_icon/flight.svg',
-          label: 'Flight',
-          onTap: () => context.push('/flight')),
+      // ServiceItem(
+      //     icon: 'assets/images/service_icon/flight.svg',
+      //     label: 'Flight',
+      //     onTap: () => context.push('/flight')),
     ];
 
     return Column(

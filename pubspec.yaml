@@ -265,4 +265,4 @@ android_12:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/newlogo.png"
+  image_path: "assets/icons/new_app_logo.jpg"

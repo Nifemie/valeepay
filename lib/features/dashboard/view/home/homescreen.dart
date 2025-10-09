@@ -193,7 +193,7 @@ class _IconButton extends StatelessWidget {
             svgPath,
             width: 24,
             height: 24,
-            colorFilter: Theme.of(context) == AppTheme.lightTheme
+            colorFilter: Theme.of(context) == AppTheme.darkTheme
                 ? const ColorFilter.mode(Colors.black, BlendMode.srcIn)
                 : null,
           ),
@@ -318,6 +318,9 @@ class _AddMoneyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: () {
+        context.push('/add-money');
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
