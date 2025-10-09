@@ -127,7 +127,8 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
 
             SizedBox(height: 24),
 
-            CurrentRateWidget(text: 'Current Rate', price: _getPlanPrice(selectedPlan)),
+            CurrentRateWidget(
+                text: 'Current Rate', price: _getPlanPrice(selectedPlan)),
 
             SizedBox(height: 40),
 
@@ -168,8 +169,8 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   TransactionReceiptWidget(
-                                                    amount:
-                                                        amountController.text,
+                                                    amount: _getPlanPrice(
+                                                        selectedPlan),
                                                     topDetails: [
                                                       TransactionDetail(
                                                           label: 'Plan',
