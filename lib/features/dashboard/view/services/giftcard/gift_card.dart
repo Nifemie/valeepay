@@ -32,7 +32,7 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -192,7 +192,10 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               // Continue Button
               FullWidthButton(
                   text: 'Continue',
-                  onPressed: () => Navigator.push(
+                  onPressed: () => isBuySelected ? Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UploadImagesScreen())) : Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => UploadImagesScreen())))
