@@ -91,15 +91,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         children: [
                           Container(
                             width: 40.rw,
-                            height: 40.rh,
+                            height: 50.rh,
                             decoration: BoxDecoration(
-                              color: appTheme.primaryColor, // Keep background color if desired
                               borderRadius: PlatformResponsive.circular(8),
                             ),
                             child: ClipRRect( // Use ClipRRect to apply border radius to the image
                               borderRadius: PlatformResponsive.circular(8),
                               child: Image.asset(
-                                'assets/icons/new_app_logo.jpg',
+                                'assets/images/logo.png',
                                 fit: BoxFit.cover, // Cover the container area
                                 width: 40.rw,
                                 height: 40.rh,

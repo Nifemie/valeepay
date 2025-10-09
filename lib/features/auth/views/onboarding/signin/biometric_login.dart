@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/platform_responsive.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 
 class BiometricLoginScreen extends StatelessWidget {
@@ -66,7 +67,40 @@ class BiometricLoginScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 60.h),
+                  // Logo
+                  Row(
+                    children: [
+                      Container(
+                        width: 40.rw,
+                        height: 50.rh,
+                        decoration: BoxDecoration(
+                          color: appTheme
+                              .primaryColor, // Keep background color if desired
+                          borderRadius: PlatformResponsive.circular(8),
+                        ),
+                        child: ClipRRect(
+                          // Use ClipRRect to apply border radius to the image
+                          borderRadius: PlatformResponsive.circular(8),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover, // Cover the container area
+                            width: 40.rw,
+                            height: 40.rh,
+                          ),
+                        ),
+                      ),
+                      PlatformResponsive.sizedBoxW(12),
+                      Text(
+                        'Valarpay',
+                        style: TextStyle(
+                          fontSize: 24.rsp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 40.h),
 
                   // User avatar/profile
                   CircleAvatar(
@@ -141,7 +175,7 @@ class BiometricLoginScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.push('/signin'),
+                      onPressed: () => context.push('/passcode-login'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: appTheme.primaryColor,
                         padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -150,31 +184,9 @@ class BiometricLoginScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Login with Password',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 14.h),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => context.push('/passcode-login'),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        side: BorderSide(color: Colors.white70, width: 1.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
-                        ),
-                      ),
-                      child: Text(
                         'Login with Passcode',
                         style: TextStyle(
-                          fontSize: 15.sp,
+                          fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),

@@ -140,7 +140,6 @@ class _SplashScreenState extends State<SplashScreen>
                     width: _scaleAnimation.value,
                     height: _scaleAnimation.value,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF6B00),
                       borderRadius: BorderRadius.circular(
                         _borderRadiusAnimation.value,
                       ),
@@ -151,9 +150,9 @@ class _SplashScreenState extends State<SplashScreen>
                           _borderRadiusAnimation.value,
                         ),
                         child: Image.asset(
-                          'assets/icons/new_app_logo.jpg',
-                          width: _scaleAnimation.value * 0.5,
-                          height: _scaleAnimation.value * 0.5,
+                          'assets/images/launcher.png',
+                          width: _scaleAnimation.value * 0.8,
+                          height: _scaleAnimation.value * 0.8,
                           fit: BoxFit.contain,
                         ),
                       ),

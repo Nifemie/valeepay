@@ -257,7 +257,7 @@ class _BalanceCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Your Balance',
+                'Main Balance',
                 style: textTheme.bodySmall?.copyWith(color: onPrimary),
               ),
               const SizedBox(width: 6),
