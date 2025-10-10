@@ -262,7 +262,7 @@ android_12:
 #  - 'ios/Runner/Info-Debug.plist'
 #  - 'ios/Runner/Info-Release.plist'
 
-flutter_launcher_icons:
+flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icons/new_app_logo.jpg"
+  image_path: "assets/images/VALAR PAY LOGOO.png"

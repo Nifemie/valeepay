@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
-import '../../../view/services/internet/transaction_success_screen.dart';
 
 class InternetPaymentMethodModal extends StatelessWidget {
   final Map<String, String> transactionData;
@@ -115,29 +114,9 @@ class InternetPaymentMethodModal extends StatelessWidget {
         isScrollControlled: true,
         builder: (context) => TransactionPinModal(
               onComplete: (pin) {
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InternetTransactionSuccessScreen(
-                        amount: '₦${transactionData['amount'] ?? '150,500.00'}',
-                        transactionId:
-                            'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        transactionDetails: {
-                          'Service Provider':
-                              transactionData['provider'] ?? 'Spectranet',
-                          'Phone Number':
-                              transactionData['phoneNumber'] ?? '0000000000',
-                          'Plan': transactionData['plan'] ?? '100MB Daily Plan',
-                          'Amount': '₦${transactionData['amount'] ?? '500'}',
-                          'Date': '29 Sep 2025 | 8:15 pm',
-                        },
-                      ),
-                    ),
-                  );
-                });
-              },
+              }
+                 
+
             ));
   }
 }

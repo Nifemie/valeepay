@@ -117,7 +117,7 @@ class OurServicesWidget extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFF76301),
+                color: const Color(0xFFFDEFE6),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Center(
@@ -126,7 +126,7 @@ class OurServicesWidget extends StatelessWidget {
                   width: 18,
                   height: 18,
                   colorFilter: const ColorFilter.mode(
-                    Colors.white,
+                    Color(0xFFF76301),
                     BlendMode.srcIn,
                   ),
                 ),

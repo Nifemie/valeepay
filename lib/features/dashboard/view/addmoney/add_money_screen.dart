@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   const AddMoneyScreen({super.key});
@@ -44,77 +46,70 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Add Money",
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.paddingAll16,
         child: Column(
-          children:
-              addMoneyOptions.map((option) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
+          children: addMoneyOptions.map((option) {
+            return Container(
+              margin: EdgeInsets.only(bottom: 12.h),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: ResponsiveUtils.borderRadius12,
+              ),
+              child: ListTile(
+                contentPadding: ResponsiveUtils.paddingAll12,
+                leading: CircleAvatar(
+                  radius: 20.r,
+                  backgroundColor: appTheme.primaryColor,
+                  child: Icon(
+                    option["icon"],
+                    color: Colors.white,
+                    size: 20.sp,
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    leading: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: appTheme.primaryColor,
-                      child: Icon(
-                        option["icon"],
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(
-                      option["title"],
-                      style: const TextStyle(
-                        fontSize: 14,
+                ),
+                title: Text(
+                  option["title"],
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        fontSize: 14.sp,
                       ),
-                    ),
-                    subtitle: Text(
-                      option["subtitle"],
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black54,
+                ),
+                subtitle: Text(
+                  option["subtitle"],
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 13.sp,
                       ),
-                    ),
-                    trailing: const Icon(
-                      Icons.chevron_right,
-                      color: Colors.black45,
-                    ),
-                    onTap: () {
-                      // handle navigation to each option screen
-                      if (option["id"] == 1 || option["id"] == 2) {
-                        context.push("/add-money-via-transfer");
-                      } else if (option["id"] == 4) {
-                        context.push("/add-money-via-qrcode");
-                      } else {
-                        context.push("/coming-soon");
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
+                ),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).iconTheme.color,
+                ),
+                onTap: () {
+                  // handle navigation to each option screen
+                  if (option["id"] == 1 || option["id"] == 2) {
+                    context.push("/add-money-via-transfer");
+                  } else if (option["id"] == 4) {
+                    context.push("/add-money-via-qrcode");
+                  } else {
+                    context.push("/coming-soon");
+                  }
+                },
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

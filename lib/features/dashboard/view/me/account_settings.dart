@@ -30,7 +30,7 @@ final linkedAccountsProvider = StateProvider<List<LinkedAccount>>((ref) => [
       LinkedAccount(
         name: 'Valarpay Bank',
         number: '0000000000',
-        iconPath: 'assets/images/valarpay.png',
+        iconPath: 'assets/images/VALAR PAY LOGOO.png',
       ),
       LinkedAccount(
         name: 'First Bank of Nigeria',

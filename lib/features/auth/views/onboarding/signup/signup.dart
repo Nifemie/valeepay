@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
 
@@ -22,7 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
       context: context,
       builder:
           (ctx) => Dialog(
-            backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).cardColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -203,101 +204,105 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
-          onPressed: () => GoRouter.of(context).pop(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => NeedHelpModal.show(context),
-            child: const Text(
-              'Need Help?',
-              style: TextStyle(color: appTheme.primaryColor, fontSize: 14),
-            ),
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Theme(
+      data: isDarkMode ? AppTheme.lightTheme : AppTheme.darkTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => GoRouter.of(context).pop(),
           ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLogoHeader(),
-            const SizedBox(height: 40),
-            const Text(
-              'Create account',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Select the account type that best fits your needs',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-
-            // Label + selection tile
-            const Text(
-              'Account Type',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildSelectionTile(
-              selectedAccountType,
-              _showAccountTypeDialog,
-              Icons.person,
-            ),
-            const SizedBox(height: 24),
-
-            const Text(
-              'Currency',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildSelectionTile(
-              selectedCurrency,
-              _showCurrencyDialog,
-              Icons.money,
-            ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (selectedAccountType == 'Personal') {
-                    context.push('/personal-details');
-                  } else {
-                    context.push('/business-details');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+          actions: [
+            TextButton(
+              onPressed: () => NeedHelpModal.show(context),
+              child: const Text(
+                'Need Help?',
+                style: TextStyle(color: appTheme.primaryColor, fontSize: 14),
               ),
             ),
           ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLogoHeader(),
+              const SizedBox(height: 40),
+              const Text(
+                'Create account',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Select the account type that best fits your needs',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+
+              // Label + selection tile
+              const Text(
+                'Account Type',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildSelectionTile(
+                selectedAccountType,
+                _showAccountTypeDialog,
+                Icons.person,
+              ),
+              const SizedBox(height: 24),
+
+              const Text(
+                'Currency',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildSelectionTile(
+                selectedCurrency,
+                _showCurrencyDialog,
+                Icons.money,
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (selectedAccountType == 'Personal') {
+                      context.push('/personal-details');
+                    } else {
+                      context.push('/business-details');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -310,20 +315,20 @@ class _SignupScreenState extends State<SignupScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: appTheme.primaryColor, // Keep background color if desired
+            color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           child: ClipRRect( // Use ClipRRect to apply border radius to the image
             borderRadius: BorderRadius.circular(8),
             child: Image.asset(
-              'assets/icons/new_app_logo.jpg',
+              'assets/images/new_valapay.png',
               fit: BoxFit.cover, // Cover the container area
               width: 40,
               height: 40,
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 6),
         const Text(
           'Valarpay',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

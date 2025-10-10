@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class AddMoneyTransferScreen extends StatefulWidget {
   const AddMoneyTransferScreen({super.key});
@@ -19,34 +21,30 @@ class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Bank Transfer",
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.paddingAll16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Account Card
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: ResponsiveUtils.paddingAll16,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).cardColor,
+                borderRadius: ResponsiveUtils.borderRadius12,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,22 +52,22 @@ class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
                   Text(
                     "Tier 1",
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w600,
                       color: appTheme.primaryColor,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
 
                   // Bank Name
                   _infoRow("Bank Name", "ValarPay"),
 
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
 
                   // Account Name
                   _infoRow("Account Name", "John Smith Emmy"),
 
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
 
                   // Account Number
                   _infoRow("Account Number", "0000000000"),
@@ -77,61 +75,59 @@ class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // Share Details Button
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 50.h,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: appTheme.primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(25.r),
                   ),
                 ),
                 onPressed: () {
                   // handle share details
                 },
-                icon: const Icon(Icons.share, color: Colors.white, size: 18),
-                label: const Text(
+                icon: Icon(Icons.share, color: Colors.white, size: 18.sp),
+                label: Text(
                   "Share Details",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16.sp, color: Colors.white),
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             // Instructions Card
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: ResponsiveUtils.paddingAll16,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).cardColor,
+                borderRadius: ResponsiveUtils.borderRadius12,
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "Fund your ValarPay wallet easily in three quick steps",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   Text(
                     "Step 1: Copy your unique ValarPay account number from the app.\n"
                     "Step 2: Open your mobile banking app and initiate a transfer.\n"
                     "Step 3: Send the desired amount, and your ValarPay wallet will be credited instantly.",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black54,
-                      height: 1.5,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 13.sp,
+                          height: 1.5,
+                        ),
                   ),
                 ],
               ),
@@ -153,22 +149,21 @@ class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(color: Colors.black54, fontSize: 13),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.copy, size: 18, color: Colors.black45),
+          icon: Icon(Icons.copy, size: 18.sp, color: Theme.of(context).iconTheme.color),
           onPressed: () => _copyToClipboard(label, value),
         ),
       ],

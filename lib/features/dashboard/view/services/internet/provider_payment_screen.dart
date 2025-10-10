@@ -6,7 +6,6 @@ import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 
 import '../../../widgets/services_widgets/internet_widgets/plan_selector_modal.dart';
-import 'transaction_details_screen.dart';
 
 class ProviderPaymentScreen extends StatefulWidget {
   final String providerName;
