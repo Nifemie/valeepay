@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
-import '/core/themes/app_theme.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/upload_images_screen.dart';
 import '/core/themes/color_utils.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_brand_modal.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_country_modal.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_amount_modal.dart';
 import '/features/dashboard/view/services/giftcard/saved_beneficiary_screen.dart';
-import '/features/dashboard/view/services/giftcard/upload_images_screen.dart';
 
 class GiftCardScreen extends StatefulWidget {
   const GiftCardScreen({super.key});
@@ -31,7 +33,8 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
+          icon: Icon(
+            Icons.arrow_back,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -192,13 +195,99 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               // Continue Button
               FullWidthButton(
                   text: 'Continue',
-                  onPressed: () => isBuySelected ? Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => UploadImagesScreen())) : Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => UploadImagesScreen())))
+                  onPressed: () => isBuySelected
+                      ? Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ReuseableTransactionDetailsScreen(
+                                    transactionsDetailsList: [
+                                      buildDetailRow(
+                                          'Card Type', selectedBrand, isDark),
+                                      buildDetailRow(
+                                          'Country', selectedCountry, isDark),
+                                      buildDetailRow('Card Amount',
+                                          selectedAmount, isDark),
+                                      buildDetailRow(
+                                        'Rate',
+                                        '₦1,500/£',
+                                        isDark,
+                                      ),
+                                      buildDetailRow('Expected Amount in Naira',
+                                          '₦150,000', isDark),
+                                    ],
+                                    onButtonPressed: () async {
+                                      final pin =
+                                          await TransactionPinModal.show(
+                                              context);
+                                      if (pin != null &&
+                                          pin.length == 4 &&
+                                          mounted) {
+                                        if (mounted) Navigator.pop(context);
+                                        if (mounted) {
+                                          Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      TransactionReceiptWidget(
+                                                        amount: '₦150,000',
+                                                        topDetails: [
+                                                          TransactionDetail(
+                                                              label:
+                                                                  'Card Type',
+                                                              value:
+                                                                  selectedBrand),
+                                                          TransactionDetail(
+                                                              label: 'Country',
+                                                              value:
+                                                                  selectedCountry,
+                                                              showCopyIcon:
+                                                                  true),
+                                                          TransactionDetail(
+                                                              label:
+                                                                  'Card Amount',
+                                                              value:
+                                                                  selectedAmount),
+                                                          TransactionDetail(
+                                                              label: 'Rate',
+                                                              value:
+                                                                  '₦150,000'),
+                                                          TransactionDetail(
+                                                              label:
+                                                                  'Amount Received',
+                                                              value:
+                                                                  'ValarPay Account'),
+                                                        ],
+                                                        bottomDetails: [
+                                                          TransactionDetail(
+                                                              label:
+                                                                  'Transaction ID',
+                                                              value:
+                                                                  'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                              showCopyIcon:
+                                                                  true),
+                                                          TransactionDetail(
+                                                              label:
+                                                                  'Payment Source',
+                                                              value:
+                                                                  'ValarPay Account'),
+                                                          TransactionDetail(
+                                                              label:
+                                                                  'Date & Time',
+                                                              value:
+                                                                  '29 Sep 2025 | 8:15 pm')
+                                                        ],
+                                                        onShareReceipt: () {},
+                                                      )));
+                                        }
+                                      }
+                                    },
+                                  )),
+                        )
+                      : Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UploadImagesScreen())))
             ],
           ),
         ),

@@ -215,7 +215,6 @@ class _BettingScreenState extends State<BettingScreen> {
                                                             '29 Sep 2025 | 8:15 pm')
                                                   ],
                                                   onShareReceipt: () {},
-                                                  onDone: () {},
                                                 )));
                                   }
                                 }

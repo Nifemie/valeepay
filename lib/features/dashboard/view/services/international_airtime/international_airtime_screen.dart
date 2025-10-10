@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/reuseable_appbar_text_button.dart';
 import 'saved_beneficiary_screen.dart';
 import 'country_provider_screen.dart';
 
@@ -36,24 +37,15 @@ class _InternationalAirtimeScreenState
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const InternationalAirtimeSavedBeneficiaryScreen(),
-                ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
+          ReuseableAppbarTextButton(
+              onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const InternationalAirtimeSavedBeneficiaryScreen(),
+                    ),
+                  ),
+              text: 'Saved Beneficiary')
         ],
       ),
       body: Padding(

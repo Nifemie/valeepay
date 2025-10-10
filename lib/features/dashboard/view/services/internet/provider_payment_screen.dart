@@ -203,7 +203,6 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                                                               '29 Sep 2025 | 8:15 pm')
                                                     ],
                                                     onShareReceipt: () {},
-                                                    onDone: () {},
                                                   )));
                                     }
                                   }

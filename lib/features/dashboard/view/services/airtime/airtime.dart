@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/responsive_button.dart';
 import 'package:valarpay/core/widgets/responsive_text_field.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
@@ -169,22 +170,12 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                    border: InputBorder.none, prefixText: '₦ '),
-                style: const TextStyle(
-                  fontSize: 16,
-                ),
-              ),
+            ReuseableAmountTextfield(
+              amountController: _amountController,
+              prefixText: '₦',
+              hintText: '500',
             ),
+
             const SizedBox(height: 24),
 
             // Cashback Section

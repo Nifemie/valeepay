@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '/core/themes/color_utils.dart';
-import '/features/dashboard/view/services/giftcard/buy_confirmation_screen.dart';
 
 class ServiceProviderScreen extends StatefulWidget {
   const ServiceProviderScreen({super.key});
@@ -65,12 +64,12 @@ class _ServiceProviderScreenState extends State<ServiceProviderScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BuyConfirmationScreen(),
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const BuyConfirmationScreen(),
+                  //   ),
+                  // );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,

@@ -21,7 +21,6 @@ class TransactionReceiptWidget extends StatelessWidget {
   final List<TransactionDetail> topDetails;
   final List<TransactionDetail>? bottomDetails;
   final VoidCallback onShareReceipt;
-  final VoidCallback onDone;
 
   const TransactionReceiptWidget({
     Key? key,
@@ -29,7 +28,6 @@ class TransactionReceiptWidget extends StatelessWidget {
     required this.topDetails,
     this.bottomDetails,
     required this.onShareReceipt,
-    required this.onDone,
   }) : super(key: key);
 
   @override
@@ -127,7 +125,9 @@ class TransactionReceiptWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: TextButton(
-                    onPressed: onDone,
+                    onPressed: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.all(10),
                       shape: RoundedRectangleBorder(

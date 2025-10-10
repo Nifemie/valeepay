@@ -309,7 +309,7 @@ final router = GoRouter(
       builder: (context, state) => const InsuranceScreen(),
     ),
     GoRoute(
-      path: '/international-airime',
+      path: '/international-airtime',
       builder: (context, state) => const InternationalAirtimeScreen(),
     ),
     GoRoute(

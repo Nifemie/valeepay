@@ -34,7 +34,7 @@ class SupportOptionCard extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity( 0.1),
+                color: iconColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Icon(
@@ -44,12 +44,14 @@ class SupportOptionCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-              textAlign: TextAlign.center,
+            FittedBox(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
@@ -159,7 +161,7 @@ class FAQTile extends StatelessWidget {
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey.withOpacity( 0.2),
+            color: Colors.grey.withOpacity(0.2),
           ),
         ),
         child: Row(
@@ -267,7 +269,7 @@ class SupportCategoryChip extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).primaryColor
-                : Colors.grey.withOpacity( 0.2),
+                : Colors.grey.withOpacity(0.2),
           ),
         ),
         child: Text(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/reuseable_phone_number_with_country.dart';
 import 'transaction_details_screen.dart';
 
 class CountryProviderScreen extends StatefulWidget {
@@ -26,9 +28,7 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
     String countryCode = _getCountryCode(widget.countryProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
               color: isDark ? Colors.white : Colors.black),
@@ -37,7 +37,6 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
         title: Text(
           widget.countryProvider,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -57,59 +56,12 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: _getFlagColor(widget.countryProvider),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        countryCode,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    style:
-                        TextStyle(color: isDark ? Colors.white : Colors.black),
-                    decoration: InputDecoration(
-                      hintText: '000000000',
-                      hintStyle: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.grey[400]),
-                      filled: true,
-                      fillColor:
-                          isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+
+            ReuseablePhoneNumberWithCountry(
+                showCountryLabel: true,
+                countryCode: countryCode,
+                flagImagePath: 'assets/images/ghflag.png',
+                phoneController: phoneController),
 
             const SizedBox(height: 24),
 
@@ -122,22 +74,11 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '\$10.00',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+
+            ReuseableAmountTextfield(
+                amountController: amountController,
+                prefixText: '\$',
+                hintText: '1000'),
 
             const SizedBox(height: 24),
 
