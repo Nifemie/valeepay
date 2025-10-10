@@ -24,6 +24,7 @@ import '../../features/dashboard/view/me/theme.dart';
 import '../../features/dashboard/view/home/notifications/notification_view.dart';
 import 'package:valarpay/features/dashboard/view/account/account_screen.dart';
 import 'package:valarpay/features/dashboard/view/account/account_setup_screen.dart';
+import '../../features/dashboard/view/me/portfolio.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_qrcode_screen.dart';
 import 'package:valarpay/features/dashboard/view/addmoney/add_money_via_transfer_screen.dart';
@@ -41,7 +42,7 @@ import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/t
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_screen.dart';
-
+import '../../features/dashboard/view/me/about_us.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
@@ -75,7 +76,7 @@ import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
-  initialLocation: kDebugMode ? '/' : '/splash', // Skip splash in debug mode
+  initialLocation: kDebugMode ? '/' : '/splash', // Always show splash screen
 
   routes: [
     // Auth routes (without dashboard wrapper)
@@ -203,6 +204,14 @@ final router = GoRouter(
       builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
+      path: '/security-centre',
+      builder: (context, state) => const SecuritySettingsScreen(),
+    ),
+    GoRoute(
+      path: '/about-us',
+      builder: (context, state) => const AboutUsPage(),
+    ),
+    GoRoute(
       path: '/security-settings',
       builder: (context, state) => const SecuritySettingsScreen(),
     ),
@@ -230,7 +239,10 @@ final router = GoRouter(
       path: '/my-rewards',
       builder: (context, state) => const MyRewardsPage(),
     ),
-
+    GoRoute(
+      path: 'My Portfolio',
+      builder: (context, state) => const MyPortfolioPage(),
+    ),
     // Services routes
     GoRoute(
       path: '/airtime',

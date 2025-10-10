@@ -18,10 +18,6 @@ class ServiceTypeModal extends StatelessWidget {
       'School Fee',
       'Exam Fee',
       'Acceptance Letter',
-      'Option 1',
-      'Option 2',
-      'Option 3',
-      'Option 4',
     ];
 
     return Container(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../widgets/services_widgets/electricity_widgets/disco_selector_modal.dart';
 import '../../../widgets/services_widgets/electricity_widgets/meter_type_modal.dart';
 import 'saved_beneficiary_screen.dart';
-import 'transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 
 class ElectricityScreen extends StatefulWidget {
   const ElectricityScreen({super.key});
@@ -206,13 +208,48 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TransactionDetailsScreen(
-                          transactionData: {
-                            'meterNumber': meterNumberController.text,
-                            'disco': selectedDisco,
-                            'meterType': selectedMeterType,
-                            'amount': amountController.text,
-                            'totalAmount': amountController.text,
+                        builder: (context) => ReuseableTransactionDetailsScreen(
+                          transactionsDetailsList: [
+                            buildDetailRow('Meter Number',
+                                meterNumberController.text, isDark),
+                            buildDetailRow('Disco', selectedDisco, isDark),
+                            buildDetailRow(
+                                'Meter Type', selectedMeterType, isDark),
+                            buildDetailRow(
+                                'Amount', '₦${amountController.text}', isDark),
+                            const Divider(),
+                            buildDetailRow('Total Amount',
+                                '₦${amountController.text}', isDark,
+                                isTotal: true)
+                          ],
+                          onButtonPressed: () async {
+                            final pin = await TransactionPinModal.show(context);
+                            if (pin != null && pin.length == 4 && mounted) {
+                              if (mounted) {
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            TransactionReceiptWidget(
+                                              amount: amountController.text,
+                                              topDetails: [
+                                                TransactionDetail(
+                                                    label: 'Meter Number',
+                                                    value: meterNumberController
+                                                        .text),
+                                                TransactionDetail(
+                                                    label: 'Disco',
+                                                    value: selectedDisco),
+                                                TransactionDetail(
+                                                    label: 'Meter Type',
+                                                    value: selectedMeterType),
+                                              ],
+                                              onShareReceipt: () {
+                                                // TODO: Implement share receipt functionality
+                                              },
+                                            )));
+                              }
+                            }
                           },
                         ),
                       ),

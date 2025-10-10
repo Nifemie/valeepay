@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
@@ -13,17 +12,17 @@ class NeedHelpModal {
       builder: (BuildContext context) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20.r),
-              topRight: Radius.circular(20.r),
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
             ),
           ),
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.all(24.w),
+                padding: EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -34,23 +33,21 @@ class NeedHelpModal {
                           onTap: () => Navigator.pop(context),
                           child: Icon(
                             Icons.arrow_back,
-                            color: Colors.black87,
-                            size: 24.sp,
+                            size: 24,
                           ),
                         ),
-                        SizedBox(width: 16.w),
+                        SizedBox(width: 16),
                         Text(
                           'Need Help?',
                           style: TextStyle(
-                            fontSize: 20.sp,
+                            fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
                           ),
                         ),
                       ],
                     ),
 
-                    SizedBox(height: 28.h),
+                    SizedBox(height: 28),
 
                     // Options
                     _buildHelpOption(
@@ -96,7 +93,7 @@ class NeedHelpModal {
                       },
                     ),
 
-                    SizedBox(height: 32.h),
+                    SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -132,7 +129,6 @@ class NeedHelpModal {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
                 ),
               ),
             ),

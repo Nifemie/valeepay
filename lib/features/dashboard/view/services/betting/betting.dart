@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/betting_widgets/provider_selector_modal.dart';
@@ -112,22 +114,12 @@ class _BettingScreenState extends State<BettingScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: userIdController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
+            ReuseableTextFieldWithCountry(
+                textInputType: TextInputType.phone,
+                isReadOnly: false,
+                hintText: '123 456 789',
+                controller: userIdController,
+                showCountryLabel: false),
             const SizedBox(height: 24),
 
             // Amount
@@ -139,22 +131,10 @@ class _BettingScreenState extends State<BettingScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '₦',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+            ReuseableAmountTextfield(
+                amountController: amountController,
+                prefixText: '₦',
+                hintText: '500'),
 
             const SizedBox(height: 50),
 
@@ -175,10 +155,7 @@ class _BettingScreenState extends State<BettingScreen> {
                                     'Provider', selectedProvider, isDark),
                                 buildDetailRow('Amount',
                                     '₦${amountController.text}', isDark),
-                                Divider(),
-                                buildDetailRow('Amount',
-                                    '₦${amountController.text}', isDark,
-                                    isTotal: true)
+                               
                               ],
                               onButtonPressed: () async {
                                 final pin =
@@ -186,7 +163,7 @@ class _BettingScreenState extends State<BettingScreen> {
                                 if (pin != null && pin.length == 4 && mounted) {
                                   if (mounted) Navigator.pop(context);
                                   if (mounted) {
-                                    Navigator.pushReplacement(
+                                    Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
@@ -196,7 +173,8 @@ class _BettingScreenState extends State<BettingScreen> {
                                                     TransactionDetail(
                                                         label: 'Transaction ID',
                                                         value:
-                                                            'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                                                            'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                        showCopyIcon: true),
                                                     TransactionDetail(
                                                         label: 'Recipient ID',
                                                         value: userIdController

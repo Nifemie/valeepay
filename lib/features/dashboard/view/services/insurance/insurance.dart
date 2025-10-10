@@ -25,18 +25,15 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+              ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Insurance',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -93,7 +90,6 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
         title: Text(
           provider,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),

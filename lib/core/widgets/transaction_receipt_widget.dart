@@ -61,7 +61,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 // Amount
                 Text(
-                  amount,
+                  '₦$amount',
                   style: const TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: 32,

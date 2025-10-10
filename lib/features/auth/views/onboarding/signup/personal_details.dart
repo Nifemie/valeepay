@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
@@ -26,11 +28,10 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: appTheme.whiteColor,
         elevation: 0,
         leading: IconButton(
           onPressed: () => GoRouter.of(context).pop(),
-          icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: const Icon(Icons.arrow_back),
         ),
         actions: [
           TextButton(
@@ -101,7 +102,6 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -131,63 +131,17 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 const SizedBox(height: 24),
 
                 // Terms & Conditions + Privacy Policy
-                RichText(
-                  text: TextSpan(
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-                    children: [
-                      const TextSpan(
-                        text: 'By clicking Continue, you agree to our ',
-                      ),
-                      TextSpan(
-                        text: 'Terms and Conditions',
-                        style: const TextStyle(
-                          color: appTheme.primaryColor,
-                          decoration: TextDecoration.underline,
-                        ),
-                        recognizer: TapGestureRecognizer()..onTap = () {},
-                      ),
-                      const TextSpan(text: ' and '),
-                      TextSpan(
-                        text: 'Privacy Policy',
-                        style: const TextStyle(
-                          color: appTheme.primaryColor,
-                          decoration: TextDecoration.underline,
-                        ),
-                        recognizer: TapGestureRecognizer()..onTap = () {},
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+                TermsAndConditionsWidget(),
+                const SizedBox(height: 50),
 
                 // Continue Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
+
+                FullWidthButton(text: 'Continue', onPressed: () {
+                   if (_formKey.currentState!.validate()) {
                         context.push('/email-password');
                       }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: appTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                }),
+              
               ],
             ),
           ),
@@ -213,7 +167,6 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.black,
           ),
         ),
         const SizedBox(height: 8),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 
@@ -31,7 +32,6 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
               color: isDark ? Colors.white : Colors.black),
@@ -60,23 +60,12 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: phoneNumberController,
-              keyboardType: TextInputType.phone,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
+            ReuseableTextFieldWithCountry(
+                controller: phoneNumberController,
+                isReadOnly: false,
+                hintText: '123 456 789',
+                textInputType: TextInputType.phone,
+                showCountryLabel: false),
             const SizedBox(height: 24),
 
             // Plan Selection
@@ -163,7 +152,7 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                                       mounted) {
                                     if (mounted) Navigator.pop(context);
                                     if (mounted) {
-                                      Navigator.pushReplacement(
+                                      Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>

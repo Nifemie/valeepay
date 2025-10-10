@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
-import '../../../../app.dart';
+import '../../../../core/providers/theme_provider.dart';
 
 class ThemesPage extends ConsumerWidget {
   const ThemesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentThemeMode = ref.watch(themeModeProvider);
+    final currentThemeMode = ref.watch(themeProvider);
+    final themeNotifier = ref.read(themeProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -20,7 +21,6 @@ class ThemesPage extends ConsumerWidget {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? Colors.white : const Color(0xFF111827),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -115,18 +115,17 @@ class ThemesPage extends ConsumerWidget {
     return Column(
       children: [
         InkWell(
-          onTap: () {
-            print('Theme button tapped: $themeMode'); // Debug output
+          onTap: () async {
+            // Update the theme using the new theme notifier
+            await ref.read(themeProvider.notifier).setThemeMode(themeMode);
 
-            // Update the theme using the existing provider
-            ref.read(themeModeProvider.notifier).state = themeMode;
-
-            print(
-                'Theme provider updated to: ${ref.read(themeModeProvider)}'); // Debug output
-
-            // Show a snackbar to indicate the theme change
-            CustomToast.showAppToast(context:context,
-                message: 'Theme changed to ${title.toLowerCase()}');
+            // Show a toast to indicate the theme change
+            if (context.mounted) {
+              CustomToast.showAppToast(
+                context: context,
+                message: 'Theme changed to ${title.toLowerCase()}',
+              );
+            }
           },
           borderRadius: BorderRadius.circular(8),
           child: Padding(

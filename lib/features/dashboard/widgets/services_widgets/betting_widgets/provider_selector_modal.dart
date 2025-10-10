@@ -15,18 +15,20 @@ class BettingProviderSelectorModal extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final providers = [
-      {'name': '1x Bet', 'color': Colors.green},
-      {'name': 'Bangbet', 'color': Colors.blue},
-      {'name': 'Bet9ja', 'color': Colors.green},
-      {'name': 'Betking', 'color': Colors.red},
-      {'name': 'Betway', 'color': Colors.orange},
-      {'name': 'CloudBet', 'color': Colors.teal},
-      {'name': 'Livescore Bet', 'color': Colors.orange},
-      {'name': 'Merry Bet', 'color': Colors.yellow},
-      {'name': 'Nairabet', 'color': Colors.grey},
-      {'name': 'Noja Bet', 'color': Colors.blue},
-      {'name': 'Sporty Bet', 'color': Colors.red},
-      {'name': 'Sure Bet', 'color': Colors.red},
+      {'name': '1x Bet', 'imagePath': 'assets/images/1xbetlogo.jpeg'},
+      {'name': 'Bangbet', 'imagePath': 'assets/images/bangbetlogo.png'},
+      {'name': 'Bet9ja', 'imagePath': 'assets/images/bet9jalogo.png'},
+      {'name': 'Betking', 'imagePath': 'assets/images/betkinglogo.webp'},
+      {'name': 'Betway', 'imagePath': 'assets/images/betwaylogo.png'},
+      {'name': 'CloudBet', 'imagePath': 'assets/images/cloudbetlogo.png'},
+      {
+        'name': 'Livescore Bet',
+        'imagePath': 'assets/images/livescorebetlogo.png'
+      },
+      {'name': 'Merry Bet', 'imagePath': 'assets/images/merrybetlogo.png'},
+      {'name': 'Nairabet', 'imagePath': 'assets/images/nairabetlogo.png'},
+      {'name': 'Sporty Bet', 'imagePath': 'assets/images/sportybetlogo.png'},
+      {'name': 'Sure Bet', 'imagePath': 'assets/images/surebetlogo.jpeg'},
     ];
 
     return Container(
@@ -87,33 +89,13 @@ class BettingProviderSelectorModal extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected
-                                ? const Color(0xFFF76301)
-                                : Colors.grey,
-                            width: 2,
-                          ),
-                        ),
-                        child: isSelected
-                            ? const Icon(
-                                Icons.circle,
-                                color: Color(0xFFF76301),
-                                size: 12,
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 12,
                         height: 12,
+                        width: 12,
                         decoration: BoxDecoration(
-                          color: provider['color'] as Color,
-                          shape: BoxShape.circle,
-                        ),
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                                image: AssetImage(provider['imagePath']!),
+                                fit: BoxFit.cover)),
                       ),
                     ],
                   ),
@@ -124,13 +106,25 @@ class BettingProviderSelectorModal extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                  trailing: isSelected
-                      ? const Icon(
-                          Icons.star,
-                          color: Color(0xFFF76301),
-                          size: 20,
-                        )
-                      : null,
+                  trailing: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color:
+                            isSelected ? const Color(0xFFF76301) : Colors.grey,
+                        width: 2,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.circle,
+                            color: Color(0xFFF76301),
+                            size: 12,
+                          )
+                        : null,
+                  ),
                   onTap: () {
                     onProviderSelected(provider['name'] as String);
                     Navigator.pop(context);

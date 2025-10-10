@@ -6,7 +6,6 @@ import 'package:valarpay/features/dashboard/widgets/services_widgets/data_plans_
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
-
 class DataScreen extends StatefulWidget {
   const DataScreen({super.key});
 
@@ -15,7 +14,7 @@ class DataScreen extends StatefulWidget {
 }
 
 class _DataScreenState extends State<DataScreen> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   bool _useCashback = false;
   String _selectedNetwork = '';
   String _selectedPlan = '';
@@ -23,7 +22,7 @@ class _DataScreenState extends State<DataScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '000000000';
+    _controller.text = '000000000';
   }
 
   void _showContactAccessDialog() {
@@ -117,7 +116,7 @@ class _DataScreenState extends State<DataScreen> {
                   ),
                   Expanded(
                     child: TextField(
-                      controller: _phoneController,
+                      controller: _controller,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 12),
@@ -226,7 +225,7 @@ class _DataScreenState extends State<DataScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 }

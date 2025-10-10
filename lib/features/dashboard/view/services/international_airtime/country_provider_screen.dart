@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
-import 'package:valarpay/core/widgets/reuseable_phone_number_with_country.dart';
-import 'transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 
 class CountryProviderScreen extends StatefulWidget {
   final String countryProvider;
@@ -16,7 +19,7 @@ class CountryProviderScreen extends StatefulWidget {
 }
 
 class _CountryProviderScreenState extends State<CountryProviderScreen> {
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController controller = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   String selectedAmount = '';
 
@@ -30,8 +33,9 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -57,11 +61,14 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
             ),
             const SizedBox(height: 8),
 
-            ReuseablePhoneNumberWithCountry(
+            ReuseableTextFieldWithCountry(
                 showCountryLabel: true,
+                hintText: '123 456 789',
+                isReadOnly: false,
+                textInputType: TextInputType.phone,
                 countryCode: countryCode,
                 flagImagePath: 'assets/images/ghflag.png',
-                phoneController: phoneController),
+                controller: controller),
 
             const SizedBox(height: 24),
 
@@ -95,62 +102,88 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
               spacing: 12,
               runSpacing: 12,
               children: [
-                _buildAmountChip('\$5.00', isDark),
-                _buildAmountChip('\$10.00', isDark),
-                _buildAmountChip('\$20.00', isDark),
-                _buildAmountChip('\$50.00', isDark),
-                _buildAmountChip('\$100.00', isDark),
+                _buildAmountChip('5.00', isDark),
+                _buildAmountChip('10.00', isDark),
+                _buildAmountChip('20.00', isDark),
+                _buildAmountChip('50.00', isDark),
+                _buildAmountChip('100.00', isDark),
               ],
             ),
 
-            const Spacer(),
+            const SizedBox(
+              height: 50,
+            ),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+            FullWidthButton(
+                text: 'Continue',
                 onPressed: () {
-                  if (phoneController.text.isNotEmpty &&
+                  if (controller.text.isNotEmpty &&
                       (amountController.text.isNotEmpty ||
                           selectedAmount.isNotEmpty)) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            InternationalAirtimeTransactionDetailsScreen(
-                          transactionData: {
-                            'provider': widget.countryProvider,
-                            'phoneNumber':
-                                '$countryCode${phoneController.text}',
-                            'amount': selectedAmount.isNotEmpty
-                                ? selectedAmount
-                                : amountController.text,
-                            'totalAmount': selectedAmount.isNotEmpty
-                                ? selectedAmount
-                                : amountController.text,
-                          },
-                        ),
-                      ),
+                          builder: (context) =>
+                              ReuseableTransactionDetailsScreen(
+                                transactionsDetailsList: [
+                                  buildDetailRow('Recipient Number',
+                                      '$countryCode${controller.text}', isDark),
+                                  buildDetailRow('Provider',
+                                      widget.countryProvider, isDark),
+                                  buildDetailRow('Amount',
+                                      '₦${amountController.text}', isDark),
+                                ],
+                                onButtonPressed: () async {
+                                  final pin =
+                                      await TransactionPinModal.show(context);
+                                  if (pin != null &&
+                                      pin.length == 4 &&
+                                      mounted) {
+                                    if (mounted) Navigator.pop(context);
+                                    if (mounted) {
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransactionReceiptWidget(
+                                                    amount:
+                                                        amountController.text,
+                                                    topDetails: [
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Transaction ID',
+                                                          value:
+                                                              'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                          showCopyIcon: true),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Recipient Mobile',
+                                                          value:
+                                                              '$countryCode${controller.text}'),
+                                                      TransactionDetail(
+                                                          label: 'Provider',
+                                                          value: widget
+                                                              .countryProvider),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Payment Source',
+                                                          value:
+                                                              'ValarPay Account'),
+                                                      TransactionDetail(
+                                                          label: 'Date & Time',
+                                                          value:
+                                                              '29 Sep 2025 | 8:15 pm')
+                                                    ],
+                                                    onShareReceipt: () {},
+                                                  )));
+                                    }
+                                  }
+                                },
+                              )),
                     );
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+                }),
           ],
         ),
       ),
@@ -181,7 +214,7 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
                 ),
         ),
         child: Text(
-          amount,
+          '\$$amount',
           style: TextStyle(
             color: isSelected
                 ? Colors.white

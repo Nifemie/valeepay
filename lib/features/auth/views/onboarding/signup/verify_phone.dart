@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class VerifyPhoneScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: SafeArea(
@@ -134,14 +135,12 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                 ],
               ),
 
-              const SizedBox(height: 80),
+              const SizedBox(height: 50),
 
               // Continue Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Validate OTP
+
+              FullWidthButton(text: 'Continue', onPressed: (){
+                  // Validate OTP
                     String otp =
                         _controllers
                             .map((controller) => controller.text)
@@ -152,25 +151,8 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                       CustomToast.showErrorToast(context:context, message: 'Please enter the complete verification code');
                       
                     }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
+              }),
+            const SizedBox(height: 40),
             ],
           ),
         ),

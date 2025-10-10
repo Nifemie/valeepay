@@ -10,6 +10,7 @@
 analyzer:
   errors:
     must_be_immutable: ignore
+    unnecessary_brace_in_string_interps: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

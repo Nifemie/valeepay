@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import '../../../widgets/services_widgets/education_widgets/service_type_modal.dart';
-import 'transaction_details_screen.dart';
 
 class InstitutionPaymentScreen extends StatefulWidget {
   final String institutionName;
@@ -18,9 +23,10 @@ class InstitutionPaymentScreen extends StatefulWidget {
 class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
   final TextEditingController institutionNumberController =
       TextEditingController();
-  String selectedServiceType = 'Option 1';
+  String selectedServiceType = 'Exam Fee';
   final TextEditingController studentIdController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  int serviceFee = 500;
 
   @override
   Widget build(BuildContext context) {
@@ -58,21 +64,12 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: institutionNumberController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
+            ReuseableTextFieldWithCountry(
+                controller: institutionNumberController,
                 hintText: widget.institutionName,
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+                isReadOnly: true,
+                textInputType: TextInputType.text,
+                showCountryLabel: false),
 
             const SizedBox(height: 24),
 
@@ -85,22 +82,12 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: studentIdController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
+            ReuseableTextFieldWithCountry(
+                controller: studentIdController,
+                isReadOnly: false,
+                hintText: '123 456 789',
+                textInputType: TextInputType.number,
+                showCountryLabel: false),
             const SizedBox(height: 24),
 
             // Service Type
@@ -143,40 +130,6 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
             const SizedBox(height: 24),
 
             // Student ID (highlighted field)
-            Text(
-              'Student ID',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFFF76301),
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                decoration: InputDecoration(
-                  hintText: '0000000000',
-                  hintStyle: TextStyle(
-                      color: isDark ? Colors.white38 : Colors.grey[400]),
-                  filled: true,
-                  fillColor:
-                      isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
 
             // Amount
             Text(
@@ -187,64 +140,117 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '₦',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const Spacer(),
+            ReuseableAmountTextfield(
+                amountController: amountController,
+                prefixText: '₦',
+                hintText: '500'),
+            const SizedBox(height: 50),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+            FullWidthButton(
+                text: 'Continue',
                 onPressed: () {
                   if (studentIdController.text.isNotEmpty &&
                       amountController.text.isNotEmpty) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EducationTransactionDetailsScreen(
-                          transactionData: {
-                            'institution': widget.institutionName,
-                            'studentId': studentIdController.text,
-                            'serviceType': selectedServiceType,
-                            'amount': amountController.text,
-                          },
-                        ),
-                      ),
+                          builder: (context) =>
+                              ReuseableTransactionDetailsScreen(
+                                transactionsDetailsList: [
+                                  buildDetailRow('Student Details',
+                                      studentIdController.text, isDark),
+                                  buildDetailRow('Institution Name',
+                                      widget.institutionName, isDark),
+                                  buildDetailRow('Service Type',
+                                      selectedServiceType, isDark),
+                                  buildDetailRow(
+                                    'Amount',
+                                    '₦${amountController.text}',
+                                    isDark,
+                                  ),
+                                  buildDetailRow(
+                                    'Fee',
+                                    '₦${serviceFee}',
+                                    isDark,
+                                  ),
+                                  Divider(),
+                                  buildDetailRow(
+                                      'Total',
+                                      '₦${(int.parse(amountController.text) + serviceFee)}',
+                                      isDark,
+                                      isTotal: true)
+                                ],
+                                onButtonPressed: () async {
+                                  final pin =
+                                      await TransactionPinModal.show(context);
+                                  if (pin != null &&
+                                      pin.length == 4 &&
+                                      mounted) {
+                                    if (mounted) Navigator.pop(context);
+                                    if (mounted) {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransactionReceiptWidget(
+                                                    amount: '${(int.parse(amountController.text) + serviceFee)}',
+                                                    topDetails: [
+                                                      TransactionDetail(
+                                                        label:
+                                                            'Student Details',
+                                                        value:
+                                                            studentIdController
+                                                                .text,
+                                                      ),
+                                                      TransactionDetail(
+                                                          label: 'Service',
+                                                          value:
+                                                              selectedServiceType),
+                                                      TransactionDetail(
+                                                          label: 'Amount',
+                                                          value:
+                                                              '₦${amountController.text}'),
+                                                      TransactionDetail(
+                                                          label: 'Fee',
+                                                          value:
+                                                              '₦$serviceFee'),
+                                                      TransactionDetail(
+                                                          label: 'Total Debit',
+                                                          value:
+                                                              '₦${(int.parse(amountController.text) + serviceFee)}'),
+                                                    ],
+                                                    bottomDetails: [
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Transaction ID',
+                                                          value:
+                                                              'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                          showCopyIcon: true),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Instiution Name',
+                                                          value: widget
+                                                              .institutionName),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Payment Source',
+                                                          value:
+                                                              'ValarPay Account'),
+                                                      TransactionDetail(
+                                                          label: 'Date & Time',
+                                                          value:
+                                                              '29 Sep 2025 | 8:15 pm')
+                                                    ],
+                                                    onShareReceipt: () {},
+                                                  )));
+                                    }
+                                  }
+                                },
+                              )),
                     );
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+                }),
           ],
         ),
       ),

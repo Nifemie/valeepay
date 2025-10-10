@@ -45,7 +45,9 @@ class SecurityMenuWidget extends StatelessWidget {
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/report.svg',
             title: 'Report Scam',
-            onTap: () {},
+            onTap: () {
+              context.push('/coming-soon');
+            },
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
@@ -59,7 +61,9 @@ class SecurityMenuWidget extends StatelessWidget {
           _buildMenuItem(
             svgPath: 'assets/images/me_icons/rate.svg',
             title: 'Rate Valarpay',
-            onTap: () {},
+            onTap: () {
+              context.push('/coming-soon');
+            },
           ),
         ],
       ),

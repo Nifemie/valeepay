@@ -16,7 +16,7 @@ class _FlightScreenState extends State<FlightScreen> {
   String selectedDestination = 'Abuja';
   String selectedClass = 'Economy';
   DateTime? departureDate;
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController controller = TextEditingController();
   final TextEditingController emailController = TextEditingController();
 
   int adults = 1;
@@ -158,7 +158,7 @@ class _FlightScreenState extends State<FlightScreen> {
                           'children': children.toString(),
                           'infants': infants.toString(),
                           'email': emailController.text,
-                          'phone': phoneController.text,
+                          'phone': controller.text,
                         },
                       ),
                     ),
@@ -319,7 +319,7 @@ class _FlightScreenState extends State<FlightScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: TextField(
-            controller: phoneController,
+            controller: controller,
             keyboardType: TextInputType.phone,
             style: TextStyle(color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(

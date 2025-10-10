@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class SupportOptionCard extends StatelessWidget {
   final IconData icon;
@@ -19,10 +21,10 @@ class SupportOptionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: EdgeInsets.all(10.w),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: ResponsiveUtils.borderRadius12,
           border: Border.all(
             color: Colors.grey.withOpacity(0.2),
           ),
@@ -31,27 +33,28 @@ class SupportOptionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 24,
-              height: 24,
+              width: 24.w,
+              height: 24.h,
               decoration: BoxDecoration(
                 color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(24.r),
               ),
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 14,
+                size: 14.sp,
               ),
             ),
-            const SizedBox(height: 8),
-            FittedBox(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                textAlign: TextAlign.center,
-              ),
+            SizedBox(height: 8.h),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    fontSize: ResponsiveUtils.fontSize14,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -81,10 +84,10 @@ class SupportListTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.paddingAll16,
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: ResponsiveUtils.borderRadius12,
           border: Border.all(
             color: Colors.grey.withOpacity(0.2),
           ),
@@ -92,19 +95,19 @@ class SupportListTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 40.w,
+              height: 40.h,
               decoration: BoxDecoration(
                 color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 20,
+                size: 20.sp,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,22 +116,24 @@ class SupportListTile extends StatelessWidget {
                     title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
+                          fontSize: ResponsiveUtils.fontSize16,
                         ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                           height: 1.4,
+                          fontSize: ResponsiveUtils.fontSize12,
                         ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              size: 16,
+              size: 16.sp,
               color: Colors.grey,
             ),
           ],
@@ -155,11 +160,11 @@ class FAQTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: 12.h),
+        padding: ResponsiveUtils.paddingAll16,
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: ResponsiveUtils.borderRadius12,
           border: Border.all(
             color: Colors.grey.withOpacity(0.2),
           ),
@@ -174,14 +179,16 @@ class FAQTile extends StatelessWidget {
                     question,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
+                          fontSize: ResponsiveUtils.fontSize16,
                         ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     answer,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                           height: 1.4,
+                          fontSize: ResponsiveUtils.fontSize12,
                         ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -189,10 +196,10 @@ class FAQTile extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            const Icon(
+            SizedBox(width: 12.w),
+            Icon(
               Icons.arrow_forward_ios,
-              size: 16,
+              size: 16.sp,
               color: Colors.grey,
             ),
           ],
@@ -217,10 +224,10 @@ class SupportSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 16.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: ResponsiveUtils.borderRadius12,
         border: Border.all(
           color: Colors.grey.withOpacity(0.2),
         ),
@@ -232,9 +239,9 @@ class SupportSearchBar extends StatelessWidget {
           hintText: hintText,
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
           ),
         ),
       ),
@@ -259,13 +266,13 @@ class SupportCategoryChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        margin: const EdgeInsets.only(right: 8),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        margin: EdgeInsets.only(right: 8.w),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).primaryColor
               : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).primaryColor
@@ -279,6 +286,7 @@ class SupportCategoryChip extends StatelessWidget {
                     ? Colors.white
                     : Theme.of(context).textTheme.bodySmall?.color,
                 fontWeight: FontWeight.w500,
+                fontSize: ResponsiveUtils.fontSize12,
               ),
         ),
       ),
