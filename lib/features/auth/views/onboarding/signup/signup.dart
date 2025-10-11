@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   String selectedAccountType = 'Personal';
   String selectedCurrency = 'NGN';
 
@@ -271,6 +273,11 @@ class _SignupScreenState extends State<SignupScreen> {
             FullWidthButton(
                 text: 'Continue',
                 onPressed: () {
+                  ref.read(signUpFormNotifierProvider.notifier).saveAccountInfo(
+                        accountType: selectedAccountType,
+                        countryCode: selectedCurrency,
+                      );
+
                   if (selectedAccountType == 'Personal') {
                     context.push('/personal-details');
                   } else {

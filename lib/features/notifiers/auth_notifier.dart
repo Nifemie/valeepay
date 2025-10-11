@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/api_client.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/login.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/user.dart';
 import '../repositories/auth_repository.dart';
 
@@ -51,6 +52,65 @@ class AuthNotifier extends StateNotifier<DataState<UserModel>> {
       );
     }
   }
+
+  Future<void> signUp(SignUpRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.signUp(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        data: [res.user],
+        isDataAvailable: true,
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[AuthNotifier SignUp Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Sign up failed: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> resendVerificationCode(String email) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.resendVerificationCode(email);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[AuthNotifier Resend Code Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to resend verification code: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> verifyEmail(String email, String otpCode) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.verifyEmail(email, otpCode);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[AuthNotifier Verify Email Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Email verification failed: ${e.toString()}',
+      );
+    }
+  }
+
   void reset() => state = DataState<UserModel>.initial();
 }
 

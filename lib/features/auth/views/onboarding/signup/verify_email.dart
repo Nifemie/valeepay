@@ -1,26 +1,58 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
 
-class VerifyEmailScreen extends StatefulWidget {
+class VerifyEmailScreen extends ConsumerStatefulWidget {
   const VerifyEmailScreen({super.key});
 
   @override
-  State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
+  ConsumerState<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
 }
 
-class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
+class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   final List<TextEditingController> _controllers = List.generate(
     6,
     (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  bool _isLoading = false;
+  int _resendTimer = 30;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startResendTimer();
+  }
+
+  void _startResendTimer() {
+    _timer?.cancel();
+    _resendTimer = 30;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendTimer == 0) {
+        timer.cancel();
+        setState(() {});
+      } else {
+        setState(() {
+          _resendTimer--;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final signUpFormData = ref.watch(signUpFormNotifierProvider);
+    final email = signUpFormData.email;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -41,7 +73,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter the code we sent to [email]@digital.com',
+                'Enter the code we sent to ${email ?? '[email]'}.',
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 textAlign: TextAlign.center,
               ),
@@ -105,14 +137,43 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      // Resend code logic
-                    },
-                    child: const Text(
-                      'Resend in 30 seconds',
+                    onTap: _resendTimer == 0
+                        ? () async {
+                            if (email == null) {
+                              CustomToast.showErrorToast(
+                                  context: context,
+                                  message: 'Email not found. Please go back and try again.');
+                              return;
+                            }
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            try {
+                              await ref.read(authNotifierProvider.notifier).resendVerificationCode(email);
+                              CustomToast.showSuccessToast(
+                                  context: context,
+                                  message: 'Verification code sent to your email.');
+                              _startResendTimer();
+                            } catch (e) {
+                              CustomToast.showErrorToast(
+                                  context: context,
+                                  message: 'Failed to resend code: ${e.toString()}');
+                            } finally {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
+                        : null,
+                    child: Text(
+                      _resendTimer == 0
+                          ? 'Resend Code'
+                          : 'Resend in $_resendTimer seconds',
                       style: TextStyle(
                         fontSize: 14,
-                        color: appTheme.primaryColor,
+                        color: _resendTimer == 0
+                            ? appTheme.primaryColor
+                            : Colors.grey,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -128,19 +189,49 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
               // Continue Button
 
-              FullWidthButton(text: 'Continue', onPressed: (){
-                 // Validate OTP
-                     String otp =
-                        _controllers
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : FullWidthButton(
+                      text: 'Continue',
+                      onPressed: () async {
+                        String otp = _controllers
                             .map((controller) => controller.text)
                             .join();
-                    if (otp.length == 6) {
-                      context.push('/phone-number');
-                    } else {
-                      CustomToast.showErrorToast(context:context, message: 'Please enter the complete verification code');
-                     
-                    }
-              })
+                        if (otp.length == 6) {
+                          if (email == null) {
+                            CustomToast.showErrorToast(
+                                context: context,
+                                message: 'Email not found. Please go back and try again.');
+                            return;
+                          }
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          try {
+                            await ref.read(authNotifierProvider.notifier).verifyEmail(email, otp);
+                            final authState = ref.read(authNotifierProvider);
+                            if (authState.isDataAvailable && mounted) {
+                              context.push('/phone-number');
+                            } else if (mounted) {
+                              CustomToast.showErrorToast(
+                                  context: context,
+                                  message: authState.message ?? 'Email verification failed. Please try again.');
+                            }
+                          } catch (e) {
+                            CustomToast.showErrorToast(
+                                context: context,
+                                message: 'An unexpected error occurred: ${e.toString()}');
+                          } finally {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        } else {
+                          CustomToast.showErrorToast(
+                              context: context,
+                              message: 'Please enter the complete verification code');
+                        }
+                      }),
               ],
           ),
         ),
@@ -150,6 +241,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     for (var controller in _controllers) {
       controller.dispose();
     }
