@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-
+import 'package:valarpay/features/dashboard/view/KYC/CameraPermission.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
-import 'camerapermission.dart';
 import 'kyc_step_provider.dart';
 
 // State provider for BVN

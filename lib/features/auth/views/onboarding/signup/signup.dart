@@ -287,14 +287,20 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildLogoHeader() {
     return Row(
       children: [
-        ClipRRect(
-          // Use ClipRRect to apply border radius to the image
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            'assets/images/VALAR PAY LOGOO.png',
-            fit: BoxFit.cover, // Cover the container area
-            width: 40,
-            height: 40,
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect( // Use ClipRRect to apply border radius to the image
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.cover, // Cover the container area
+              width: 40,
+              height: 40,
+            ),
           ),
         ),
         const SizedBox(width: 6),

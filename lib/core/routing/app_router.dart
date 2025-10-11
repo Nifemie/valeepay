@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter/foundation.dart';
+import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
 import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
@@ -60,7 +60,7 @@ import '../../features/auth/views/onboarding/signup/verify_email.dart';
 import '../../features/auth/views/onboarding/signup/verify_phone.dart';
 import '../../features/auth/views/splashscreen/splashscreen.dart';
 import '../../features/dashboard/dashboard_wrapper.dart';
-import '../../features/dashboard/view/card.dart';
+import '../../features/dashboard/view/cards/card.dart';
 import '../../features/dashboard/view/home/homescreen.dart';
 import '../../features/dashboard/view/home/support/faq_detail_screen.dart';
 import '../../features/dashboard/view/invest.dart';
@@ -165,7 +165,11 @@ final router = GoRouter(
         ),
         GoRoute(
           path: '/cards',
-          builder: (context, state) => const CardScreen(),
+          builder: (context, state) => const CardsScreen(),
+        ),
+        GoRoute(
+          path: '/get-phisical-card',
+          builder: (context, state) => const GetPhysicalCardScreen(),
         ),
         GoRoute(
           path: '/me',
