@@ -1,26 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/session_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/device_utils.dart';
+import 'package:valarpay/features/models/login.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
 import '../../../../../core/utils/platform_responsive.dart';
 import '../../../../../../features/auth/widgets/need_help_modal.dart';
 import '../../../../../../core/utils/color_utils.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  ConsumerState<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _hasIncorrectPassword = false;
 
+  onPressed() async {
+    if (_formKey.currentState!.validate()) {
+      final ip = await DeviceUtils.getIpAddress();
+      final deviceName = await DeviceUtils.getDeviceName();
+      final deviceOs = await DeviceUtils.getDeviceOS();
+
+      final notifier = ref.read(authNotifierProvider.notifier);
+
+      final request = LoginRequest(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        ipAddress: ip,
+        deviceName: deviceName,
+        operatingSystem: deviceOs,
+      );
+
+      FocusScope.of(context).unfocus();
+
+      await notifier.login(request);
+
+      final state = ref.read(authNotifierProvider);
+      if (state.isDataAvailable) {
+        final user = state.data?.first;
+        await SessionService.saveSession(
+          LoginResponse(
+            message: state.message ?? '',
+            user: user!,
+            statusCode: 200,
+          ),
+        );
+        context.push('/'); // navigate to home
+      } else {
+        AppMessenger.show(
+          context,
+          message: state.message ?? 'Login failed',
+          type: MessageType.error,
+        );
+
+        setState(() => _hasIncorrectPassword = true);
+      }
+    }
+  }
+
+  initialize() async {
+    String? savedUsername = await SessionService.getUsername();
+    if (savedUsername != null) {
+      _emailController.text = savedUsername;
+    }
+  }
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -95,7 +159,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             decoration: BoxDecoration(
                               borderRadius: PlatformResponsive.circular(8),
                             ),
-                            child: ClipRRect( // Use ClipRRect to apply border radius to the image
+                            child: ClipRRect(
+                              // Use ClipRRect to apply border radius to the image
                               borderRadius: PlatformResponsive.circular(8),
                               child: Image.asset(
                                 'assets/images/logo.png',
@@ -200,11 +265,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              context.push('/');
-                            }
-                          },
+                          onPressed:
+                              !authState.isInitialLoading ? onPressed : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: appTheme.primaryColor,
                             padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -212,14 +274,16 @@ class _SignInScreenState extends State<SignInScreen> {
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                           ),
-                          child: Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
+                          child: authState.isInitialLoading
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
 

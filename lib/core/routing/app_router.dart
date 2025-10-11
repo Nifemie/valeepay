@@ -49,7 +49,6 @@ import '../../features/auth/views/onboarding/forgot_password.dart';
 import '../../features/auth/views/onboarding/signin/biometric_login.dart';
 import '../../features/auth/views/onboarding/signin/passcode_login.dart';
 import '../../features/auth/views/onboarding/signin/signin.dart';
-import '../../features/auth/views/onboarding/signin/verify_fingerprint.dart';
 import '../../features/auth/views/onboarding/signup/business_details.dart';
 import '../../features/auth/views/onboarding/signup/email_password.dart';
 import '../../features/auth/views/onboarding/signup/personal_details.dart';
@@ -82,8 +81,7 @@ final router = GoRouter(
     // Auth routes (without dashboard wrapper)
     GoRoute(
       path: '/splash',
-      builder: (context, state) =>
-          SplashScreen(onAnimationComplete: () => context.push('/intro')),
+      builder: (context, state) => SplashScreen(),
     ),
     GoRoute(path: '/intro', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
@@ -124,10 +122,6 @@ final router = GoRouter(
     GoRoute(
       path: '/biometric-login',
       builder: (context, state) => const BiometricLoginScreen(),
-    ),
-    GoRoute(
-      path: '/verify-fingerprint',
-      builder: (context, state) => const VerifyFingerprintScreen(),
     ),
     GoRoute(
       path: '/passcode-login',

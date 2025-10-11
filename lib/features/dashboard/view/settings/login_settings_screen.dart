@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
-import 'auto_logout_settings_screen.dart';
 
 class LoginSettingsScreen extends StatefulWidget {
   const LoginSettingsScreen({super.key});
