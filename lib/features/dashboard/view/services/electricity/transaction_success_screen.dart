@@ -26,9 +26,7 @@ class TransactionSuccessScreen extends StatelessWidget {
       onShareReceipt: () {
         // Handle share receipt
       },
-      onDone: () {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      },
+      
     );
   }
 }

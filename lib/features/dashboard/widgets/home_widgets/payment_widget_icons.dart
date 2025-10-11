@@ -19,7 +19,7 @@ class PaymentWidget extends StatelessWidget {
           _buildActionItem(
             context,
             svgAssetPath: 'assets/images/payment_wid/valarpay.svg',
-            label: 'To ValaPay',
+            label: 'To ValarPay',
             onTap: () => context.push("/transfer-to-valarpay"),
           ),
           _buildActionItem(

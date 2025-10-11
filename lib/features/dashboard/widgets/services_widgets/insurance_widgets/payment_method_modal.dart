@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../view/services/insurance/transaction_success_screen.dart';
 
 class InsurancePaymentMethodModal extends StatelessWidget {
   final Map<String, String> transactionData;
@@ -250,29 +249,7 @@ class _InsurancePinEntryModalState extends State<InsurancePinEntryModal> {
             // Handle PIN completion
             Future.delayed(const Duration(milliseconds: 300), () {
               Navigator.pop(context);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => InsuranceTransactionSuccessScreen(
-                    amount:
-                        '₦${widget.transactionData['amount'] ?? '150,500.00'}',
-                    transactionId:
-                        'TXN${DateTime.now().millisecondsSinceEpoch}',
-                    transactionDetails: {
-                      'Policy Number': widget.transactionData['policyNumber'] ??
-                          '0000000000',
-                      'Provider': widget.transactionData['provider'] ??
-                          'Axa Mansard Insurance',
-                      'Plan':
-                          widget.transactionData['servicePlan'] ?? 'Universal',
-                      'Duration':
-                          widget.transactionData['duration'] ?? '1 year',
-                      'Date': '29 Sep 2025 | 8:15 pm',
-                    },
-                  ),
-                ),
-              );
-            });
+             });
           }
         }
       },

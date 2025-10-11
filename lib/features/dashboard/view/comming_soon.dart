@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class ComingSoonScreen extends StatelessWidget {
   final String? serviceName;
@@ -13,83 +15,82 @@ class ComingSoonScreen extends StatelessWidget {
     final String title = serviceName ?? "Service";
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
         centerTitle: true,
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Illustration / SVG icon
               Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
+                padding: ResponsiveUtils.paddingAll24,
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                 ),
                 child: SvgPicture.asset(
                   "assets/images/coming_soon.svg", // <-- add your svg illustration
-                  width: 120,
-                  height: 120,
+                  width: 120.w,
+                  height: 120.h,
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32.h),
 
               // Title
               Text(
                 "$title Coming Soon 🚀",
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
 
               // Subtitle
-              const Text(
+              Text(
                 "We’re working hard to bring this feature to you. "
                 "Stay tuned for updates!",
-                style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 14.sp,
+                      height: 1.5,
+                    ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 32),
+              SizedBox(height: 32.h),
 
               // Button back to home
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: appTheme.primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: ResponsiveUtils.borderRadius12,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 32.w,
+                    vertical: 14.h,
                   ),
                 ),
                 onPressed: () => context.push("/"),
                 icon: const Icon(Icons.home, color: Colors.white),
-                label: const Text(
+                label: Text(
                   "Back to Home",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Colors.white, fontSize: 16.sp),
                 ),
               ),
             ],

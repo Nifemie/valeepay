@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -20,45 +22,44 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     showDialog(
       context: context,
-      builder:
-          (ctx) => Dialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      builder: (ctx) => Dialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(ctx),
-                        icon: const Icon(Icons.arrow_back),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.arrow_back),
                   ),
-                  const SizedBox(height: 24),
-                  ...options.map(
-                    (option) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildDialogOption(option),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 24),
+              ...options.map(
+                (option) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildDialogOption(option),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -74,10 +75,9 @@ class _SignupScreenState extends State<SignupScreen> {
         decoration: BoxDecoration(
           border: Border.all(
             width: 1,
-            color:
-                isSelected
-                    ? (option.activeColor ?? appTheme.primaryColor)
-                    : Colors.grey.shade300,
+            color: isSelected
+                ? (option.activeColor ?? appTheme.primaryColor)
+                : Colors.grey.shade300,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -88,10 +88,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color:
-                      isSelected
-                          ? option.activeColor!.withOpacity(0.2)
-                          : Colors.grey.shade100,
+                  color: isSelected
+                      ? option.activeColor!.withOpacity(0.2)
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 alignment: Alignment.center,
@@ -207,7 +206,7 @@ class _SignupScreenState extends State<SignupScreen> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => GoRouter.of(context).pop(),
         ),
         actions: [
@@ -269,34 +268,16 @@ class _SignupScreenState extends State<SignupScreen> {
               _showCurrencyDialog,
               Icons.money,
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+            const SizedBox(height: 50),
+            FullWidthButton(
+                text: 'Continue',
                 onPressed: () {
                   if (selectedAccountType == 'Personal') {
                     context.push('/personal-details');
                   } else {
                     context.push('/business-details');
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+                }),
           ],
         ),
       ),
@@ -322,7 +303,7 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 6),
         const Text(
           'Valarpay',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

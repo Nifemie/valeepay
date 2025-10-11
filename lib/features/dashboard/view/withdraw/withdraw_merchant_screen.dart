@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class WithdrawMerchantScreen extends StatefulWidget {
   const WithdrawMerchantScreen({super.key});
@@ -31,85 +33,81 @@ class _WithdrawMerchantScreenState extends State<WithdrawMerchantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Withdraw via Merchant",
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.paddingAll16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Recipient Account Number
-            const Text(
+            Text(
               "Recipient Account Number",
-              style: TextStyle(color: Colors.black54, fontSize: 14),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             TextField(
               controller: accountController,
               decoration: InputDecoration(
                 hintText: "Enter account name/number",
-                suffixIcon: Icon(Icons.copy, color: Colors.black45, size: 20),
+                suffixIcon: Icon(Icons.copy, color: Theme.of(context).iconTheme.color, size: 20.sp),
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).cardColor,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: ResponsiveUtils.borderRadius12,
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // Amount
-            const Text(
+            Text(
               "Amount",
-              style: TextStyle(color: Colors.black54, fontSize: 14),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 prefixText: "₦ ",
-                prefixStyle: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
+                prefixStyle: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 16.sp,
                 ),
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).cardColor,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: ResponsiveUtils.borderRadius12,
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // Selected Beneficiary
             Row(
               children: [
                 Icon(Icons.check_circle, color: appTheme.primaryColor),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 Text(
                   selectedBeneficiary,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                     color: appTheme.primaryColor,
                   ),
@@ -117,31 +115,31 @@ class _WithdrawMerchantScreenState extends State<WithdrawMerchantScreen> {
               ],
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // Continue Button
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: appTheme.primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(25.r),
                   ),
                 ),
                 onPressed: () {
                   // Handle continue
                   context.push("/transaction-details");
                 },
-                child: const Text(
+                child: Text(
                   "Continue",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Colors.white, fontSize: 16.sp),
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             // Tabs (Recent & Saved)
             Row(
@@ -153,25 +151,24 @@ class _WithdrawMerchantScreenState extends State<WithdrawMerchantScreen> {
                       Text(
                         "Recent",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color:
-                              isRecentTab
-                                  ? appTheme.primaryColor
-                                  : Colors.black54,
+                          color: isRecentTab
+                              ? appTheme.primaryColor
+                              : Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
                       if (isRecentTab)
                         Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 3,
-                          width: 40,
+                          margin: EdgeInsets.only(top: 4.h),
+                          height: 3.h,
+                          width: 40.w,
                           color: appTheme.primaryColor,
                         ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 20),
+                SizedBox(width: 20.w),
                 GestureDetector(
                   onTap: () => setState(() => isRecentTab = false),
                   child: Column(
@@ -179,19 +176,18 @@ class _WithdrawMerchantScreenState extends State<WithdrawMerchantScreen> {
                       Text(
                         "Saved Beneficiary",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color:
-                              !isRecentTab
-                                  ? appTheme.primaryColor
-                                  : Colors.black54,
+                          color: !isRecentTab
+                              ? appTheme.primaryColor
+                              : Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
                       if (!isRecentTab)
                         Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 3,
-                          width: 40,
+                          margin: EdgeInsets.only(top: 4.h),
+                          height: 3.h,
+                          width: 40.w,
                           color: appTheme.primaryColor,
                         ),
                     ],
@@ -200,23 +196,23 @@ class _WithdrawMerchantScreenState extends State<WithdrawMerchantScreen> {
               ],
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Search Field
             TextField(
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                prefixIcon: Icon(Icons.search, color: Theme.of(context).iconTheme.color),
                 hintText: "Searching",
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).cardColor,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: ResponsiveUtils.borderRadius12,
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Beneficiaries List
             Expanded(
@@ -225,46 +221,45 @@ class _WithdrawMerchantScreenState extends State<WithdrawMerchantScreen> {
                 itemBuilder: (context, index) {
                   final b = recentBeneficiaries[index];
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
+                    margin: EdgeInsets.only(bottom: 12.h),
+                    padding: ResponsiveUtils.paddingAll12,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      color: Theme.of(context).cardColor,
+                      borderRadius: ResponsiveUtils.borderRadius12,
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           backgroundImage: AssetImage(b["logo"]!),
-                          radius: 18,
+                          radius: 18.r,
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12.w),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 b["name"]!,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                               ),
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2.h),
                               Text(
                                 "${b["bank"]}   ValarPay",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontSize: 13.sp,
+                                    ),
                               ),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.bookmark_add_outlined,
-                            size: 20,
-                            color: Colors.black45,
+                            size: 20.sp,
+                            color: Theme.of(context).iconTheme.color,
                           ),
                           onPressed: () {},
                         ),

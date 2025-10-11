@@ -88,11 +88,13 @@ class _SignInScreenState extends State<SignInScreen> {
 
                       // Logo
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Container(
                             width: 40.rw,
                             height: 50.rh,
                             decoration: BoxDecoration(
+                              color: Colors.white,
                               borderRadius: PlatformResponsive.circular(8),
                             ),
                             child: ClipRRect( // Use ClipRRect to apply border radius to the image
@@ -105,7 +107,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ),
                           ),
-                          PlatformResponsive.sizedBoxW(12),
+                          PlatformResponsive.sizedBoxW(6),
                           Text(
                             'Valarpay',
                             style: TextStyle(

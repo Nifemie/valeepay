@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
 import 'faq_screen.dart';
 import 'visit_office_screen.dart';
@@ -24,29 +26,29 @@ class CustomerServiceScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: ResponsiveUtils.paddingAll16,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // User greeting section
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveUtils.paddingAll16,
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: ResponsiveUtils.borderRadius12,
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 20,
+                      radius: 20.r,
                       backgroundColor: Theme.of(context).primaryColor,
-                      child: const Icon(
+                      child: Icon(
                         Icons.person,
                         color: Colors.white,
-                        size: 20,
+                        size: 20.sp,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: ResponsiveUtils.spacing12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -55,6 +57,7 @@ class CustomerServiceScreen extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     fontWeight: FontWeight.w600,
+                                    fontSize: ResponsiveUtils.fontSize16,
                                   ),
                         ),
                         Text(
@@ -62,6 +65,7 @@ class CustomerServiceScreen extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.grey[600],
+                                    fontSize: ResponsiveUtils.fontSize12,
                                   ),
                         ),
                       ],
@@ -70,22 +74,22 @@ class CustomerServiceScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.spacing24),
 
               // Support options grid - Fixed height to prevent overflow
               LayoutBuilder(
                 builder: (context, constraints) {
-                  double cardWidth = (constraints.maxWidth - 16) / 2;
+                  double cardWidth = (constraints.maxWidth - 16.w) / 2;
                   double cardHeight =
-                      cardWidth * 0.45; // Half the previous height (0.9 / 2)
+                      cardWidth * 0.65; 
 
                   return SizedBox(
-                    height: cardHeight * 3 + 32, // 3 rows + spacing
+                    height: cardHeight * 3 + 32.h, // 3 rows + spacing
                     child: GridView.count(
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16.w,
+                      mainAxisSpacing: 16.h,
                       childAspectRatio: cardWidth / cardHeight,
                       children: [
                         SupportOptionCard(
@@ -142,7 +146,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.spacing24),
 
               // FAQ and Office visit options
               SupportListTile(
@@ -156,7 +160,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveUtils.spacing12),
 
               SupportListTile(
                 icon: Icons.location_on_outlined,
@@ -169,7 +173,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.spacing24),
 
               // Live Support button
               SizedBox(
@@ -182,20 +186,20 @@ class CustomerServiceScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: appTheme.primaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: ResponsiveUtils.paddingVertical16,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: ResponsiveUtils.borderRadius12,
                     ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.chat_bubble_outline, size: 20),
-                      const SizedBox(width: 8),
-                      const Text(
+                      Icon(Icons.chat_bubble_outline, size: 20.sp),
+                      SizedBox(width: ResponsiveUtils.width8),
+                      Text(
                         'Live Support',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: ResponsiveUtils.fontSize16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -204,7 +208,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              SizedBox(height: ResponsiveUtils.spacing8),
 
               Center(
                 child: Text(
@@ -215,7 +219,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveUtils.spacing16),
             ],
           ),
         ),

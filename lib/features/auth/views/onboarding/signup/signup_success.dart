@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
 class SignupSuccessScreen extends StatelessWidget {
   final String firstName;
@@ -12,12 +13,10 @@ class SignupSuccessScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          // ✅ prevents vertical overflow
           padding: EdgeInsets.all(24.w),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight:
-                  MediaQuery.of(context).size.height -
+              minHeight: MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top -
                   MediaQuery.of(context).padding.bottom,
             ),
@@ -26,8 +25,6 @@ class SignupSuccessScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Spacer(flex: 2),
-
-                  // ✅ Success Icon
                   Container(
                     width: 120.w,
                     height: 120.w,
@@ -37,44 +34,19 @@ class SignupSuccessScreen extends StatelessWidget {
                     ),
                     child: Icon(Icons.check, color: Colors.white, size: 60.sp),
                   ),
-
                   SizedBox(height: 48.h),
-
-                  // ✅ Success Message with auto-wrap
                   Text(
                     "Congratulations, $firstName!\nYou've successfully created your account",
                     style: TextStyle(
                       fontSize: 22.sp, // responsive
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
-
                   const Spacer(flex: 3),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => context.push('/signin'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: appTheme.primaryColor,
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                      ),
-                      child: Text(
-                        'Proceed to Login',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-
+                  FullWidthButton(
+                      text: 'Proceed to Login',
+                      onPressed: () => context.push('/signin')),
                   SizedBox(height: 40.h),
                 ],
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
@@ -40,7 +41,6 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -145,47 +145,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                         const SizedBox(height: 24),
 
                         // Terms
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              'By clicking Continue, you agree to our ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Terms and Conditions',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: appTheme.primaryColor,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              ' and ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Privacy Policy',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: appTheme.primaryColor,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        TermsAndConditionsWidget()
                       ],
                     ),
                   ),
@@ -240,7 +200,6 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.black,
           ),
         ),
         const SizedBox(height: 8),

@@ -23,18 +23,15 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+             ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Shopping',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -104,7 +101,6 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         title: Text(
           provider,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),

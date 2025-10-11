@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class AccountSetupScreen extends StatefulWidget {
   const AccountSetupScreen({super.key});
@@ -34,78 +36,77 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.paddingAll16,
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Get USD Account",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              SizedBox(height: 6.h),
+              Text(
                 "Enter your required personal details to open a secure dollar account",
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
 
               // First Name
               _buildTextField("First Name", firstNameController),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // Last Name
               _buildTextField("Last Name", lastNameController),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // Username
               _buildTextField("Username", usernameController),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // Date of Birth
-              const Text(
+              Text(
                 "Date Of Birth",
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6.h),
               TextField(
                 controller: dobController,
                 readOnly: true,
                 onTap: _pickDate,
                 decoration: InputDecoration(
-                  suffixIcon: const Icon(
+                  suffixIcon: Icon(
                     Icons.calendar_today,
-                    size: 18,
-                    color: Colors.black54,
+                    size: 18.sp,
+                    color: Theme.of(context).iconTheme.color,
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade100,
+                  fillColor: Theme.of(context).cardColor,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: ResponsiveUtils.borderRadius12,
                     borderSide: BorderSide.none,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // Referral Code
               _buildTextField(
@@ -114,17 +115,17 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                 isOptional: true,
               ),
 
-              const SizedBox(height: 30),
+              SizedBox(height: 30.h),
 
               // Continue Button
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 50.h,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: appTheme.primaryColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(25.r),
                     ),
                   ),
                   onPressed: () {
@@ -132,21 +133,21 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                       // Handle form submit
                     }
                   },
-                  child: const Text(
+                  child: Text(
                     "Continue",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    style: TextStyle(fontSize: 16.sp, color: Colors.white),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
 
               // Disclaimer
-              const Center(
+              Center(
                 child: Text.rich(
                   TextSpan(
                     text: "By clicking Continue, you agree to our ",
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12.sp),
                     children: [
                       TextSpan(
                         text: "Terms and Conditions",
@@ -155,7 +156,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      TextSpan(text: " and "),
+                      const TextSpan(text: " and "),
                       TextSpan(
                         text: "Privacy Policy",
                         style: TextStyle(
@@ -186,9 +187,9 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.black54),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6.h),
         TextFormField(
           controller: controller,
           validator: (value) {
@@ -199,9 +200,9 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
           },
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.grey.shade100,
+            fillColor: Theme.of(context).cardColor,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: ResponsiveUtils.borderRadius12,
               borderSide: BorderSide.none,
             ),
           ),

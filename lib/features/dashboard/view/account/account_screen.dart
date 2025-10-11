@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -16,25 +18,21 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Account",
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.paddingAll16,
         child: Column(
           children: [
             // Naira Account Card
@@ -44,7 +42,7 @@ class _AccountScreenState extends State<AccountScreen> {
               onToggle:
                   () => setState(() => showNairaBalance = !showNairaBalance),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // Dollar Account Card
             _accountCard(
@@ -53,7 +51,7 @@ class _AccountScreenState extends State<AccountScreen> {
               onToggle:
                   () => setState(() => showDollarBalance = !showDollarBalance),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // Get Euro Account
             _accountSetupCard(
@@ -64,7 +62,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 context.push('/account-setup');
               },
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
 
             // Get Pound Account
             _accountSetupCard(
@@ -89,10 +87,10 @@ class _AccountScreenState extends State<AccountScreen> {
     required VoidCallback onToggle,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.paddingAll16,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).cardColor,
+        borderRadius: ResponsiveUtils.borderRadius12,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,15 +101,15 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     "Your Balance",
-                    style: TextStyle(color: Colors.black54, fontSize: 14),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
                   ),
                   IconButton(
                     icon: Icon(
                       isVisible ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.black45,
-                      size: 20,
+                      color: Theme.of(context).iconTheme.color,
+                      size: 20.sp,
                     ),
                     onPressed: onToggle,
                   ),
@@ -121,30 +119,29 @@ class _AccountScreenState extends State<AccountScreen> {
                 "Tier 1",
                 style: TextStyle(
                   color: appTheme.primaryColor,
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             isVisible ? "$currency 150,000.00" : "$currency ***********",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // Bank Name
           _infoRow("Bank Name", "ValarPay"),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
 
           // Account Name
           _infoRow("Account Name", "John Smith Emmy"),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
 
           // Account Number
           _infoRow("Account Number", "0000000000"),
@@ -164,22 +161,21 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(color: Colors.black54, fontSize: 13),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.copy, size: 18, color: Colors.black45),
+          icon: Icon(Icons.copy, size: 18.sp, color: Theme.of(context).iconTheme.color),
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("$label copied to clipboard")),
@@ -198,30 +194,29 @@ class _AccountScreenState extends State<AccountScreen> {
     required VoidCallback onTap,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: ResponsiveUtils.paddingAll12,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).cardColor,
+        borderRadius: ResponsiveUtils.borderRadius12,
       ),
       child: ListTile(
-        leading: CircleAvatar(radius: 18, backgroundImage: AssetImage(flag)),
+        leading: CircleAvatar(radius: 18.r, backgroundImage: AssetImage(flag)),
         title: Text(
           title,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+              ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
         ),
         trailing: TextButton(
           onPressed: onTap,
-          child: const Text(
+          child: Text(
             "Setup",
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 14.sp),
           ),
         ),
       ),

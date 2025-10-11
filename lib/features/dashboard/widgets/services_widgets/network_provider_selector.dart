@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/themes/color_utils.dart';
 
 class NetworkProviderSelector extends StatelessWidget {
   final String selectedNetwork;
@@ -13,31 +14,42 @@ class NetworkProviderSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _NetworkProviderItem(
-          name: 'Airtel',
-          image: Image.asset('assets/images/airtel.png'),
-          isSelected: selectedNetwork == 'Airtel',
-          onTap: () => onNetworkSelected('Airtel'),
+        Expanded(
+          child: _NetworkProviderItem(
+            name: 'Airtel',
+            image: Image.asset('assets/images/airtel.png'),
+            isSelected: selectedNetwork == 'Airtel',
+            onTap: () => onNetworkSelected('Airtel'),
+          ),
         ),
-        _NetworkProviderItem(
-          name: 'MTN',
-          image: Image.asset('assets/images/mtn.png'),
-          isSelected: selectedNetwork == 'MTN',
-          onTap: () => onNetworkSelected('MTN'),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _NetworkProviderItem(
+            name: 'MTN',
+            image: Image.asset('assets/images/mtn.png'),
+            isSelected: selectedNetwork == 'MTN',
+            onTap: () => onNetworkSelected('MTN'),
+          ),
         ),
-        _NetworkProviderItem(
-          name: '9mobile',
-          image: Image.asset('assets/images/9mobile.png'),
-          isSelected: selectedNetwork == '9mobile',
-          onTap: () => onNetworkSelected('9mobile'),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _NetworkProviderItem(
+            name: '9mobile',
+            image: Image.asset('assets/images/9mobile.png'),
+            isSelected: selectedNetwork == '9mobile',
+            onTap: () => onNetworkSelected('9mobile'),
+          ),
         ),
-        _NetworkProviderItem(
-          name: 'Glo',
-          image: Image.asset('assets/images/glo.png'),
-          isSelected: selectedNetwork == 'Glo',
-          onTap: () => onNetworkSelected('Glo'),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _NetworkProviderItem(
+            name: 'Glo',
+            image: Image.asset('assets/images/glo.png'),
+            isSelected: selectedNetwork == 'Glo',
+            onTap: () => onNetworkSelected('Glo'),
+          ),
         ),
       ],
     );
@@ -62,13 +74,16 @@ class _NetworkProviderItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: isSelected ? Colors.grey.withOpacity(0.2) : Colors.white,
+          color: isSelected
+              ? appTheme.primaryColor.withOpacity(0.3)
+              : Theme.of(context).cardColor.withOpacity(0.7),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.shade700,
+            color: isSelected
+                ? appTheme.primaryColor.withOpacity(0.5)
+                : Colors.grey.shade700,
             width: isSelected ? 2 : 1,
           ),
         ),

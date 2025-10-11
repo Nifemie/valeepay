@@ -77,6 +77,8 @@ class TransactionPinModal extends ConsumerStatefulWidget {
 }
 
 class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
+  bool _isCompleting = false;
+
   @override
   void initState() {
     super.initState();
@@ -86,29 +88,32 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
     });
   }
 
+  void _onNumberPressed(String number) {
+    final pinNotifier = ref.read(pinProvider.notifier);
+    pinNotifier.addDigit(number);
+  }
+
   @override
   Widget build(BuildContext context) {
     final pin = ref.watch(pinProvider);
     final pinNotifier = ref.read(pinProvider.notifier);
 
-    // Auto-complete when all digits are entered
-    ref.listen(pinProvider, (previous, next) {
-      if (next.every((element) => element.isNotEmpty)) {
-        final completePin = next.join();
-        final navigator = Navigator.of(context);
-        // Add a small delay to prevent build conflicts
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            if (widget.onComplete != null) {
-              widget.onComplete!(completePin);
-            } else {
-              // If no onComplete callback, close modal and return PIN
-              navigator.pop(completePin);
-            }
+    // Check if PIN is complete and not already completing
+    if (pin.every((element) => element.isNotEmpty) && !_isCompleting) {
+      final completePin = pin.join();
+      _isCompleting = true;
+
+      // Schedule completion for next frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          if (widget.onComplete != null) {
+            widget.onComplete!(completePin);
+          } else {
+            Navigator.of(context).pop(completePin);
           }
-        });
-      }
-    });
+        }
+      });
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -192,7 +197,7 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
 
             // Number Pad
             _NumberPad(
-              onNumberPressed: (number) => pinNotifier.addDigit(number),
+              onNumberPressed: _onNumberPressed,
               onDeletePressed: () => pinNotifier.removeDigit(),
             ),
             const SizedBox(height: 16),

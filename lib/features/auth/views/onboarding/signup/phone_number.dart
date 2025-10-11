@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 
 class PhoneNumberScreen extends StatefulWidget {
   const PhoneNumberScreen({super.key});
@@ -12,7 +14,7 @@ class PhoneNumberScreen extends StatefulWidget {
 
 class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _controller = TextEditingController();
   String _selectedCountryCode = '+234';
 
   @override
@@ -22,7 +24,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: SafeArea(
@@ -53,7 +55,6 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -92,7 +93,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                         // Phone Number Field (takes the rest of the space)
                         Expanded(
                           child: TextFormField(
-                            controller: _phoneController,
+                            controller: _controller,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
                               hintText: '0000000000',
@@ -142,76 +143,18 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                 const SizedBox(height: 40),
 
                 // Terms and conditions (fixed with RichText)
-                Center(
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: 'By clicking Continue, you agree to our ',
-                        ),
-                        TextSpan(
-                          text: 'Terms and Conditions',
-                          style: const TextStyle(
-                            color: appTheme.primaryColor,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer:
-                              TapGestureRecognizer()
-                                ..onTap = () {
-                                  // open Terms
-                                },
-                        ),
-                        const TextSpan(text: ' and '),
-                        TextSpan(
-                          text: 'Privacy Policy',
-                          style: const TextStyle(
-                            color: appTheme.primaryColor,
-                            decoration: TextDecoration.underline,
-                          ),
-                          recognizer:
-                              TapGestureRecognizer()
-                                ..onTap = () {
-                                  // open Privacy
-                                },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
+                TermsAndConditionsWidget(),
+                const SizedBox(height: 50),
 
                 // Continue Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
+
+                FullWidthButton(
+                    text: 'Continue',
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         context.push('/verify-phone');
                       }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: appTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                    }),
                 const SizedBox(height: 24),
               ],
             ),
@@ -223,7 +166,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 }

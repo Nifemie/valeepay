@@ -76,7 +76,7 @@ import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
-  initialLocation: '/splash', // Always show splash screen
+  initialLocation: kDebugMode ? '/' : '/splash', // Always show splash screen
 
   routes: [
     // Auth routes (without dashboard wrapper)

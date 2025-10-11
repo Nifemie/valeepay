@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:valarpay/core/widgets/responsive_button.dart';
-import 'package:valarpay/core/widgets/responsive_text_field.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
@@ -15,7 +15,7 @@ class AirtimeScreen extends StatefulWidget {
 }
 
 class _AirtimeScreenState extends State<AirtimeScreen> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   bool _useCashback = false;
   String _selectedNetwork = '';
@@ -23,7 +23,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '';
+    _controller.text = '';
     _amountController.text = '';
   }
 
@@ -62,73 +62,52 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              // Handle saved beneficiary
-            },
-            child: Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: appTheme.primaryColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton(
+              onPressed: () {
+                // Handle saved beneficiary
+              },
+              child: Text(
+                'Saved Beneficiary',
+                style: TextStyle(
+                  color: appTheme.primaryColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            // Phone Number Section
-            const Text(
-              'Phone Number',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 20),
+              // Phone Number Section
+              const Text(
+                'Phone Number',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Text(
-                    '🇳🇬 +234 ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 24,
-                    child: VerticalDivider(
-                      color: Colors.grey,
-                      thickness: 1,
-                    ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  IconButton(
+              ReuseableTextFieldWithCountry(
+                  countryCode: '+234 ',
+                  flagImagePath: 'assets/images/ngflag.png',
+                  hintText: '123 456 789',
+                  controller: _controller,
+                  isReadOnly: false,
+                  textInputType: TextInputType.phone,
+                  showCountryLabel: true,
+                  suffixWidget: IconButton(
                     onPressed: _showContactAccessDialog,
                     icon: Container(
                       padding: const EdgeInsets.all(8),
@@ -142,100 +121,93 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                         size: 16,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+                  )),
 
-            // Network Provider Selection
-            NetworkProviderSelector(
-              selectedNetwork: _selectedNetwork,
-              onNetworkSelected: (network) {
-                setState(() {
-                  _selectedNetwork = network;
-                });
-              },
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Amount Section
-            const Text(
-              'Amount',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+              // Network Provider Selection
+              NetworkProviderSelector(
+                selectedNetwork: _selectedNetwork,
+                onNetworkSelected: (network) {
+                  setState(() {
+                    _selectedNetwork = network;
+                  });
+                },
               ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                    border: InputBorder.none, prefixText: '₦ '),
-                style: const TextStyle(
-                  fontSize: 16,
+              const SizedBox(height: 24),
+
+              // Amount Section
+              const Text(
+                'Amount',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              ReuseableAmountTextfield(
+                amountController: _amountController,
+                prefixText: '₦',
+                hintText: '500',
+              ),
 
-            // Cashback Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Use Cashback',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Row(
-                  children: [
-                    const Text(
-                      '₦50.00',
+              const SizedBox(height: 24),
+
+              // Cashback Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Use Cashback',
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: _useCashback,
-                      onChanged: (value) {
-                        setState(() {
-                          _useCashback = value;
-                        });
-                      },
-                      activeColor: appTheme.primaryColor,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        '₦50.00',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Switch(
+                        value: _useCashback,
+                        onChanged: (value) {
+                          setState(() {
+                            _useCashback = value;
+                          });
+                        },
+                        activeColor: appTheme.primaryColor,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
 
-            // Continue Button
-            FullWidthButton(
-              text: 'Continue',
-              onPressed: () {
-                // Handle continue action
-              },
-            ),
-            const SizedBox(height: 32),
+              // Continue Button
+              FullWidthButton(
+                text: 'Continue',
+                onPressed: () {
+                  // Handle continue action
+                },
+              ),
+              const SizedBox(height: 32),
 
-            // Airtime Services Section
-            const AirtimeServicesSection(),
-          ],
+              // Airtime Services Section
+              const AirtimeServicesSection(),
+              const SizedBox(height: 20), // Extra bottom padding
+            ],
+          ),
         ),
       ),
     );
@@ -243,7 +215,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _controller.dispose();
     _amountController.dispose();
     super.dispose();
   }

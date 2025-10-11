@@ -246,9 +246,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
                                       onShareReceipt: () {
                                         // TODO: Implement share receipt functionality
                                       },
-                                      onDone: () {
-                                        Navigator.popUntil(context, (route) => route.isFirst);
-                                      },
+                                    
                                     ),
                                   ),
                                 );

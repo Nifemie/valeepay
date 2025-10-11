@@ -3,16 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../core/routing/app_router.dart';
 import '../core/themes/app_theme.dart';
-
-// Export the theme provider so it can be used in other files
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
+import '../core/providers/theme_provider.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(themeProvider);
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),

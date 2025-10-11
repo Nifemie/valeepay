@@ -6,7 +6,6 @@ import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 
-
 class ElectricityScreen extends StatefulWidget {
   const ElectricityScreen({super.key});
 
@@ -216,18 +215,17 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                             buildDetailRow('Disco', selectedDisco, isDark),
                             buildDetailRow(
                                 'Meter Type', selectedMeterType, isDark),
-                            buildDetailRow('Amount',
-                                '₦${amountController.text}', isDark),
+                            buildDetailRow(
+                                'Amount', '₦${amountController.text}', isDark),
                             const Divider(),
                             buildDetailRow('Total Amount',
                                 '₦${amountController.text}', isDark,
                                 isTotal: true)
                           ],
                           onButtonPressed: () async {
-                            final pin =
-                                await TransactionPinModal.show(context);
+                            final pin = await TransactionPinModal.show(context);
                             if (pin != null && pin.length == 4 && mounted) {
-                                  if (mounted) {
+                              if (mounted) {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -235,15 +233,19 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                                             TransactionReceiptWidget(
                                               amount: amountController.text,
                                               topDetails: [
-                                                TransactionDetail(label: 'Meter Number', value: meterNumberController.text),
-                                                TransactionDetail(label: 'Disco', value: selectedDisco),
-                                                TransactionDetail(label: 'Meter Type', value: selectedMeterType),
+                                                TransactionDetail(
+                                                    label: 'Meter Number',
+                                                    value: meterNumberController
+                                                        .text),
+                                                TransactionDetail(
+                                                    label: 'Disco',
+                                                    value: selectedDisco),
+                                                TransactionDetail(
+                                                    label: 'Meter Type',
+                                                    value: selectedMeterType),
                                               ],
                                               onShareReceipt: () {
                                                 // TODO: Implement share receipt functionality
-                                              },
-                                              onDone: () {
-                                                Navigator.popUntil(context, (route) => route.isFirst); // Go back to the first screen (dashboard)
                                               },
                                             )));
                               }

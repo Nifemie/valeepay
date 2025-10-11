@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 
 class EmailPasswordScreen extends StatefulWidget {
   const EmailPasswordScreen({super.key});
@@ -24,7 +26,7 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: SafeArea(
@@ -136,77 +138,19 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                         const SizedBox(height: 24),
 
                         // Terms
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              'By clicking Continue, you agree to our ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Terms and Conditions',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: appTheme.primaryColor,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              ' and ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Privacy Policy',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: appTheme.primaryColor,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        TermsAndConditionsWidget(),
+
+                        const SizedBox(height: 40),
+
+                        // Pinned Continue button
+                        FullWidthButton(
+                            text: 'Continue',
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                context.push('/verify-email');
+                              }
+                            }),
                       ],
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Pinned Continue button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      context.push('/verify-email');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -232,7 +176,6 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.black,
           ),
         ),
         const SizedBox(height: 8),
@@ -288,7 +231,6 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.black,
           ),
         ),
         const SizedBox(height: 8),

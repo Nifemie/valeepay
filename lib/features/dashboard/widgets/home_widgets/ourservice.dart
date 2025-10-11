@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 
 class OurServicesWidget extends StatelessWidget {
   const OurServicesWidget({Key? key}) : super(key: key);
@@ -117,7 +118,7 @@ class OurServicesWidget extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFF76301),
+                color: appTheme.primaryColor.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Center(
@@ -126,7 +127,7 @@ class OurServicesWidget extends StatelessWidget {
                   width: 18,
                   height: 18,
                   colorFilter: const ColorFilter.mode(
-                    Colors.white,
+                    Color(0xFFF76301),
                     BlendMode.srcIn,
                   ),
                 ),
@@ -161,4 +162,3 @@ class ServiceItem {
   const ServiceItem(
       {required this.icon, required this.label, required this.onTap});
 }
-

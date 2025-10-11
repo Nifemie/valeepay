@@ -12,7 +12,7 @@ class ScheduleTopupScreen extends StatefulWidget {
 }
 
 class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   String _selectedNetwork = '';
   String _selectedFrequency = 'Daily';
@@ -22,7 +22,7 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '+234 000000000';
+    _controller.text = '+234 000000000';
     _amountController.text = '₦ 1000';
   }
 
@@ -107,7 +107,7 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      _phoneController.text,
+                      _controller.text,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -303,7 +303,7 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _controller.dispose();
     _amountController.dispose();
     super.dispose();
   }

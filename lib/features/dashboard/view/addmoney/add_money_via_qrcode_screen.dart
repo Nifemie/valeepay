@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class AddMoneyQRCode extends StatefulWidget {
   const AddMoneyQRCode({super.key});
@@ -15,21 +17,21 @@ class _AddMoneyQRCodeState extends State<AddMoneyQRCode> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "My QR Code",
-          style: TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: ResponsiveUtils.paddingAll24,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -39,20 +41,20 @@ class _AddMoneyQRCodeState extends State<AddMoneyQRCode> {
               child: Text(
                 "Enter Amount",
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: appTheme.primaryColor,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
 
             // QR Code Container
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: ResponsiveUtils.paddingAll16,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).cardColor,
+                borderRadius: ResponsiveUtils.borderRadius12,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black12,
@@ -64,21 +66,21 @@ class _AddMoneyQRCodeState extends State<AddMoneyQRCode> {
               child: QrImageView(
                 data: qrData,
                 version: QrVersions.auto,
-                size: 250,
+                size: 250.w,
                 foregroundColor: appTheme.primaryColor,
                 embeddedImage: const AssetImage("assets/images/logo.png"), // replace with ValarPay logo
-                embeddedImageStyle: const QrEmbeddedImageStyle(
-                  size: Size(48, 48),
+                embeddedImageStyle: QrEmbeddedImageStyle(
+                  size: Size(48.w, 48.h),
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
 
             // Instruction text
-            const Text(
+            Text(
               "Open your phone camera, scan the ValarPay QR code, and add money instantly.",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
               textAlign: TextAlign.center,
             ),
           ],
