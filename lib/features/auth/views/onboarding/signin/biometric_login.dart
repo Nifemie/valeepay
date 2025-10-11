@@ -11,6 +11,7 @@ import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class BiometricLoginScreen extends ConsumerStatefulWidget {
   const BiometricLoginScreen({super.key});
@@ -33,7 +34,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   Future<void> _loadUserSession() async {
     final userFullName = await SessionService.getUserFullname();
     final username = await SessionService.getUsername();
-    
+
     if (userFullName != null && username != null) {
       setState(() {
         _email = username;
@@ -90,10 +91,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
     if (state.isDataAvailable) {
       final user = state.data?.first;
+      ref.read(userProvider.notifier).setUser(user!);
       await SessionService.saveSession(
         LoginResponse(
           message: state.message ?? '',
-          user: user!,
+          user: user,
           statusCode: 200,
         ),
       );
@@ -172,7 +174,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
                   Row(
                     children: [
                       Container(
@@ -306,7 +307,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   // Switch account
                   GestureDetector(
                     onTap: () async {
-                      await SessionService.reset();
                       context.push('/signin');
                     },
                     child: Text(

@@ -8,6 +8,7 @@ import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class PasscodeLoginScreen extends ConsumerStatefulWidget {
   const PasscodeLoginScreen({super.key});
@@ -50,9 +51,10 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
 
           if (state.isDataAvailable) {
             final user = state.data?.first;
+            ref.read(userProvider.notifier).setUser(user!);
             await SessionService.saveSession(LoginResponse(
               message: state.message ?? '',
-              user: user!,
+              user: user,
               statusCode: 200,
             ));
 

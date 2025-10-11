@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
@@ -296,7 +295,7 @@ class _SignupScreenState extends State<SignupScreen> {
           child: ClipRRect( // Use ClipRRect to apply border radius to the image
             borderRadius: BorderRadius.circular(8),
             child: Image.asset(
-              'assets/images/logo.png',
+              'assets/images/logo2.png',
               fit: BoxFit.cover, // Cover the container area
               width: 40,
               height: 40,

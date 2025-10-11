@@ -51,19 +51,16 @@ class SessionService {
     await prefs.remove(_tokenKey);
   }
 
-  static Future<void> reset() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_userKey);
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_usernameKey);
-  }
-
   Future<void> checkSession(BuildContext context) async {
     final loggedIn = await SessionService.isLoggedIn();
     if (loggedIn) {
       context.push('/'); // go to home
     } else {
-      context.pushReplacement('/signin');
+      if (await SessionService.getUsername() != null) {
+        context.push('/biometric-login');
+      } else {
+        context.pushReplacement('/signin');
+      }
     }
   }
 }

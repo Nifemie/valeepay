@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 import '../../widgets/home_widgets/settings_widgets.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -45,8 +46,7 @@ class SettingsScreen extends StatelessWidget {
                     SettingsListTile(
                       icon: Icons.pin_outlined,
                       title: 'Transaction PIN Settings',
-                      onTap: () =>
-                          context.push('/transaction-pin-settings'),
+                      onTap: () => context.push('/transaction-pin-settings'),
                     ),
                   ],
                 ),
@@ -69,8 +69,7 @@ class SettingsScreen extends StatelessWidget {
                     SettingsListTile(
                       icon: Icons.notifications_outlined,
                       title: 'Notification Settings',
-                      onTap: () =>
-                          context.push('/notification-settings'),
+                      onTap: () => context.push('/notification-settings'),
                     ),
                   ],
                 ),
@@ -108,25 +107,24 @@ class SettingsScreen extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: appTheme.primaryColor,
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
               Navigator.of(context).pop();
-
-              // 🧹 Clear session
               await SessionService.logout();
-
-              // ✅ Show confirmation message
               AppMessenger.show(
                 context,
                 message: 'You have been logged out successfully',
                 type: MessageType.success,
               );
-
-              // ⤵ Navigate to SignIn and clear navigation stack
               if (context.mounted) {
-                context.go('/signin');
+                String? username = await SessionService.getUsername();
+                if (username != null) {
+                  context.push('/biometric-login');
+                } else {
+                  context.go('/signin');
+                }
               }
             },
             child: const Text('Logout'),

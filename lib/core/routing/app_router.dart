@@ -75,10 +75,9 @@ import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
-  initialLocation: kDebugMode ? '/' : '/splash', // Always show splash screen
+  initialLocation: '/splash', // Always show splash screen
 
   routes: [
-    // Auth routes (without dashboard wrapper)
     GoRoute(
       path: '/splash',
       builder: (context, state) => SplashScreen(),
@@ -142,12 +141,7 @@ final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => const Homescreen(
-            firstName: 'John',
-            profileImageUrl:
-                'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
-            balance: '1000',
-          ),
+          builder: (context, state) => const Homescreen(),
         ),
         GoRoute(
           path: '/finance',

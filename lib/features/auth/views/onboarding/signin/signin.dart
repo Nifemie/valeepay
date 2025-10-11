@@ -22,8 +22,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _hasIncorrectPassword = false;
+  bool _hasStoredUsername = false;
 
   onPressed() async {
     if (_formKey.currentState!.validate()) {
@@ -42,10 +44,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       );
 
       FocusScope.of(context).unfocus();
-
       await notifier.login(request);
-
       final state = ref.read(authNotifierProvider);
+
       if (state.isDataAvailable) {
         final user = state.data?.first;
         await SessionService.saveSession(
@@ -55,23 +56,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             statusCode: 200,
           ),
         );
-        context.push('/'); // navigate to home
+
+        setState(() => _hasStoredUsername = true); // ✅ Update availability
+
+        context.push('/'); // Navigate to home
       } else {
         AppMessenger.show(
           context,
           message: state.message ?? 'Login failed',
           type: MessageType.error,
         );
-
         setState(() => _hasIncorrectPassword = true);
       }
     }
   }
 
   initialize() async {
-    String? savedUsername = await SessionService.getUsername();
+    final savedUsername = await SessionService.getUsername();
     if (savedUsername != null) {
-      _emailController.text = savedUsername;
+      setState(() {
+        _emailController.text = savedUsername;
+        _hasStoredUsername = true;
+      });
     }
   }
 
@@ -93,7 +99,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             width: double.infinity,
             height: double.infinity,
             child: Image.asset(
-              'assets/images/loginbg.jpg', // replace with your image
+              'assets/images/loginbg.jpg',
               fit: BoxFit.cover,
             ),
           ),
@@ -152,7 +158,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
                       // Logo
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Container(
                             width: 40.rw,
@@ -162,13 +167,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               borderRadius: PlatformResponsive.circular(8),
                             ),
                             child: ClipRRect(
-                              // Use ClipRRect to apply border radius to the image
                               borderRadius: PlatformResponsive.circular(8),
                               child: Image.asset(
                                 'assets/images/logo.png',
-                                fit: BoxFit.cover, // Cover the container area
-                                width: 40.rw,
-                                height: 40.rh,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
@@ -205,7 +207,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                       SizedBox(height: 40.h),
 
-                      // Email
+                      // Email field
                       _buildTextField(
                         controller: _emailController,
                         label: 'Username',
@@ -215,17 +217,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                       SizedBox(height: 5.h),
 
-                      // Password
+                      // Password field
                       _buildPasswordField(
                         controller: _passwordController,
                         label: 'Password',
                         hint: '*********',
                         obscureText: _obscurePassword,
-                        onToggleVisibility: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                        onToggleVisibility: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
                         hasError: _hasIncorrectPassword,
                         isDark: true,
                       ),
@@ -246,9 +245,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             ),
                             const Spacer(),
                             GestureDetector(
-                              onTap: () {
-                                context.push('/forgot-password');
-                              },
+                              onTap: () => context.push('/forgot-password'),
                               child: const Text(
                                 'Forgot Password?',
                                 style: TextStyle(
@@ -277,7 +274,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             ),
                           ),
                           child: authState.isInitialLoading
-                              ? CircularProgressIndicator(color: Colors.white)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
                               : Text(
                                   'Login',
                                   style: TextStyle(
@@ -288,21 +286,46 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ),
                         ),
                       ),
-
                       SizedBox(height: 24.h),
 
-                      // Login Options
-                      _buildLoginOption(
-                        icon: Icons.fingerprint,
-                        label: 'Login with Thumbprint',
-                        onTap: () => context.push('/biometric-login'),
+                      // 🔹 Conditional Login Options
+                      Opacity(
+                        opacity: _hasStoredUsername ? 1.0 : 0.5,
+                        child: Column(
+                          children: [
+                            _buildLoginOption(
+                              icon: Icons.fingerprint,
+                              label: 'Login with Thumbprint',
+                              onTap: _hasStoredUsername
+                                  ? () => context.push('/biometric-login')
+                                  : () {
+                                      AppMessenger.show(
+                                        context,
+                                        message:
+                                            'Please login once before enabling biometric login.',
+                                        type: MessageType.warning,
+                                      );
+                                    },
+                            ),
+                            SizedBox(height: 12.h),
+                            _buildLoginOption(
+                              icon: Icons.lock_outline,
+                              label: 'Login with Passcode',
+                              onTap: _hasStoredUsername
+                                  ? () => context.push('/passcode-login')
+                                  : () {
+                                      AppMessenger.show(
+                                        context,
+                                        message:
+                                            'Please login once before enabling passcode login.',
+                                        type: MessageType.warning,
+                                      );
+                                    },
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 12.h),
-                      _buildLoginOption(
-                        icon: Icons.lock_outline,
-                        label: 'Login with Passcode',
-                        onTap: () => context.push('/passcode-login'),
-                      ),
+
                       SizedBox(height: 32.h),
 
                       // Don't have account
@@ -384,17 +407,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               borderRadius: BorderRadius.circular(8.r),
               borderSide: const BorderSide(color: appTheme.primaryColor),
             ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 16.w,
-              vertical: 12.h,
-            ),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'This field is required';
-            }
-            return null;
-          },
+          validator: (value) => (value == null || value.isEmpty)
+              ? 'This field is required'
+              : null,
         ),
       ],
     );
@@ -457,15 +475,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 color: hasError ? Colors.red : appTheme.primaryColor,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 16.w,
-              vertical: 12.h,
-            ),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) return 'This field is required';
-            return null;
-          },
+          validator: (value) => (value == null || value.isEmpty)
+              ? 'This field is required'
+              : null,
         ),
       ],
     );
