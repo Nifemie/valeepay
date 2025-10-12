@@ -15,8 +15,8 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 162,
-      height: 40,
+      width: MediaQuery.of(context).size.width,
+      height: 50,
       decoration: BoxDecoration(
         color: const Color(0xFFF76301),
         borderRadius: BorderRadius.circular(24),
@@ -56,14 +56,15 @@ class SecondaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 162,
-      height: 40,
+      width: MediaQuery.of(context).size.width,
+      height: 50,
       decoration: BoxDecoration(
         color: const Color(0xFFFAFBFC),
         borderRadius: BorderRadius.circular(24),
       ),
       child: TextButton(
         onPressed: onPressed,
+        
         style: TextButton.styleFrom(
           padding: const EdgeInsets.all(10),
           shape: RoundedRectangleBorder(
@@ -116,7 +117,7 @@ class FullWidthButton extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(
-            color: isEnabled ? Colors.white : const Color(0xFF9CA3AF),
+            color: isEnabled ? Colors.black : const Color(0xFF9CA3AF),
             fontFamily: 'SF Pro',
             fontSize: 16,
             fontWeight: FontWeight.w600,

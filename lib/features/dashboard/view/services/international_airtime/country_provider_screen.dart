@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
@@ -126,13 +127,17 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
-                                transactionsDetailsList: [
+                                hasBottom: false,
+                                topTitleText: 'Transacton',
+                                topTransactionsDetailsList: [
                                   buildDetailRow('Recipient Number',
                                       '$countryCode${controller.text}', isDark),
                                   buildDetailRow('Provider',
                                       widget.countryProvider, isDark),
-                                  buildDetailRow('Amount',
-                                      '₦${amountController.text}', isDark),
+                                  buildDetailRow(
+                                      'Amount',
+                                      currencyFormatter(amountController.text),
+                                      isDark),
                                 ],
                                 onButtonPressed: () async {
                                   final pin =

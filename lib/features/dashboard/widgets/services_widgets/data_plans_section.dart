@@ -70,7 +70,6 @@ class DataPlansSection extends StatelessWidget {
         Text(
           '$networkName Data Plans',
           style: const TextStyle(
-            color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -107,11 +106,8 @@ class _DataPlanTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? appTheme.primaryColor.withOpacity(0.1)
-              : const Color(0xFF2A2A2A),
+              : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? appTheme.primaryColor : Colors.grey.shade700,
-          ),
         ),
         child: Row(
           children: [
@@ -122,7 +118,7 @@ class _DataPlanTile extends StatelessWidget {
                   Text(
                     plan.size,
                     style: TextStyle(
-                      color: isSelected ? appTheme.primaryColor : Colors.white,
+                      color: isSelected ? appTheme.primaryColor : null,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -141,7 +137,7 @@ class _DataPlanTile extends StatelessWidget {
             Text(
               plan.price,
               style: TextStyle(
-                color: isSelected ? appTheme.primaryColor : Colors.white,
+                color: isSelected ? appTheme.primaryColor : null,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

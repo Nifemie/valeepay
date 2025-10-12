@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import '../../../widgets/services_widgets/flight_widgets/destination_selector_modal.dart';
 import '../../../widgets/services_widgets/flight_widgets/class_selector_modal.dart';
 import 'saved_beneficiary_screen.dart';
 import 'passenger_details_screen.dart';
 
 class FlightScreen extends StatefulWidget {
-  const FlightScreen({super.key});
+  String flightName;
+  FlightScreen({required this.flightName, super.key});
 
   @override
   State<FlightScreen> createState() => _FlightScreenState();
@@ -28,41 +31,20 @@ class _FlightScreenState extends State<FlightScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Flight',
+          widget.flightName,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FlightSavedBeneficiaryScreen(),
-                ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -112,7 +94,7 @@ class _FlightScreenState extends State<FlightScreen> {
             // Email Address
             _buildSectionTitle('Email Address', isDark),
             const SizedBox(height: 8),
-            _buildTextField(emailController, '', isDark),
+            _buildTextField(emailController, 'email@valarpay.com', isDark),
 
             const SizedBox(height: 24),
 
@@ -138,14 +120,11 @@ class _FlightScreenState extends State<FlightScreen> {
               setState(() => infants = value);
             }, isDark),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 60),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
+            FullWidthButton(text: 'Continue', onPressed: () {
+                Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PassengerDetailsScreen(
@@ -159,29 +138,13 @@ class _FlightScreenState extends State<FlightScreen> {
                           'infants': infants.toString(),
                           'email': emailController.text,
                           'phone': controller.text,
+                          'flightName' : widget.flightName
                         },
                       ),
                     ),
                   );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            })
+           ],
         ),
       ),
     );
@@ -203,7 +166,7 @@ class _FlightScreenState extends State<FlightScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+          color: Theme.of(context).cardColor.withOpacity(0.4),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -212,7 +175,6 @@ class _FlightScreenState extends State<FlightScreen> {
             Text(
               value,
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
                 fontSize: 16,
               ),
             ),
@@ -228,20 +190,12 @@ class _FlightScreenState extends State<FlightScreen> {
 
   Widget _buildTextField(
       TextEditingController controller, String hint, bool isDark) {
-    return TextField(
-      controller: controller,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-      decoration: InputDecoration(
+    return ReuseableTextFieldWithCountry(
+        controller: controller,
         hintText: hint,
-        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey[400]),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
+        isReadOnly: false,
+        textInputType: TextInputType.text,
+        showCountryLabel: false);
   }
 
   Widget _buildDateField(bool isDark) {
@@ -260,7 +214,7 @@ class _FlightScreenState extends State<FlightScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+          color: Theme.of(context).cardColor.withOpacity(0.4),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -271,7 +225,6 @@ class _FlightScreenState extends State<FlightScreen> {
                   ? '${departureDate!.day}-${departureDate!.month}-${departureDate!.year}'
                   : 'DD-MM-YYYY',
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
                 fontSize: 16,
               ),
             ),
@@ -287,57 +240,13 @@ class _FlightScreenState extends State<FlightScreen> {
   }
 
   Widget _buildPhoneField(bool isDark) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '+234',
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: TextField(
-            controller: controller,
-            keyboardType: TextInputType.phone,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black),
-            decoration: InputDecoration(
-              hintText: '0000000000',
-              hintStyle:
-                  TextStyle(color: isDark ? Colors.white38 : Colors.grey[400]),
-              filled: true,
-              fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    return ReuseableTextFieldWithCountry(
+        controller: controller,
+        hintText: '123 4567 890',
+        isReadOnly: false,
+        textInputType: TextInputType.number,
+        showCountryLabel: true);
+ }
 
   Widget _buildPassengerCounter(
       String title, int count, Function(int) onChanged, bool isDark) {
@@ -347,7 +256,6 @@ class _FlightScreenState extends State<FlightScreen> {
         Text(
           title,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 16,
           ),
         ),
@@ -365,7 +273,6 @@ class _FlightScreenState extends State<FlightScreen> {
             Text(
               count.toString(),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -374,7 +281,6 @@ class _FlightScreenState extends State<FlightScreen> {
               onPressed: () => onChanged(count + 1),
               icon: Icon(
                 Icons.add_circle_outline,
-                color: isDark ? Colors.white : Colors.black,
               ),
             ),
           ],

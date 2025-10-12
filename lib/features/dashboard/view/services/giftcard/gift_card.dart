@@ -201,7 +201,9 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
                           MaterialPageRoute(
                               builder: (context) =>
                                   ReuseableTransactionDetailsScreen(
-                                    transactionsDetailsList: [
+                                    hasBottom: false,
+                          topTitleText: 'Transaction',
+                                    topTransactionsDetailsList: [
                                       buildDetailRow(
                                           'Card Type', selectedBrand, isDark),
                                       buildDetailRow(

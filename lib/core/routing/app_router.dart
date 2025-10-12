@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
 import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/data/data_ussd_enquiry.dart';
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
 import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
@@ -152,7 +154,7 @@ final router = GoRouter(
             firstName: 'John',
             profileImageUrl:
                 'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
-            balance: '1000',
+            balance: '₦ 1000',
           ),
         ),
         GoRoute(
@@ -310,7 +312,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/flight',
-      builder: (context, state) => const FlightScreen(),
+      builder: (context, state) => const FlightSelectionScreen(),
     ),
     GoRoute(
       path: '/swap-currency',
@@ -408,6 +410,10 @@ final router = GoRouter(
     GoRoute(
       path: '/gift-card',
       builder: (context, state) => const GiftCardScreen(),
+    ),
+    GoRoute(
+      path: '/data-ussd-section',
+      builder: (context, state) => const DataUSSDEnquiryScreen(),
     ),
   ],
 );
