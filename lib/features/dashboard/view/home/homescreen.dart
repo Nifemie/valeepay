@@ -199,9 +199,7 @@ class _IconButton extends StatelessWidget {
             width: 24,
             height: 24,
             // ignore: deprecated_member_use
-            color: Theme.of(context) == AppTheme.darkTheme
-                ? Colors.white70
-                : Colors.black87,
+            color: Theme.of(context).iconTheme.color,
           ),
           if (hasNotification)
             Positioned(
