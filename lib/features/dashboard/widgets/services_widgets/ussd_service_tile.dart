@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class USSDService {
   final String title;
@@ -22,25 +20,33 @@ class USSDServiceTile extends StatelessWidget {
   });
 
   void launchDialer() async {
-    final Uri uri = Uri(scheme: 'tel', path: service.code);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw 'Could not launch ${service.code}';
+    try {
+      final Uri uri = Uri(scheme: 'tel', path: service.code);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        debugPrint('Could not launch ${service.code}');
+      }
+    } catch (e) {
+      debugPrint('Error launching dialer: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
-      onTap: () => launchDialer,
+      onTap: launchDialer,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade700),
+          border: Border.all(
+            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          ),
         ),
         child: Row(
           children: [
@@ -50,8 +56,8 @@ class USSDServiceTile extends StatelessWidget {
                 children: [
                   Text(
                     service.title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),

@@ -6,6 +6,7 @@ import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
 import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
@@ -307,7 +308,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/flight',
-      builder: (context, state) => const FlightScreen(),
+      builder: (context, state) => const FlightSelectionScreen(),
     ),
     GoRoute(
       path: '/swap-currency',

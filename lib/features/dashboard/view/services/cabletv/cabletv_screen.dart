@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'saved_beneficiary_screen.dart';
 import 'provider_payment_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -7,14 +9,12 @@ import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_provider_selector_modal.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_plan_selector_modal.dart';
 
-
 class CableTvScreen extends StatefulWidget {
   const CableTvScreen({super.key});
 
   @override
   State<CableTvScreen> createState() => _CableTvScreenState();
 }
-
 
 class _CableTvScreenState extends State<CableTvScreen> {
   String selectedProvider = 'DStv';
@@ -39,18 +39,14 @@ class _CableTvScreenState extends State<CableTvScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Cable Tv',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -92,9 +88,10 @@ class _CableTvScreenState extends State<CableTvScreen> {
             GestureDetector(
               onTap: () => _showProviderSelector(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -103,7 +100,6 @@ class _CableTvScreenState extends State<CableTvScreen> {
                     Text(
                       selectedProvider,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -127,22 +123,12 @@ class _CableTvScreenState extends State<CableTvScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: smartcardController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
+            ReuseableTextFieldWithCountry(
+                controller: smartcardController,
+                hintText: 'Smartcard Number ',
+                isReadOnly: false,
+                textInputType: TextInputType.number,
+                showCountryLabel: false),
             const SizedBox(height: 24),
 
             // Select Plan
@@ -157,9 +143,10 @@ class _CableTvScreenState extends State<CableTvScreen> {
             GestureDetector(
               onTap: () => _showPlanSelector(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -168,7 +155,6 @@ class _CableTvScreenState extends State<CableTvScreen> {
                     Text(
                       selectedPlan,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -187,7 +173,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: const Color(0xFFF76301),
@@ -200,7 +186,6 @@ class _CableTvScreenState extends State<CableTvScreen> {
                   Text(
                     '₦${planAmount}',
                     style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -209,25 +194,29 @@ class _CableTvScreenState extends State<CableTvScreen> {
               ),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 60),
 
             // Pay Cable TV Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (smartcardController.text.isNotEmpty && planAmount.isNotEmpty) {
+            FullWidthButton(text: 'Pay Cable TV', onPressed: () {
+              if (smartcardController.text.isNotEmpty &&
+                      planAmount.isNotEmpty) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
-                          transactionsDetailsList: [
-                            buildDetailRow('Provider', selectedProvider, isDark),
-                            buildDetailRow('Smartcard Number', smartcardController.text, isDark),
+                          hasBottom: false,
+                          topTitleText: 'Transaction',
+                          topTransactionsDetailsList: [
+                            buildDetailRow(
+                                'Provider', selectedProvider, isDark),
+                            buildDetailRow('Smartcard Number',
+                                smartcardController.text, isDark),
                             buildDetailRow('Plan', selectedPlan, isDark),
                             buildDetailRow('Amount', '₦${planAmount}', isDark),
                             const Divider(),
-                            buildDetailRow('Total Amount', '₦${planAmount}', isDark, isTotal: true)
+                            buildDetailRow(
+                                'Total Amount', '₦${planAmount}', isDark,
+                                isTotal: true)
                           ],
                           onButtonPressed: () async {
                             final pin = await TransactionPinModal.show(context);
@@ -236,17 +225,22 @@ class _CableTvScreenState extends State<CableTvScreen> {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => TransactionReceiptWidget(
+                                    builder: (context) =>
+                                        TransactionReceiptWidget(
                                       amount: planAmount,
                                       topDetails: [
-                                        TransactionDetail(label: 'Provider', value: selectedProvider),
-                                        TransactionDetail(label: 'Smartcard Number', value: smartcardController.text),
-                                        TransactionDetail(label: 'Plan', value: selectedPlan),
+                                        TransactionDetail(
+                                            label: 'Provider',
+                                            value: selectedProvider),
+                                        TransactionDetail(
+                                            label: 'Smartcard Number',
+                                            value: smartcardController.text),
+                                        TransactionDetail(
+                                            label: 'Plan', value: selectedPlan),
                                       ],
                                       onShareReceipt: () {
                                         // TODO: Implement share receipt functionality
                                       },
-                                    
                                     ),
                                   ),
                                 );
@@ -257,25 +251,8 @@ class _CableTvScreenState extends State<CableTvScreen> {
                       ),
                     );
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Pay Cable TV',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            })
+            ],
         ),
       ),
     );

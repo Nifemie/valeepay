@@ -302,7 +302,7 @@ class _BalanceCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                isBalanceVisible ? balance : '₦••••••••••',
+                isBalanceVisible ? balance : '₦ ••••••••••',
                 style: textTheme.headlineSmall?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.bold,

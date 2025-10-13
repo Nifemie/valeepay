@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:valarpay/core/widgets/responsive_button.dart';
-import 'package:valarpay/core/widgets/responsive_text_field.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/custom_toast.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
 
 class ScheduleTopupScreen extends StatefulWidget {
@@ -22,8 +25,6 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
   @override
   void initState() {
     super.initState();
-    _controller.text = '+234 000000000';
-    _amountController.text = '₦ 1000';
   }
 
   Future<void> _selectTime() async {
@@ -36,6 +37,22 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
         _selectedTime = picked;
       });
     }
+  }
+
+  void _showContactAccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => ContactAccessDialog(
+        onAllow: () {
+          Navigator.of(context).pop();
+          // Handle contact access permission
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
   }
 
   Future<void> _selectDate() async {
@@ -55,18 +72,15 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Schedule Top-up',
           style: TextStyle(
-            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -87,36 +101,29 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade700),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 20,
+            ReuseableTextFieldWithCountry(
+                countryCode: '+234 ',
+                flagImagePath: 'assets/images/ngflag.png',
+                hintText: '123 456 789',
+                controller: _controller,
+                isReadOnly: false,
+                textInputType: TextInputType.phone,
+                showCountryLabel: true,
+                suffixWidget: IconButton(
+                  onPressed: _showContactAccessDialog,
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(2),
+                      color: appTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 16,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _controller.text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                )),
             const SizedBox(height: 24),
 
             // Network Provider Selection
@@ -140,20 +147,10 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade700),
-              ),
-              child: Text(
-                _amountController.text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-              ),
+            ReuseableAmountTextfield(
+              amountController: _amountController,
+              prefixText: '₦',
+              hintText: '500',
             ),
             const SizedBox(height: 24),
 
@@ -170,20 +167,31 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2A2A),
+                color: Theme.of(context).cardColor.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade700),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedFrequency,
                   isExpanded: true,
-                  dropdownColor: const Color(0xFF2A2A2A),
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  dropdownColor: Theme.of(context).cardColor,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                  ),
                   items: ['Daily', 'Weekly', 'Monthly'].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value),
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (String? newValue) {
@@ -214,9 +222,8 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2A2A2A),
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade700),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -224,7 +231,6 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
                     Text(
                       _selectedTime.format(context),
                       style: const TextStyle(
-                        color: Colors.white,
                         fontSize: 16,
                       ),
                     ),
@@ -256,9 +262,8 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2A),
+                    color: Theme.of(context).cardColor.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade700),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -266,7 +271,6 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
                       Text(
                         '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
                         style: const TextStyle(
-                          color: Colors.white,
                           fontSize: 16,
                         ),
                       ),
@@ -279,22 +283,17 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 50),
             ],
 
             // Schedule Button
-            ResponsiveButton(
-              text: 'Schedule Top-up',
-              onPressed: () {
-                // Handle schedule action
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Top-up scheduled successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-            ),
+            FullWidthButton(
+                text: 'Schedule Top-up',
+                onPressed: () {
+                  CustomToast.showErrorToast(
+                      context: context,
+                      message: 'Top-up schedule coming soon...');
+                })
           ],
         ),
       ),

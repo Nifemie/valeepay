@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/current_rate_widget.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/provider_selector_modal.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/plan_selector_modal.dart';
-import 'transaction_details_screen.dart';
 
 class CableTvProviderPaymentScreen extends StatefulWidget {
   final String providerName;
@@ -23,6 +29,7 @@ class _CableTvProviderPaymentScreenState
   String selectedPlan = 'Plan A';
   final TextEditingController amountController =
       TextEditingController(text: '6500');
+  String serviceFee = '500';
 
   @override
   void initState() {
@@ -35,18 +42,16 @@ class _CableTvProviderPaymentScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Cable Tv',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -86,7 +91,7 @@ class _CableTvProviderPaymentScreenState
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -95,7 +100,6 @@ class _CableTvProviderPaymentScreenState
                     Text(
                       selectedProvider,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -119,21 +123,12 @@ class _CableTvProviderPaymentScreenState
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: smartcardController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+            ReuseableTextFieldWithCountry(
+                controller: smartcardController,
+                hintText: '0123456789',
+                isReadOnly: false,
+                textInputType: TextInputType.number,
+                showCountryLabel: false),
 
             const SizedBox(height: 24),
 
@@ -152,7 +147,7 @@ class _CableTvProviderPaymentScreenState
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -161,7 +156,6 @@ class _CableTvProviderPaymentScreenState
                     Text(
                       selectedPlan,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -177,71 +171,106 @@ class _CableTvProviderPaymentScreenState
             const SizedBox(height: 24),
 
             // Current Date (Amount field with orange border)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: const Color(0xFFF76301),
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '₦${amountController.text}',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Spacer(),
+            CurrentRateWidget(
+                price: currencyFormatter(amountController.text),
+                text: 'Current Rate'),
+            const SizedBox(height: 60),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+            FullWidthButton(
+                text: 'Continue',
                 onPressed: () {
-                  if (smartcardController.text.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CableTvTransactionDetailsScreen(
-                          transactionData: {
-                            'provider': selectedProvider,
-                            'smartcardNumber': smartcardController.text,
-                            'plan': selectedPlan,
-                            'amount': amountController.text,
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ReuseableTransactionDetailsScreen(
+                          hasBottom: false,
+                          topTitleText: 'Transaction',
+                              topTransactionsDetailsList: [
+                                buildDetailRow('Smartcard Number',
+                                    smartcardController.text, isDark),
+                                buildDetailRow(
+                                    'Provider', selectedProvider, isDark),
+                                buildDetailRow('Package', selectedPlan, isDark),
+                                buildDetailRow(
+                                    'Amount',
+                                    currencyFormatter(amountController.text),
+                                    isDark),
+                                buildDetailRow('Fee',
+                                    currencyFormatter(serviceFee), isDark),
+                                buildDetailRow(
+                                    'Total Amount',
+                                    currencyFormatter(
+                                        '${int.parse(amountController.text) + int.parse(serviceFee)}'),
+                                    isDark,
+                                    isTotal: true),
+                              ],
+                              onButtonPressed: () async {
+                                final pin =
+                                    await TransactionPinModal.show(context);
+                                if (pin != null && pin.length == 4 && mounted) {
+                                  if (mounted) Navigator.pop(context);
+                                  if (mounted) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                TransactionReceiptWidget(
+                                                  amount: amountController.text,
+                                                  topDetails: [
+                                                    TransactionDetail(
+                                                      label: 'Plan',
+                                                      value: selectedPlan,
+                                                    ),
+                                                    TransactionDetail(
+                                                        label: 'Amount',
+                                                        value:
+                                                            currencyFormatter(
+                                                                amountController
+                                                                    .text)),
+                                                    TransactionDetail(
+                                                        label: 'Fee',
+                                                        value:
+                                                            currencyFormatter(
+                                                                serviceFee)),
+                                                    TransactionDetail(
+                                                        label: 'Total Debit',
+                                                        value: currencyFormatter(
+                                                            '${int.parse(amountController.text) + int.parse(serviceFee)}')),
+                                                  ],
+                                                  bottomDetails: [
+                                                    TransactionDetail(
+                                                        label: 'Transaction ID',
+                                                        value:
+                                                            'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                        showCopyIcon: true),
+                                                    TransactionDetail(
+                                                        label:
+                                                            'Smartcard Number',
+                                                        value:
+                                                            smartcardController
+                                                                .text),
+                                                    TransactionDetail(
+                                                        label: 'Provider',
+                                                        value:
+                                                            selectedProvider),
+                                                    TransactionDetail(
+                                                        label: 'Payment Source',
+                                                        value:
+                                                            'ValarPay Account'),
+                                                    TransactionDetail(
+                                                        label: 'Date & Time',
+                                                        value:
+                                                            '29 Sep 2025 | 8:15 pm')
+                                                  ],
+                                                  onShareReceipt: () {},
+                                                )));
+                                  }
+                                }
+                              },
+                            )),
+                  );
+                })
           ],
         ),
       ),

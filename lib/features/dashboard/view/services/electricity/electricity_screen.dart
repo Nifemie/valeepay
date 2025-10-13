@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import '../../../widgets/services_widgets/electricity_widgets/disco_selector_modal.dart';
 import '../../../widgets/services_widgets/electricity_widgets/meter_type_modal.dart';
 import 'saved_beneficiary_screen.dart';
@@ -18,24 +22,23 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   String selectedMeterType = 'Prepaid';
   final TextEditingController meterNumberController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  String serviceFee = '500';
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Electricity',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -80,7 +83,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -89,7 +92,6 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     Text(
                       selectedDisco,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -113,22 +115,12 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: meterNumberController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '0000000000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
+            ReuseableTextFieldWithCountry(
+                controller: meterNumberController,
+                hintText: 'Enter Meter Number',
+                isReadOnly: false,
+                textInputType: TextInputType.number,
+                showCountryLabel: false),
             const SizedBox(height: 24),
 
             // Meter Type
@@ -146,7 +138,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -155,7 +147,6 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     Text(
                       selectedMeterType,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -179,29 +170,15 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: '₦ 10,000',
-                hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.grey[400]),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const Spacer(),
+            ReuseableAmountTextfield(
+                amountController: amountController,
+                prefixText: '₦',
+                hintText: '10,000'),
+            const SizedBox(height: 60),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+            FullWidthButton(
+                text: 'Continue',
                 onPressed: () {
                   if (meterNumberController.text.isNotEmpty &&
                       amountController.text.isNotEmpty) {
@@ -209,17 +186,27 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
-                          transactionsDetailsList: [
+                          hasBottom: false,
+                          topTitleText: 'Transaction',
+                          topTransactionsDetailsList: [
                             buildDetailRow('Meter Number',
                                 meterNumberController.text, isDark),
                             buildDetailRow('Disco', selectedDisco, isDark),
                             buildDetailRow(
                                 'Meter Type', selectedMeterType, isDark),
                             buildDetailRow(
-                                'Amount', '₦${amountController.text}', isDark),
-                            const Divider(),
-                            buildDetailRow('Total Amount',
-                                '₦${amountController.text}', isDark,
+                                'Customer Name', 'JOHN SMITH JACOB', isDark),
+                            buildDetailRow(
+                                'Amount',
+                                currencyFormatter(amountController.text),
+                                isDark),
+                            buildDetailRow(
+                                'Fee', currencyFormatter(serviceFee), isDark),
+                            buildDetailRow(
+                                'Total Amount',
+                                currencyFormatter(
+                                    '${int.parse(amountController.text) + int.parse(serviceFee)}'),
+                                isDark,
                                 isTotal: true)
                           ],
                           onButtonPressed: () async {
@@ -231,18 +218,49 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                                     MaterialPageRoute(
                                         builder: (context) =>
                                             TransactionReceiptWidget(
-                                              amount: amountController.text,
+                                              amount:
+                                                  '${int.parse(amountController.text) + int.parse(serviceFee)}',
                                               topDetails: [
                                                 TransactionDetail(
-                                                    label: 'Meter Number',
-                                                    value: meterNumberController
-                                                        .text),
+                                                    label: 'Token',
+                                                    value:
+                                                        '1235-8796-6754-0987'),
+                                                TransactionDetail(
+                                                    label: 'Amount',
+                                                    value: currencyFormatter(
+                                                        amountController.text)),
+                                                TransactionDetail(
+                                                    label: 'Fee',
+                                                    value: currencyFormatter(
+                                                        serviceFee)),
+                                                TransactionDetail(
+                                                    label: 'Total Debit',
+                                                    value: currencyFormatter(
+                                                        '${int.parse(amountController.text) + int.parse(serviceFee)}')),
+                                              ],
+                                              bottomDetails: [
+                                                TransactionDetail(
+                                                    label: 'Transaction ID',
+                                                    value:
+                                                        'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                    showCopyIcon: true),
+                                                TransactionDetail(
+                                                    label: 'Meter Details',
+                                                    value:
+                                                        '${meterNumberController.text} | $selectedMeterType'),
+                                                TransactionDetail(
+                                                    label: 'Customer Name',
+                                                    value: 'JOHN SMITH JACOB'),
                                                 TransactionDetail(
                                                     label: 'Disco',
                                                     value: selectedDisco),
                                                 TransactionDetail(
-                                                    label: 'Meter Type',
-                                                    value: selectedMeterType),
+                                                    label: 'Payment Source',
+                                                    value: 'ValarPay Account'),
+                                                TransactionDetail(
+                                                    label: 'Date & Time',
+                                                    value:
+                                                        '29 Sep 2025 | 8:15 pm'),
                                               ],
                                               onShareReceipt: () {
                                                 // TODO: Implement share receipt functionality
@@ -255,24 +273,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                       ),
                     );
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+                })
           ],
         ),
       ),

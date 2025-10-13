@@ -157,7 +157,9 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
-                                transactionsDetailsList: [
+                                hasBottom: false,
+                          topTitleText: 'Transaction',
+                                topTransactionsDetailsList: [
                                   buildDetailRow('Student Details',
                                       studentIdController.text, isDark),
                                   buildDetailRow('Institution Name',
@@ -194,7 +196,8 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   TransactionReceiptWidget(
-                                                    amount: '${(int.parse(amountController.text) + serviceFee)}',
+                                                    amount:
+                                                        '${(int.parse(amountController.text) + serviceFee)}',
                                                     topDetails: [
                                                       TransactionDetail(
                                                         label:

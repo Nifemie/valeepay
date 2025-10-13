@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
@@ -45,10 +49,10 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -199,6 +203,65 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                 text: 'Continue',
                 onPressed: () {
                   // Handle continue action
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ReuseableTransactionDetailsScreen(
+                          hasBottom: false,
+                          topTitleText: 'Transaction',
+                              topTransactionsDetailsList: [
+                                buildDetailRow('Recipient Number',
+                                    '${_controller.text}', isDark),
+                                buildDetailRow(
+                                    'Provider', _selectedNetwork, isDark),
+                                buildDetailRow(
+                                    'Amount',
+                                    currencyFormatter(_amountController.text),
+                                    isDark),
+                              ],
+                              onButtonPressed: () async {
+                                final pin =
+                                    await TransactionPinModal.show(context);
+                                if (pin != null && pin.length == 4 && mounted) {
+                                  if (mounted) Navigator.pop(context);
+                                  if (mounted) {
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                TransactionReceiptWidget(
+                                                  amount:
+                                                      _amountController.text,
+                                                  topDetails: [
+                                                    TransactionDetail(
+                                                        label: 'Transaction ID',
+                                                        value:
+                                                            'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                        showCopyIcon: true),
+                                                    TransactionDetail(
+                                                        label: 'Phone Number',
+                                                        value:
+                                                            '${_controller.text}'),
+                                                    TransactionDetail(
+                                                        label: 'Provider',
+                                                        value:
+                                                            _selectedNetwork),
+                                                    TransactionDetail(
+                                                        label: 'Payment Source',
+                                                        value:
+                                                            'ValarPay Account'),
+                                                    TransactionDetail(
+                                                        label: 'Date & Time',
+                                                        value:
+                                                            '29 Sep 2025 | 8:15 pm')
+                                                  ],
+                                                  onShareReceipt: () {},
+                                                )));
+                                  }
+                                }
+                              },
+                            )),
+                  );
                 },
               ),
               const SizedBox(height: 32),
