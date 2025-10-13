@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -270,18 +270,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               Icons.money,
             ),
             const SizedBox(height: 50),
+            
             FullWidthButton(
                 text: 'Continue',
                 onPressed: () {
-                  ref.read(signUpFormNotifierProvider.notifier).saveAccountInfo(
-                        accountType: selectedAccountType,
-                        countryCode: selectedCurrency,
-                      );
+                  
+                  SignUpRequest request = SignUpRequest(
+                      accountType: selectedAccountType,
+                      countryCode: selectedCurrency);
 
                   if (selectedAccountType == 'Personal') {
-                    context.push('/personal-details');
+                    context.push('/personal-details', extra: request);
                   } else {
-                    context.push('/business-details');
+                    context.push('/business-details', extra: request);
                   }
                 }),
           ],
@@ -299,7 +300,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
           ),
-          child: ClipRRect( // Use ClipRRect to apply border radius to the image
+          child: ClipRRect(
+            // Use ClipRRect to apply border radius to the image
             borderRadius: BorderRadius.circular(8),
             child: Image.asset(
               'assets/images/logo2.png',

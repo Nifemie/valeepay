@@ -5,7 +5,6 @@ import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
 import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
-import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
@@ -14,6 +13,7 @@ import 'package:valarpay/features/dashboard/view/services/internet/internet_scre
 import 'package:valarpay/features/dashboard/view/services/shopping/shopping.dart';
 import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
 import 'package:valarpay/features/dashboard/view/settings/close_account_screen.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 import '../../features/dashboard/view/services/airtime/airtime.dart';
 import '../../features/dashboard/view/services/data/data.dart';
 import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
@@ -45,14 +45,13 @@ import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_scre
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_screen.dart';
 import '../../features/dashboard/view/me/about_us.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
-import '../../features/auth/views/onboarding/change_password.dart';
+import '../../features/auth/views/onboarding/reset_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
 import '../../features/auth/views/onboarding/forgot_password_verification.dart';
 import '../../features/auth/views/onboarding/signin/biometric_login.dart';
 import '../../features/auth/views/onboarding/signin/passcode_login.dart';
 import '../../features/auth/views/onboarding/signin/signin.dart';
 import '../../features/auth/views/onboarding/signup/business_details.dart';
-import '../../features/auth/views/onboarding/signup/email_password.dart';
 import '../../features/auth/views/onboarding/signup/personal_details.dart';
 import '../../features/auth/views/onboarding/signup/phone_number.dart';
 import '../../features/auth/views/onboarding/signup/signup.dart';
@@ -88,22 +87,24 @@ final router = GoRouter(
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(
       path: '/personal-details',
-      builder: (context, state) => const PersonalDetailsScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return PersonalDetailsScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/business-details',
-      builder: (context, state) => const BusinessDetailsScreen(),
-    ),
-    GoRoute(
-      path: '/email-password',
-      builder: (context, state) => const EmailPasswordScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return BusinessDetailsScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/verify-email',
       builder: (context, state) => const VerifyEmailScreen(),
     ),
     GoRoute(
-      path: '/phone-number',
+      path: '/validate-phone',
       builder: (context, state) => const PhoneNumberScreen(),
     ),
     GoRoute(
@@ -137,8 +138,8 @@ final router = GoRouter(
       builder: (context, state) => const ForgotPasswordVerificationScreen(),
     ),
     GoRoute(
-      path: '/change-password',
-      builder: (context, state) => const ChangePasswordScreen(),
+      path: '/reset-password',
+      builder: (context, state) => const ResetPasswordScreen(),
     ),
 
     // Dashboard shell route with bottom navigation

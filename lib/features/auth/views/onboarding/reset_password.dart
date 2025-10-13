@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/constants/storage_keys.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
-import 'package:valarpay/features/notifiers/auth_notifier.dart';
-import 'package:valarpay/features/notifiers/forgot_password_notifier.dart';
-import 'package:valarpay/features/notifiers/forgot_password_otp_notifier.dart';
+import 'package:valarpay/features/models/reset_password.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class ChangePasswordScreen extends ConsumerStatefulWidget {
-  const ChangePasswordScreen({super.key});
+class ResetPasswordScreen extends ConsumerStatefulWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
-  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -23,10 +25,51 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
+  void _resetPassword() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      String? username = await LocalStorageService.get(StorageKeys.username);
+      if (username != null) {
+        Navigator.pop(context);
+      }
+      final password = _passwordController.text.trim();
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await ref.read(userNotifierProvider.notifier).resetPassword(
+            ResetPasswordRequest(
+                username: username,
+                password: password,
+                confirmPassword: password));
+        final userState = ref.read(userNotifierProvider);
+        if (userState.isDataAvailable && mounted) {
+          CustomToast.showAppToast(
+              context: context, message: 'Password changed successfully');
+          context.push('/signin');
+        } else if (mounted) {
+          CustomToast.showErrorToast(
+              context: context,
+              message: userState.message ??
+                  'Failed to change password. Please try again.');
+        }
+      } catch (e) {
+        CustomToast.showErrorToast(
+            context: context,
+            message: 'An unexpected error occurred: ${e.toString()}');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // ✅ prevents keyboard overlap
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
@@ -43,7 +86,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Change Password',
+                  'Reset Password',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -52,7 +95,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Set a new password to replace your old one and keep your account secure',
+                  'Create a new password that will replace your old password and keep your account secure',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade600,
@@ -112,7 +155,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     : SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _validateAndSubmit,
+                          onPressed: _resetPassword,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: appTheme.primaryColor,
                             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -194,43 +237,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         ),
       ],
     );
-  }
-
-  void _validateAndSubmit() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final email = ref.read(forgotPasswordNotifierProvider);
-      final otp = ref.read(forgotPasswordOtpNotifierProvider);
-      final password = _passwordController.text.trim();
-
-      if (email == null || otp == null) {
-        CustomToast.showErrorToast(context:context, message: 'Something went wrong. Please try again.');
-        return;
-      }
-
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        await ref.read(authNotifierProvider.notifier).resetPassword(email, otp, password);
-        final authState = ref.read(authNotifierProvider);
-        if (authState.isDataAvailable && mounted) {
-          CustomToast.showAppToast(context:context, message: 'Password changed successfully');
-          context.push('/signin');
-        } else if (mounted) {
-          CustomToast.showErrorToast(
-              context: context,
-              message: authState.message ?? 'Failed to change password. Please try again.');
-        }
-      } catch (e) {
-        CustomToast.showErrorToast(
-            context: context, message: 'An unexpected error occurred: ${e.toString()}');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
 
   @override

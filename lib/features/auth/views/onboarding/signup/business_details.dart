@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/constants/storage_keys.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
-import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
-import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
+import 'package:valarpay/features/models/signup_request.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class BusinessDetailsScreen extends ConsumerStatefulWidget {
-  const BusinessDetailsScreen({super.key});
+  final SignUpRequest request;
+  const BusinessDetailsScreen({
+    required this.request,
+    super.key,
+  });
 
   @override
-  ConsumerState<BusinessDetailsScreen> createState() => _BusinessDetailsScreenState();
+  ConsumerState<BusinessDetailsScreen> createState() =>
+      _BusinessDetailsScreenState();
 }
 
 class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
@@ -19,7 +27,46 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
   final _usernameController = TextEditingController();
   final _dateOfBirthController = TextEditingController();
   final _registrationNumberController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _referralController = TextEditingController();
   bool _isRegistered = true;
+
+  _registerBusiness() async {
+    if (_formKey.currentState!.validate()) {
+      SignUpRequest request = SignUpRequest(
+        fullname: '${_firstNameController.text} ${_lastNameController.text}',
+        email: _emailController.text,
+        phoneNumber: _phoneNumberController.text,
+        username: _usernameController.text,
+        dateOfBirth: _dobController.text,
+        countryCode: widget.request.countryCode,
+        referralCode: _referralController.text,
+      );
+
+      FocusScope.of(context).unfocus();
+      final notifier = ref.read(userNotifierProvider.notifier);
+      await notifier.registerBusiness(request);
+      final state = ref.read(userNotifierProvider);
+
+      if (state.isDataAvailable) {
+        await LocalStorageService.save(StorageKeys.email, request.email!);
+        await LocalStorageService.save(
+            StorageKeys.signupRequest, request.toString());
+
+        context.push('/verify-email');
+      } else {
+        AppMessenger.show(
+          context,
+          message: state.message ?? 'Registration failed',
+          type: MessageType.error,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,17 +193,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ref.read(signUpFormNotifierProvider.notifier).saveBusinessDetails(
-                            businessName: _businessNameController.text,
-                            username: _usernameController.text,
-                            dateOfBirth: _dateOfBirthController.text,
-                            companyRegistrationNumber: _registrationNumberController.text,
-                          );
-                      context.push('/email-password');
-                    }
-                  },
+                  onPressed: _registerBusiness,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: appTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -264,7 +301,8 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             filled: true,
             fillColor: Colors.grey.shade50,
-            suffixIcon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
+            suffixIcon:
+                Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade200),
@@ -290,7 +328,8 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
               lastDate: DateTime.now(),
             );
             if (date != null) {
-              controller.text = '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+              controller.text =
+                  '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
             }
           },
           validator: (value) {

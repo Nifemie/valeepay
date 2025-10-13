@@ -1,14 +1,19 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/constants/storage_keys.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
-import 'package:valarpay/features/notifiers/auth_notifier.dart';
-import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
+import 'package:valarpay/features/models/email_request.dart';
+import 'package:valarpay/features/models/signup_request.dart';
+import 'package:valarpay/features/models/verify_email_request.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
   const VerifyEmailScreen({super.key});
@@ -27,13 +32,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   int _resendTimer = 30;
   Timer? _timer;
 
-  @override
-  void initState() {
-    super.initState();
-    _startResendTimer();
-  }
+  String? username;
 
-  void _startResendTimer() {
+  _startResendTimer() {
     _timer?.cancel();
     _resendTimer = 30;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -48,11 +49,92 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     });
   }
 
+  _getEmail() async {
+    String? username = await LocalStorageService.get(StorageKeys.username);
+    setState(() {
+      username = username;
+    });
+  }
+
+  _verifyOtp() async {
+    String otp = _controllers.map((controller) => controller.text).join();
+    String? email = await LocalStorageService.get(StorageKeys.email);
+    if (email != null) {
+      Navigator.pop(context);
+    }
+
+    if (otp.length == 4) {
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        await ref
+            .read(userNotifierProvider.notifier)
+            .verifyEmail(VerifyEmailRequest(email: email, otpCode: otp));
+        final userState = ref.read(userNotifierProvider);
+        if (userState.isDataAvailable && mounted) {
+          String? savedRequest =
+              await LocalStorageService.get(StorageKeys.signupRequest);
+          String firstName = "Dear";
+          if (savedRequest != null) {
+            SignUpRequest signUpRequest =
+                SignUpRequest.fromJson(jsonDecode(savedRequest));
+            setState(() {
+              firstName = signUpRequest.fullname ?? "Dear";
+            });
+          }
+          context.push('/signup-success', extra: {"firstName": firstName});
+        } else if (mounted) {
+          CustomToast.showErrorToast(
+              context: context,
+              message: userState.message ?? 'Invalid otp or expired');
+        }
+      } catch (e) {
+        CustomToast.showErrorToast(
+            context: context,
+            message: 'An unexpected error occurred: ${e.toString()}');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      CustomToast.showErrorToast(
+          context: context,
+          message: 'Please enter the complete verification code');
+    }
+  }
+
+  _resendOtp() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await ref
+          .read(userNotifierProvider.notifier)
+          .validateEmail(EmailRequest(email: username));
+      CustomToast.showSuccessToast(
+          context: context, message: 'Verification code sent to your email.');
+      _startResendTimer();
+    } catch (e) {
+      CustomToast.showErrorToast(
+          context: context, message: 'Failed to resend code: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    _getEmail();
+    super.initState();
+    _startResendTimer();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final signUpFormData = ref.watch(signUpFormNotifierProvider);
-    final email = signUpFormData.email;
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -73,7 +155,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter the code we sent to ${email ?? '[email]'}.',
+                'Enter the code we sent to ${username ?? '[email]'}.',
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 textAlign: TextAlign.center,
               ),
@@ -137,34 +219,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   GestureDetector(
-                    onTap: _resendTimer == 0
-                        ? () async {
-                            if (email == null) {
-                              CustomToast.showErrorToast(
-                                  context: context,
-                                  message: 'Email not found. Please go back and try again.');
-                              return;
-                            }
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            try {
-                              await ref.read(authNotifierProvider.notifier).resendVerificationCode(email);
-                              CustomToast.showSuccessToast(
-                                  context: context,
-                                  message: 'Verification code sent to your email.');
-                              _startResendTimer();
-                            } catch (e) {
-                              CustomToast.showErrorToast(
-                                  context: context,
-                                  message: 'Failed to resend code: ${e.toString()}');
-                            } finally {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                            }
-                          }
-                        : null,
+                    onTap: _resendTimer == 0 ? _resendOtp : null,
                     child: Text(
                       _resendTimer == 0
                           ? 'Resend Code'
@@ -181,58 +236,15 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 ],
               ),
 
-              const SizedBox(height: 48), // replaces Spacer()
-              // Terms and conditions
+              const SizedBox(height: 48),
 
               TermsAndConditionsWidget(),
-             const SizedBox(height: 50),
-
-              // Continue Button
+              const SizedBox(height: 50),
 
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : FullWidthButton(
-                      text: 'Continue',
-                      onPressed: () async {
-                        String otp = _controllers
-                            .map((controller) => controller.text)
-                            .join();
-                        if (otp.length == 6) {
-                          if (email == null) {
-                            CustomToast.showErrorToast(
-                                context: context,
-                                message: 'Email not found. Please go back and try again.');
-                            return;
-                          }
-                          setState(() {
-                            _isLoading = true;
-                          });
-                          try {
-                            await ref.read(authNotifierProvider.notifier).verifyEmail(email, otp);
-                            final authState = ref.read(authNotifierProvider);
-                            if (authState.isDataAvailable && mounted) {
-                              context.push('/phone-number');
-                            } else if (mounted) {
-                              CustomToast.showErrorToast(
-                                  context: context,
-                                  message: authState.message ?? 'Email verification failed. Please try again.');
-                            }
-                          } catch (e) {
-                            CustomToast.showErrorToast(
-                                context: context,
-                                message: 'An unexpected error occurred: ${e.toString()}');
-                          } finally {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          }
-                        } else {
-                          CustomToast.showErrorToast(
-                              context: context,
-                              message: 'Please enter the complete verification code');
-                        }
-                      }),
-              ],
+                  : FullWidthButton(text: 'Continue', onPressed: _verifyOtp),
+            ],
           ),
         ),
       ),

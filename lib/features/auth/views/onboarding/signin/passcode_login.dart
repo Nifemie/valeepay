@@ -38,7 +38,7 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
         final savedUsername = await SessionService.getUsername() ?? '';
         if (savedUsername != '') {
           final request = PasscodeLoginRequest(
-            email: savedUsername,
+            username: savedUsername,
             passcode: _passcode,
             ipAddress: ip,
             deviceName: deviceName,

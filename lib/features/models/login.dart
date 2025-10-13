@@ -1,14 +1,14 @@
 import 'package:valarpay/features/models/user.dart';
 
 class LoginRequest {
-  final String email;
+  final String username;
   final String password;
   final String ipAddress;
   final String deviceName;
   final String operatingSystem;
 
   LoginRequest({
-    required this.email,
+    required this.username,
     required this.password,
     required this.ipAddress,
     required this.deviceName,
@@ -16,7 +16,7 @@ class LoginRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        "email": email,
+        "username": username,
         "password": password,
         "ipAddress": ipAddress,
         "deviceName": deviceName,
@@ -25,14 +25,14 @@ class LoginRequest {
 }
 
 class PasscodeLoginRequest {
-  final String email;
+  final String username;
   final String passcode;
   final String ipAddress;
   final String deviceName;
   final String operatingSystem;
 
   PasscodeLoginRequest({
-    required this.email,
+    required this.username,
     required this.passcode,
     required this.ipAddress,
     required this.deviceName,
@@ -41,7 +41,7 @@ class PasscodeLoginRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'email': email,
+      'username': username,
       'passcode': passcode,
       'ipAddress': ipAddress,
       'deviceName': deviceName,

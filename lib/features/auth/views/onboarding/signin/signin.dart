@@ -20,7 +20,7 @@ class SignInScreen extends ConsumerStatefulWidget {
 
 class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -36,7 +36,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       final notifier = ref.read(authNotifierProvider.notifier);
 
       final request = LoginRequest(
-        email: _emailController.text.trim(),
+        username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
         ipAddress: ip,
         deviceName: deviceName,
@@ -75,7 +75,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final savedUsername = await SessionService.getUsername();
     if (savedUsername != null) {
       setState(() {
-        _emailController.text = savedUsername;
+        _usernameController.text = savedUsername;
         _hasStoredUsername = true;
       });
     }
@@ -209,9 +209,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
                       // Email field
                       _buildTextField(
-                        controller: _emailController,
-                        label: 'Username',
-                        hint: 'example@gmail.com',
+                        controller: _usernameController,
+                        label: 'Email / Phone Number',
+                        hint: 'Username',
                         keyboardType: TextInputType.emailAddress,
                         isDark: true,
                       ),
@@ -258,6 +258,33 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ],
                         ),
                       ],
+                      // Back to Login
+                      SizedBox(height: 3),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const Text(
+                            'Forgot your password? ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              context.push('/forgot-password');
+                            },
+                            child: const Text(
+                              'Reset Password',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: appTheme.primaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(height: 40.h),
 
                       // Login button
@@ -286,6 +313,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ),
                         ),
                       ),
+
                       SizedBox(height: 24.h),
 
                       // 🔹 Conditional Login Options
@@ -517,7 +545,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }

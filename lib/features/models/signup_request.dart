@@ -1,8 +1,8 @@
-
 class SignUpRequest {
   final String? username;
   final String? fullname;
   final String? email;
+  final String? phoneNumber;
   final String? password;
   final String? dateOfBirth;
   final String? countryCode;
@@ -15,6 +15,7 @@ class SignUpRequest {
     this.username,
     this.fullname,
     this.email,
+    this.phoneNumber,
     this.password,
     this.dateOfBirth,
     this.countryCode,
@@ -28,6 +29,7 @@ class SignUpRequest {
     String? username,
     String? fullname,
     String? email,
+    String? phoneNumber,
     String? password,
     String? dateOfBirth,
     String? countryCode,
@@ -40,6 +42,7 @@ class SignUpRequest {
       username: username ?? this.username,
       fullname: fullname ?? this.fullname,
       email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       password: password ?? this.password,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       countryCode: countryCode ?? this.countryCode,
@@ -56,6 +59,7 @@ class SignUpRequest {
       'username': username,
       'fullname': fullname,
       'email': email,
+      'phoneNumber': phoneNumber,
       'password': password,
       'dateOfBirth': dateOfBirth,
       'countryCode': countryCode,
@@ -65,5 +69,20 @@ class SignUpRequest {
       'companyRegistrationNumber': companyRegistrationNumber,
     };
   }
-}
 
+  static SignUpRequest fromJson(Map<String, dynamic> json) {
+    return SignUpRequest(
+      username: json['username'],
+      fullname: json['fullname'],
+      email: json['email'],
+      phoneNumber: json['phoneNumber'],
+      password: json['password'],
+      dateOfBirth: json['dateOfBirth'],
+      countryCode: json['countryCode'],
+      referralCode: json['referralCode'],
+      accountType: json['accountType'],
+      businessName: json['businessName'],
+      companyRegistrationNumber: json['companyRegistrationNumber'],
+    );
+  }
+}

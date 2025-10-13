@@ -22,7 +22,7 @@ class BiometricLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
-  String? _email;
+  String? _username;
   String? _fullname;
 
   @override
@@ -37,13 +37,13 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
     if (userFullName != null && username != null) {
       setState(() {
-        _email = username;
+        _username = username;
         _fullname = userFullName;
       });
     } else {
       final savedUsername = await SessionService.getUsername();
       setState(() {
-        _email = savedUsername;
+        _username = savedUsername;
         _fullname = 'User';
       });
     }
@@ -65,7 +65,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     final ip = await DeviceUtils.getIpAddress();
     final deviceName = await DeviceUtils.getDeviceName();
     final os = await DeviceUtils.getDeviceOS();
-    final savedUsername = _email ?? await SessionService.getUsername();
+    final savedUsername = _username ?? await SessionService.getUsername();
 
     if (savedUsername == null) {
       AppMessenger.show(
@@ -78,8 +78,8 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     }
 
     final request = PasscodeLoginRequest(
-      email: savedUsername,
-      passcode: '', // biometric bypass
+      username: savedUsername,
+      passcode: '',
       ipAddress: ip,
       deviceName: deviceName,
       operatingSystem: os,
@@ -230,7 +230,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    _email ?? 'Loading...',
+                    _username ?? 'Loading...',
                     style: TextStyle(
                       fontSize: 15.sp,
                       color: Colors.grey[300],
