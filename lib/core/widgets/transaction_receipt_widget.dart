@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
 
 // Transaction detail model
@@ -61,7 +62,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 // Amount
                 Text(
-                  '₦$amount',
+                  currencyFormatter(amount),
                   style: const TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: 32,
@@ -79,7 +80,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 const SizedBox(height: 32),
                 // Share Receipt Button
                 Container(
-                  width: 335,
+                  width: MediaQuery.of(context).size.width,
                   height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF76301),
@@ -118,7 +119,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 // Done Button
                 Container(
-                  width: 335,
+                  width: MediaQuery.of(context).size.width,
                   height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAFBFC),

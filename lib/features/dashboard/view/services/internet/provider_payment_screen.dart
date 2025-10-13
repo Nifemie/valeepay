@@ -30,17 +30,14 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.providerName,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -96,7 +93,6 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                           Text(
                             selectedPlan,
                             style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -129,13 +125,14 @@ class _ProviderPaymentScreenState extends State<ProviderPaymentScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
-                                transactionsDetailsList: [
+                                hasBottom: false,
+                                topTitleText: 'Transaction',
+                                topTransactionsDetailsList: [
                                   buildDetailRow('Recipient Number',
                                       phoneNumberController.text, isDark),
                                   buildDetailRow(
                                       'Provider', widget.providerName, isDark),
                                   buildDetailRow('Plan', selectedPlan, isDark),
-                                  Divider(),
                                   buildDetailRow(
                                     'Amount',
                                     _getPlanPrice(selectedPlan)

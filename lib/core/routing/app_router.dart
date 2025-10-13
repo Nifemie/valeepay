@@ -6,6 +6,7 @@ import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
 import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
@@ -46,6 +47,7 @@ import '../../features/dashboard/view/me/about_us.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
+import '../../features/auth/views/onboarding/forgot_password_verification.dart';
 import '../../features/auth/views/onboarding/signin/biometric_login.dart';
 import '../../features/auth/views/onboarding/signin/passcode_login.dart';
 import '../../features/auth/views/onboarding/signin/signin.dart';
@@ -129,6 +131,10 @@ final router = GoRouter(
     GoRoute(
       path: '/forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-password-verification',
+      builder: (context, state) => const ForgotPasswordVerificationScreen(),
     ),
     GoRoute(
       path: '/change-password',
@@ -302,7 +308,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/flight',
-      builder: (context, state) => const FlightScreen(),
+      builder: (context, state) => const FlightSelectionScreen(),
     ),
     GoRoute(
       path: '/swap-currency',

@@ -59,7 +59,9 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
         if (showCountryLabel) const SizedBox(width: 12),
         Expanded(
           child: Container(
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
+              color: Theme.of(context).cardColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

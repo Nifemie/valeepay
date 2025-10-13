@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
@@ -25,18 +26,14 @@ class _BettingScreenState extends State<BettingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
-          onPressed: () => Navigator.pop(context),
+),          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Betting',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -81,7 +78,7 @@ class _BettingScreenState extends State<BettingScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[100],
+                  color:Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -90,7 +87,6 @@ class _BettingScreenState extends State<BettingScreen> {
                     Text(
                       selectedProvider,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
                         fontSize: 16,
                       ),
                     ),
@@ -148,14 +144,17 @@ class _BettingScreenState extends State<BettingScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
-                              transactionsDetailsList: [
+                          hasBottom: false,
+                          topTitleText: 'Transaction',
+                              topTransactionsDetailsList: [
                                 buildDetailRow('Recipient ID',
                                     userIdController.text, isDark),
                                 buildDetailRow(
                                     'Provider', selectedProvider, isDark),
-                                buildDetailRow('Amount',
-                                    '₦${amountController.text}', isDark),
-                               
+                                buildDetailRow(
+                                    'Amount',
+                                    currencyFormatter(amountController.text),
+                                    isDark),
                               ],
                               onButtonPressed: () async {
                                 final pin =

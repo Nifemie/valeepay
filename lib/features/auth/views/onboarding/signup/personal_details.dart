@@ -1,26 +1,29 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
 
-class PersonalDetailsScreen extends StatefulWidget {
+class PersonalDetailsScreen extends ConsumerStatefulWidget {
   const PersonalDetailsScreen({super.key});
 
   @override
-  State<PersonalDetailsScreen> createState() => _PersonalDetailsScreenState();
+  ConsumerState<PersonalDetailsScreen> createState() => _PersonalDetailsScreenState();
 }
 
-class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
+class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _dobController = TextEditingController();
+  final _referralController = TextEditingController();
   String? _selectedGender;
-  final _addressController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +88,14 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // Username
+                _buildTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'Enter your username',
+                ),
+                const SizedBox(height: 16),
+
                 // Date of Birth
                 _buildTextField(
                   controller: _dobController,
@@ -121,12 +132,12 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Address
+                // Referral Code
                 _buildTextField(
-                  controller: _addressController,
-                  label: 'Address',
-                  hint: 'Enter your address',
-                  maxLines: 3,
+                  controller: _referralController,
+                  label: 'Referral Code (Optional)',
+                  hint: 'Enter referral code',
+                  isRequired: false,
                 ),
                 const SizedBox(height: 24),
 
@@ -138,6 +149,12 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
 
                 FullWidthButton(text: 'Continue', onPressed: () {
                    if (_formKey.currentState!.validate()) {
+                        ref.read(signUpFormNotifierProvider.notifier).savePersonalDetails(
+                          fullname: '${_firstNameController.text} ${_lastNameController.text}',
+                          username: _usernameController.text,
+                          dateOfBirth: _dobController.text,
+                          referralCode: _referralController.text.trim(),
+                        );
                         context.push('/email-password');
                       }
                 }),
@@ -158,6 +175,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     VoidCallback? onTap,
     IconData? suffixIcon,
     int maxLines = 1,
+    bool isRequired = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,7 +196,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           decoration: _inputDecoration(hint, suffixIcon),
           validator:
               (value) =>
-                  (value == null || value.isEmpty)
+                  (isRequired && (value == null || value.isEmpty))
                       ? 'This field is required'
                       : null,
         ),
@@ -218,7 +236,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
+      _dobController.text = DateFormat('d-MMM-y').format(picked);
     }
   }
 
@@ -226,8 +244,9 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _usernameController.dispose();
     _dobController.dispose();
-    _addressController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 }

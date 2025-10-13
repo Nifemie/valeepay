@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/signup_form_notifier.dart';
 
-class EmailPasswordScreen extends StatefulWidget {
+class EmailPasswordScreen extends ConsumerStatefulWidget {
   const EmailPasswordScreen({super.key});
 
   @override
-  State<EmailPasswordScreen> createState() => _EmailPasswordScreenState();
+  ConsumerState<EmailPasswordScreen> createState() => _EmailPasswordScreenState();
 }
 
-class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
+class _EmailPasswordScreenState extends ConsumerState<EmailPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -143,13 +147,59 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                         const SizedBox(height: 40),
 
                         // Pinned Continue button
-                        FullWidthButton(
-                            text: 'Continue',
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                context.push('/verify-email');
-                              }
-                            }),
+                        _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : FullWidthButton(
+                                text: 'Continue',
+                                onPressed: () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    ref.read(signUpFormNotifierProvider.notifier).saveEmailAndPassword(
+                                          email: _emailController.text,
+                                          password: _passwordController.text,
+                                        );
+
+                                    final signUpData = ref.read(signUpFormNotifierProvider);
+
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+
+                                    try {
+                                      if (signUpData.accountType == 'Business') {
+                                        await ref.read(authNotifierProvider.notifier).registerBusiness(signUpData);
+                                      } else {
+                                        await ref.read(authNotifierProvider.notifier).signUp(signUpData);
+                                      }
+                                      final authState = ref.read(authNotifierProvider);
+
+                                      if (authState.isDataAvailable && mounted) {
+                                        context.push('/verify-email');
+                                      } else if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(authState.message ?? 'Sign-up failed. Please try again.'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('An unexpected error occurred: ${e.toString()}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() {
+                                          _isLoading = false;
+                                        });
+                                      }
+                                    }
+                                  }
+                                }),
                       ],
                     ),
                   ),

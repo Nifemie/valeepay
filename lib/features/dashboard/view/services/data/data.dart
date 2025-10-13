@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/responsive_button.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/transaction_details_screen.dart';
+import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/data_plans_section.dart';
+import 'package:valarpay/features/dashboard/widgets/services_widgets/mobile_data_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
@@ -22,7 +28,6 @@ class _DataScreenState extends State<DataScreen> {
   @override
   void initState() {
     super.initState();
-    _controller.text = '000000000';
   }
 
   void _showContactAccessDialog() {
@@ -43,19 +48,18 @@ class _DataScreenState extends State<DataScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Data',
           style: TextStyle(
-            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -91,59 +95,14 @@ class _DataScreenState extends State<DataScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade700),
-              ),
-              child: Row(
-                children: [
-                  const Text(
-                    '🇳🇬 +234 ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 24,
-                    child: VerticalDivider(
-                      color: Colors.grey,
-                      thickness: 1,
-                    ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _showContactAccessDialog,
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: appTheme.primaryColor,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ReuseableTextFieldWithCountry(
+                controller: _controller,
+                hintText: "123 567 890",
+                countryCode: '+234',
+                flagImagePath: 'assets/images/ngflag.png',
+                isReadOnly: false,
+                textInputType: TextInputType.phone,
+                showCountryLabel: true),
             const SizedBox(height: 24),
 
             // Network Provider Selection
@@ -168,7 +127,7 @@ class _DataScreenState extends State<DataScreen> {
                   });
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 50),
             ],
 
             // Cashback Section
@@ -209,14 +168,88 @@ class _DataScreenState extends State<DataScreen> {
             const SizedBox(height: 32),
 
             // Continue Button
-            ResponsiveButton(
-              text: 'Continue',
-              onPressed: _selectedPlan.isNotEmpty
-                  ? () {
-                      // Handle continue action
-                    }
-                  : null,
-            ),
+
+            FullWidthButton(
+                text: 'Continue',
+                onPressed: () {
+                  if (_selectedPlan.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ReuseableTransactionDetailsScreen(
+                                hasBottom: false,
+                                topTitleText: 'Transaction',
+                                topTransactionsDetailsList: [
+                                  buildDetailRow('Beneficiary Number',
+                                      '${_controller.text}', isDark),
+                                  buildDetailRow(
+                                      'Provider', _selectedNetwork, isDark),
+                                  buildDetailRow(
+                                      'Timeframe', _selectedNetwork, isDark),
+                                  buildDetailRow('Amount',
+                                      currencyFormatter('10000'), isDark),
+                                ],
+                                onButtonPressed: () async {
+                                  final pin =
+                                      await TransactionPinModal.show(context);
+                                  if (pin != null &&
+                                      pin.length == 4 &&
+                                      mounted) {
+                                    if (mounted) Navigator.pop(context);
+                                    if (mounted) {
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransactionReceiptWidget(
+                                                    amount: '10000',
+                                                    topDetails: [
+                                                      TransactionDetail(
+                                                        label: 'Timeframe',
+                                                        value: _selectedPlan,
+                                                      ),
+                                                      TransactionDetail(
+                                                          label: 'Plan',
+                                                          value: _selectedPlan),
+                                                    ],
+                                                    bottomDetails: [
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Transaction ID',
+                                                          value:
+                                                              'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                          showCopyIcon: true),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Recipient Mobiler',
+                                                          value:
+                                                              '${_controller.text}'),
+                                                      TransactionDetail(
+                                                          label: 'Provider',
+                                                          value:
+                                                              _selectedNetwork),
+                                                      TransactionDetail(
+                                                          label:
+                                                              'Payment Source',
+                                                          value:
+                                                              'ValarPay Account'),
+                                                      TransactionDetail(
+                                                          label: 'Date & Time',
+                                                          value:
+                                                              '29 Sep 2025 | 8:15 pm')
+                                                    ],
+                                                    onShareReceipt: () {},
+                                                  )));
+                                    }
+                                  }
+                                },
+                              )),
+                    );
+                  }
+                }),
+            SizedBox(height: 24),
+            DataServicesSection()
           ],
         ),
       ),
