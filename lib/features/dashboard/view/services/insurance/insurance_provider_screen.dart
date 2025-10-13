@@ -173,7 +173,9 @@ class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
-                                transactionsDetailsList: [
+                                hasBottom: false,
+                          topTitleText: 'Transaction',
+                                topTransactionsDetailsList: [
                                   buildDetailRow('Policy Number',
                                       policyNumberController.text, isDark),
                                   buildDetailRow('Plan', selectedPlan, isDark),

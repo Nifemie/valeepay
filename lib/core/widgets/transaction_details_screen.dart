@@ -31,12 +31,20 @@ Widget buildDetailRow(String label, String value, bool isDark,
 }
 
 class ReuseableTransactionDetailsScreen extends StatefulWidget {
-  final List<Widget> transactionsDetailsList;
+  final List<Widget> topTransactionsDetailsList;
+  final String topTitleText;
+  bool hasBottom;
+   String? bottomTitleText;
+   final List<Widget>? bottomTransactionsDetailsList;
   final Function() onButtonPressed;
 
-  const ReuseableTransactionDetailsScreen(
+   ReuseableTransactionDetailsScreen(
       {super.key,
-      required this.transactionsDetailsList,
+      required this.topTransactionsDetailsList,
+      this.bottomTransactionsDetailsList,
+      required this.topTitleText,
+      this.bottomTitleText,
+      required this.hasBottom,
       required this.onButtonPressed});
 
   @override
@@ -70,9 +78,8 @@ class _ReuseableTransactionDetailsScreenState
             children: [
               // Transaction details container
               Text(
-                'Transaction Details',
+                '${widget.topTitleText} Details',
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -85,7 +92,27 @@ class _ReuseableTransactionDetailsScreenState
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
-                  children: widget.transactionsDetailsList,
+                  children: widget.topTransactionsDetailsList,
+                ),
+              ),
+             if(widget.hasBottom) SizedBox(height: 24),
+             if(widget.hasBottom) Text(
+                widget.bottomTitleText ?? '',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+             if(widget.hasBottom) SizedBox(height: 16),
+
+             if(widget.hasBottom) Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: widget.bottomTransactionsDetailsList ?? [],
                 ),
               ),
 

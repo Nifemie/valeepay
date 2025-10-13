@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/services_widgets/ussd_service_tile.dart';
-import '../../../widgets/services_widgets/network_section.dart';
+import 'package:valarpay/features/dashboard/widgets/services_widgets/network_section.dart';
+import 'package:valarpay/features/dashboard/widgets/services_widgets/ussd_service_tile.dart';
 
-class USSDEnquiryScreen extends StatelessWidget {
-  const USSDEnquiryScreen({super.key});
+class DataUSSDEnquiryScreen extends StatelessWidget {
+  const DataUSSDEnquiryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return  Scaffold(
+       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -22,7 +22,7 @@ class USSDEnquiryScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body:  SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

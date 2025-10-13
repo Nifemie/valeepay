@@ -137,7 +137,9 @@ class _ShoppingProviderPaymentScreenState
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
-                                transactionsDetailsList: [
+                                hasBottom: false,
+                          topTitleText: 'Transaction',
+                                topTransactionsDetailsList: [
                                   buildDetailRow('Order ID',
                                       orderIdController.text, isDark),
                                   buildDetailRow(

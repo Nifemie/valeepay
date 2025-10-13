@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '/core/themes/color_utils.dart';
-import '/features/dashboard/view/services/giftcard/transaction_details_screen.dart';
 
 class UploadImagesScreen extends StatefulWidget {
   const UploadImagesScreen({super.key});
@@ -17,18 +16,14 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Upload Images',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -135,9 +130,8 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF2B2725)
-                              : Colors.grey[200],
+                                            color: Theme.of(context).cardColor.withOpacity(0.4),
+
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: Colors.grey[400]!,
@@ -178,13 +172,13 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
               child: ElevatedButton(
                 onPressed: uploadedImages.isNotEmpty
                     ? () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const TransactionDetailsScreen(),
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) =>
+                        //         const TransactionDetailsScreen(),
+                        //   ),
+                        // );
                       }
                     : null,
                 style: ElevatedButton.styleFrom(

@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/reuseable_appbar_text_button.dart';
-import 'saved_beneficiary_screen.dart';
-import 'country_provider_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/flight/saved_beneficiary_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/international_airtime/country_provider_screen.dart';
 
-class InternationalAirtimeScreen extends StatefulWidget {
-  const InternationalAirtimeScreen({super.key});
+class FlightSelectionScreen extends StatefulWidget {
+  const FlightSelectionScreen({super.key});
 
   @override
-  State<InternationalAirtimeScreen> createState() =>
-      _InternationalAirtimeScreenState();
+  State<FlightSelectionScreen> createState() => _FlightSelectionScreenState();
 }
 
-class _InternationalAirtimeScreenState
-    extends State<InternationalAirtimeScreen> {
-  String selectedCountry = '';
-
+class _FlightSelectionScreenState extends State<FlightSelectionScreen> {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +23,7 @@ class _InternationalAirtimeScreenState
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'International Airtime',
+          'Flight',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -38,7 +35,7 @@ class _InternationalAirtimeScreenState
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          const InternationalAirtimeSavedBeneficiaryScreen(),
+                          const FlightSavedBeneficiaryScreen(),
                     ),
                   ),
               text: 'Saved Beneficiary')
@@ -53,13 +50,11 @@ class _InternationalAirtimeScreenState
             Expanded(
               child: ListView(
                 children: [
-                  _buildCountryTile('MTN Ghana', isDark),
-                  _buildCountryTile('AirtelTigo Ghana', isDark),
-                  _buildCountryTile('Titus Canada', isDark),
-                  _buildCountryTile('Safaricom Kenya', isDark),
-                  _buildCountryTile('Airtel Kenya', isDark),
-                  _buildCountryTile('Moor Africa', isDark),
-                  _buildCountryTile('Orange Senegal', isDark),
+                  _buildFlightTile('Air Peace', isDark),
+                  _buildFlightTile('Arik Air', isDark),
+                  _buildFlightTile('Dana Air', isDark),
+                  _buildFlightTile('Ibom Air', isDark),
+                
                 ],
               ),
             ),
@@ -69,7 +64,7 @@ class _InternationalAirtimeScreenState
     );
   }
 
-  Widget _buildCountryTile(String countryProvider, bool isDark) {
+  Widget _buildFlightTile(String flightName, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -79,7 +74,7 @@ class _InternationalAirtimeScreenState
           borderRadius: BorderRadius.circular(8),
         ),
         title: Text(
-          countryProvider,
+          flightName,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -94,8 +89,8 @@ class _InternationalAirtimeScreenState
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CountryProviderScreen(
-                countryProvider: countryProvider,
+              builder: (context) => FlightScreen(
+                flightName: flightName,
               ),
             ),
           );
