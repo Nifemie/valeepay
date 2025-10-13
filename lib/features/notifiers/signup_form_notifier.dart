@@ -13,6 +13,20 @@ class SignUpFormNotifier extends StateNotifier<SignUpRequest> {
     state = state.copyWith(fullname: fullname, username: username, dateOfBirth: dateOfBirth, referralCode: referralCode);
   }
 
+  void saveBusinessDetails({
+    String? businessName,
+    String? username,
+    String? dateOfBirth,
+    String? companyRegistrationNumber,
+  }) {
+    state = state.copyWith(
+      fullname: businessName,
+      username: username,
+      dateOfBirth: dateOfBirth,
+      companyRegistrationNumber: companyRegistrationNumber,
+    );
+  }
+
   void saveEmailAndPassword({required String email, required String password}) {
     state = state.copyWith(email: email, password: password);
   }

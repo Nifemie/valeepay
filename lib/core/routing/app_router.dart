@@ -46,6 +46,7 @@ import '../../features/dashboard/view/me/about_us.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
 import '../../features/auth/views/onboarding/change_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
+import '../../features/auth/views/onboarding/forgot_password_verification.dart';
 import '../../features/auth/views/onboarding/signin/biometric_login.dart';
 import '../../features/auth/views/onboarding/signin/passcode_login.dart';
 import '../../features/auth/views/onboarding/signin/signin.dart';
@@ -129,6 +130,10 @@ final router = GoRouter(
     GoRoute(
       path: '/forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-password-verification',
+      builder: (context, state) => const ForgotPasswordVerificationScreen(),
     ),
     GoRoute(
       path: '/change-password',

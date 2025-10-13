@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/forgot_password_notifier.dart';
+import 'package:valarpay/features/notifiers/forgot_password_otp_notifier.dart';
 
-class ChangePasswordScreen extends StatefulWidget {
+class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -102,27 +107,29 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 const SizedBox(height: 40),
 
                 // Continue button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _validateAndSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: appTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _validateAndSubmit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: appTheme.primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -189,16 +196,40 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  void _validateAndSubmit() {
+  void _validateAndSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Password change successful
-      CustomToast.showAppToast(context:context, message: 'Password changed successfully');
-     
+      final email = ref.read(forgotPasswordNotifierProvider);
+      final otp = ref.read(forgotPasswordOtpNotifierProvider);
+      final password = _passwordController.text.trim();
 
-      // Navigate back or to signin screen
-      Future.delayed(const Duration(seconds: 1), () {
-        context.push('/signin');
+      if (email == null || otp == null) {
+        CustomToast.showErrorToast(context:context, message: 'Something went wrong. Please try again.');
+        return;
+      }
+
+      setState(() {
+        _isLoading = true;
       });
+
+      try {
+        await ref.read(authNotifierProvider.notifier).resetPassword(email, otp, password);
+        final authState = ref.read(authNotifierProvider);
+        if (authState.isDataAvailable && mounted) {
+          CustomToast.showAppToast(context:context, message: 'Password changed successfully');
+          context.push('/signin');
+        } else if (mounted) {
+          CustomToast.showErrorToast(
+              context: context,
+              message: authState.message ?? 'Failed to change password. Please try again.');
+        }
+      } catch (e) {
+        CustomToast.showErrorToast(
+            context: context, message: 'An unexpected error occurred: ${e.toString()}');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

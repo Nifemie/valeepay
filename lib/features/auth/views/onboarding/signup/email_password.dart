@@ -165,7 +165,11 @@ class _EmailPasswordScreenState extends ConsumerState<EmailPasswordScreen> {
                                     });
 
                                     try {
-                                      await ref.read(authNotifierProvider.notifier).signUp(signUpData);
+                                      if (signUpData.accountType == 'Business') {
+                                        await ref.read(authNotifierProvider.notifier).registerBusiness(signUpData);
+                                      } else {
+                                        await ref.read(authNotifierProvider.notifier).signUp(signUpData);
+                                      }
                                       final authState = ref.read(authNotifierProvider);
 
                                       if (authState.isDataAvailable && mounted) {

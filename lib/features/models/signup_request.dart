@@ -8,6 +8,8 @@ class SignUpRequest {
   final String? countryCode;
   final String? referralCode;
   final String? accountType;
+  final String? businessName;
+  final String? companyRegistrationNumber;
 
   const SignUpRequest({
     this.username,
@@ -18,6 +20,8 @@ class SignUpRequest {
     this.countryCode,
     this.referralCode,
     this.accountType,
+    this.businessName,
+    this.companyRegistrationNumber,
   });
 
   SignUpRequest copyWith({
@@ -29,6 +33,8 @@ class SignUpRequest {
     String? countryCode,
     String? referralCode,
     String? accountType,
+    String? businessName,
+    String? companyRegistrationNumber,
   }) {
     return SignUpRequest(
       username: username ?? this.username,
@@ -39,6 +45,9 @@ class SignUpRequest {
       countryCode: countryCode ?? this.countryCode,
       referralCode: referralCode ?? this.referralCode,
       accountType: accountType ?? this.accountType,
+      businessName: businessName ?? this.businessName,
+      companyRegistrationNumber:
+          companyRegistrationNumber ?? this.companyRegistrationNumber,
     );
   }
 
@@ -51,7 +60,9 @@ class SignUpRequest {
       'dateOfBirth': dateOfBirth,
       'countryCode': countryCode,
       'referralCode': referralCode,
-      // 'accountType' is not sent to the backend, but used in the app
+      'accountType': accountType,
+      'businessName': businessName,
+      'companyRegistrationNumber': companyRegistrationNumber,
     };
   }
 }
