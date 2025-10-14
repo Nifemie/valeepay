@@ -64,7 +64,6 @@ class SecondaryButton extends StatelessWidget {
       ),
       child: TextButton(
         onPressed: onPressed,
-        
         style: TextButton.styleFrom(
           padding: const EdgeInsets.all(10),
           shape: RoundedRectangleBorder(

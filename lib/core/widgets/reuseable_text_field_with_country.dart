@@ -28,7 +28,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
       children: [
         if (showCountryLabel)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
@@ -43,12 +43,12 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2),
                     ),
-                    child: Image.asset(flagImagePath!, fit: BoxFit.cover),
+                    child: Image.asset(flagImagePath ?? '', fit: BoxFit.cover),
                   ),
                 const SizedBox(width: 8),
                 if (countryCode != null)
                   Text(
-                    countryCode!,
+                    countryCode ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                     ),
@@ -59,7 +59,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
         if (showCountryLabel) const SizedBox(width: 12),
         Expanded(
           child: Container(
-             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
@@ -93,7 +93,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
                 if (suffixWidget != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: suffixWidget!,
+                    child: suffixWidget,
                   ),
               ],
             ),

@@ -76,7 +76,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 const SizedBox(height: 16),
                 // Bottom Details Card
                 if (bottomDetails != null)
-                  _buildDetailsCard(context, bottomDetails!),
+                  _buildDetailsCard(context, bottomDetails ?? []),
                 const SizedBox(height: 32),
                 // Share Receipt Button
                 Container(

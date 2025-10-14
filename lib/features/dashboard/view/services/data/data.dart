@@ -198,7 +198,7 @@ class _DataScreenState extends State<DataScreen> {
                                       mounted) {
                                     if (mounted) Navigator.pop(context);
                                     if (mounted) {
-                                      Navigator.pushReplacement(
+                                      Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>

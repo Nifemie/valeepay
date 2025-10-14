@@ -225,7 +225,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                                 if (pin != null && pin.length == 4 && mounted) {
                                   if (mounted) Navigator.pop(context);
                                   if (mounted) {
-                                    Navigator.pushReplacement(
+                                    Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
