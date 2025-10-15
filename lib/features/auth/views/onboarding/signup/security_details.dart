@@ -4,55 +4,62 @@ import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/models/reset_password.dart';
-import 'package:valarpay/features/models/username_request.dart';
+import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
+import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/models/email_request.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class ResetPasswordScreen extends ConsumerStatefulWidget {
-  final UsernameRequest request;
-  const ResetPasswordScreen({super.key, required this.request});
+class SecurityDetailsScreen extends ConsumerStatefulWidget {
+  final SignUpRequest request;
+  const SecurityDetailsScreen({
+    required this.request,
+    super.key,
+  });
 
   @override
-  ConsumerState<ResetPasswordScreen> createState() =>
-      _ResetPasswordScreenState();
+  ConsumerState<SecurityDetailsScreen> createState() =>
+      _SecurityDetailsScreenState();
 }
 
-class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
+class _SecurityDetailsScreenState extends ConsumerState<SecurityDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  Future<void> _resetPassword() async {
+  Future<void> _validateEmail() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final password = _passwordController.text.trim();
+    if (_passwordController.text.trim() !=
+        _confirmPasswordController.text.trim()) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Passwords do not match',
+      );
+      return;
+    }
 
     try {
-      await ref.read(userNotifierProvider.notifier).resetPassword(
-            ResetPasswordRequest(
-              username: widget.request.username,
-              password: password,
-              confirmPassword: password,
-            ),
-          );
-
+      await ref
+          .read(userNotifierProvider.notifier)
+          .validateEmail(EmailRequest(email: _emailController.text));
       final userState = ref.read(userNotifierProvider);
       if (userState.isDataAvailable && mounted) {
-        AppMessenger.show(
-          context,
-          type: MessageType.success,
-          message: 'Password changed successfully',
+        final updatedRequest = widget.request.copyWith(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
-        context.pushReplacement('/signin');
+        context.push('/verify-email', extra: updatedRequest);
       } else if (mounted) {
         AppMessenger.show(
           context,
           type: MessageType.error,
-          message:
-              userState.message ?? 'Failed to change password. Please try again.',
+          message: userState.message ?? 'Unable to validate your email address',
         );
       }
     } catch (e) {
@@ -67,15 +74,24 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final userState = ref.watch(userNotifierProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
           onPressed: () => GoRouter.of(context).pop(),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => NeedHelpModal.show(context),
+            child: const Text(
+              'Need Help?',
+              style: TextStyle(color: appTheme.primaryColor, fontSize: 14),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -85,30 +101,45 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Reset Password',
-                  style: TextStyle(
-                    fontSize: 24,
+                Text(
+                  'Security Details',
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Create a new password between 8 and 32 characters to keep your account secure.',
-                  style: TextStyle(
-                    fontSize: 16,
+                  'Enter your email address & password to secure your account',
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.grey.shade600,
-                    height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 32),
 
-                // Password Field
-                _buildPasswordField(
+                // Email
+                _buildTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: 'Enter your Email',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Email is required';
+                    }
+                    final emailRegex =
+                        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Enter a valid email address';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Password
+                _buildTextField(
                   controller: _passwordController,
                   label: 'Password',
-                  hint: '••••••••',
+                  hint: 'Enter new Password',
                   obscureText: _obscurePassword,
                   onToggleVisibility: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
@@ -126,18 +157,16 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 24),
-
-                // Confirm Password Field
-                _buildPasswordField(
+                // Confirm Password
+                _buildTextField(
                   controller: _confirmPasswordController,
                   label: 'Confirm Password',
-                  hint: '••••••••',
+                  hint: 'Re-enter your password',
                   obscureText: _obscureConfirmPassword,
                   onToggleVisibility: () => setState(
-                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                  ),
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please confirm your password';
@@ -149,12 +178,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   },
                 ),
 
+                const SizedBox(height: 24),
+                const TermsAndConditionsWidget(),
                 const SizedBox(height: 40),
 
                 FullWidthButton(
                   text: 'Continue',
                   isLoading: userState.isInitialLoading,
-                  onPressed: _resetPassword,
+                  onPressed: _validateEmail,
                 ),
               ],
             ),
@@ -164,12 +195,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildPasswordField({
+  Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required String hint,
-    required bool obscureText,
-    required VoidCallback onToggleVisibility,
+    bool obscureText = false,
+    VoidCallback? onToggleVisibility,
     required String? Function(String?) validator,
   }) {
     return Column(
@@ -191,13 +222,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            suffixIcon: IconButton(
-              onPressed: onToggleVisibility,
-              icon: Icon(
-                obscureText ? Icons.visibility_off : Icons.visibility,
-                color: Colors.grey,
-              ),
-            ),
+            suffixIcon: onToggleVisibility != null
+                ? IconButton(
+                    onPressed: onToggleVisibility,
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.grey,
+                    ),
+                  )
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -208,7 +241,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: appTheme.primaryColor),
+              borderSide: const BorderSide(color: appTheme.primaryColor),
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -222,6 +255,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   void dispose() {
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();

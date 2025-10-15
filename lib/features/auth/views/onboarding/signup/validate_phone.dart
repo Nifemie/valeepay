@@ -1,24 +1,65 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
+import 'package:valarpay/features/models/phone_number_request.dart';
+import 'package:valarpay/features/models/signup_request.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class PhoneNumberScreen extends StatefulWidget {
-  const PhoneNumberScreen({super.key});
+class ValidatePhoneScreen extends ConsumerStatefulWidget {
+  final SignUpRequest request;
+  const ValidatePhoneScreen({
+    required this.request,
+    super.key,
+  });
 
   @override
-  State<PhoneNumberScreen> createState() => _PhoneNumberScreenState();
+  ConsumerState<ValidatePhoneScreen> createState() =>
+      _ValidatePhoneScreenState();
 }
 
-class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
+class _ValidatePhoneScreenState extends ConsumerState<ValidatePhoneScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _controller = TextEditingController();
-  String _selectedCountryCode = '+234';
+  final _phoneController = TextEditingController();
+  final String _selectedCountryCode = '+234';
+
+  Future<void> _validatePhone() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        await ref.read(userNotifierProvider.notifier).validatePhone(
+            PhoneNumberRequest(phoneNumber: _phoneController.text));
+
+        final userState = ref.read(userNotifierProvider);
+
+        if (userState.isDataAvailable && mounted) {
+          final updatedRequest =
+              widget.request.copyWith(phoneNumber: _phoneController.text);
+          context.push('/verify-phone', extra: updatedRequest);
+        } else if (mounted) {
+          AppMessenger.show(
+            context,
+            type: MessageType.error,
+            message:
+                userState.message ?? 'Unable to validate your phone number',
+          );
+        }
+      } catch (e) {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message: 'An unexpected error occurred: ${e.toString()}',
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(userNotifierProvider);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -37,7 +78,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
               children: [
                 const Text(
                   'Enter Your Phone Number',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -52,10 +93,8 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                   children: [
                     const Text(
                       'Phone Number',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -63,9 +102,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                         // Country Code Selector
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
+                              horizontal: 12, vertical: 12),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade300),
                             borderRadius: BorderRadius.circular(8),
@@ -73,10 +110,8 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
-                                '🇳🇬',
-                                style: TextStyle(fontSize: 18),
-                              ),
+                              const Text('🇳🇬',
+                                  style: TextStyle(fontSize: 18)),
                               const SizedBox(width: 8),
                               Text(
                                 _selectedCountryCode,
@@ -90,10 +125,10 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                         ),
                         const SizedBox(width: 12),
 
-                        // Phone Number Field (takes the rest of the space)
+                        // Phone Number Field
                         Expanded(
                           child: TextFormField(
-                            controller: _controller,
+                            controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
                               hintText: '0000000000',
@@ -103,15 +138,13 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -120,9 +153,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
                                 ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
+                                  horizontal: 16, vertical: 12),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -142,19 +173,16 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
 
                 const SizedBox(height: 40),
 
-                // Terms and conditions (fixed with RichText)
-                TermsAndConditionsWidget(),
+                // Terms and Conditions
+                const TermsAndConditionsWidget(),
                 const SizedBox(height: 50),
 
                 // Continue Button
-
                 FullWidthButton(
                     text: 'Continue',
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        context.push('/verify-phone');
-                      }
-                    }),
+                    isLoading: userState.isInitialLoading,
+                    onPressed: _validatePhone),
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -166,7 +194,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 }

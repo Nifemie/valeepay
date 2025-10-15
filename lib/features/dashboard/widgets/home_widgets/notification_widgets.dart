@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/home/notifications/notification_view.dart';
 
 class NotificationItem {
   final String icon;

@@ -12,7 +12,10 @@ class AppMessenger {
   }) {
     Color background;
     IconData icon;
-
+    
+    if (message.startsWith("Exception:")){
+      message = message.replaceFirst("Exception:", "").trim();
+    }
     switch (type) {
       case MessageType.success:
         background = Colors.green;
@@ -27,7 +30,7 @@ class AppMessenger {
         icon = Icons.warning_amber_outlined;
         break;
       case MessageType.info:
-      background = appTheme.primaryColor;
+        background = appTheme.primaryColor;
         icon = Icons.info_outline;
     }
 

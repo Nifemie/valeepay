@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/core/constants/storage_keys.dart';
-import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/forgot_password.dart';
+import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -19,43 +19,37 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
-  bool _isLoading = false;
 
-  forgotPassword() async {
+  _forgotPassword() async {
     if (_formKey.currentState!.validate()) {
       final username = _usernameController.text.trim();
-      setState(() {
-        _isLoading = true;
-      });
       try {
         await ref
             .read(userNotifierProvider.notifier)
             .forgotPassword(ForgotPasswordRequest(username: username));
         final userState = ref.read(userNotifierProvider);
         if (userState.isDataAvailable && mounted) {
-          await LocalStorageService.save(StorageKeys.username, username);
-          CustomToast.showAppToast(
-              context: context, message: 'Otp sent to your email');
-          context.push('/forgot-password-verification');
+          AppMessenger.show(context,
+              type: MessageType.success, message: 'Otp sent to your email');
+          context.push('/forgot-password-verification',
+              extra: UsernameRequest(username: username));
         } else if (mounted) {
-          CustomToast.showErrorToast(
-              context: context,
+          AppMessenger.show(context,
+              type: MessageType.error,
               message: userState.message ?? 'Invalid username');
         }
       } catch (e) {
-        CustomToast.showErrorToast(
-            context: context,
+        AppMessenger.show(context,
+            type: MessageType.error,
             message: 'An unexpected error occurred: ${e.toString()}');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(userNotifierProvider);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -139,29 +133,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 40),
               // Send Reset Link Button
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: forgotPassword,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: appTheme.primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Continue',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
+
+              FullWidthButton(
+                text: 'Continue',
+                isLoading: userState.isInitialLoading,
+                onPressed: _forgotPassword,
+              ),
 
               const SizedBox(height: 16),
 

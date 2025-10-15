@@ -2,15 +2,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 import 'package:valarpay/core/constants/storage_keys.dart';
 import 'package:valarpay/core/services/local_storage_service.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/models/forgot_password.dart';
+import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/models/verify_forgot_password.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class ForgotPasswordVerificationScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordVerificationScreen({super.key});
+  final UsernameRequest request;
+  const ForgotPasswordVerificationScreen({super.key, required this.request});
 
   @override
   ConsumerState<ForgotPasswordVerificationScreen> createState() =>
@@ -18,90 +24,15 @@ class ForgotPasswordVerificationScreen extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasswordVerificationScreenState
-    extends ConsumerState<ForgotPasswordVerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(
-    6,
-    (index) => TextEditingController(),
-  );
-  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
-  int _resendTimer = 50;
-  Timer? _timer;
+    extends ConsumerState<ForgotPasswordVerificationScreen> with CodeAutoFill {
   bool _isLoading = false;
-  String? username;
-
-  _getUsername() async {
-    String? username = await LocalStorageService.get(StorageKeys.username);
-    setState(() {
-      username = username;
-    });
-  }
-
-  _resendOtp() async {
-    String? username = await LocalStorageService.get(StorageKeys.username);
-    if (username != null) {
-      Navigator.pop(context);
-    }
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      await ref
-          .read(userNotifierProvider.notifier)
-          .forgotPassword(ForgotPasswordRequest(username: username));
-      CustomToast.showSuccessToast(
-          context: context, message: 'Verification code sent to your email.');
-      _startResendTimer();
-    } catch (e) {
-      CustomToast.showErrorToast(
-          context: context, message: 'Failed to resend code: ${e.toString()}');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  _verifyOtp() async {
-    String otp = _controllers.map((controller) => controller.text).join();
-    String? username = await LocalStorageService.get(StorageKeys.username);
-    if (username != null) {
-      Navigator.pop(context);
-    }
-
-    if (otp.length == 4) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        await ref.read(userNotifierProvider.notifier).verifyForgotPassword(
-            VerifyForgotPassword(username: username, otpCode: otp));
-        final userState = ref.read(userNotifierProvider);
-        if (userState.isDataAvailable && mounted) {
-          context.push('/reset-password');
-        } else if (mounted) {
-          CustomToast.showErrorToast(
-              context: context,
-              message: userState.message ?? 'Invalid otp or expired');
-        }
-      } catch (e) {
-        CustomToast.showErrorToast(
-            context: context,
-            message: 'An unexpected error occurred: ${e.toString()}');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } else {
-      CustomToast.showErrorToast(
-          context: context,
-          message: 'Please enter the complete verification code');
-    }
-  }
+  int _resendTimer = 30;
+  Timer? _timer;
+  String _otp = '';
 
   void _startResendTimer() {
     _timer?.cancel();
-    _resendTimer = 50;
+    _resendTimer = 30;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_resendTimer == 0) {
         timer.cancel();
@@ -114,184 +45,186 @@ class _ForgotPasswordVerificationScreenState
     });
   }
 
+  Future<void> _verifyOtp() async {
+    if (_otp.length != 6) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Please enter the complete verification code',
+      );
+      return;
+    }
+    try {
+      await ref.read(userNotifierProvider.notifier).verifyForgotPassword(
+          VerifyForgotPassword(
+              username: widget.request.username, otpCode: _otp));
+      final userState = ref.read(userNotifierProvider);
+
+      if (userState.isDataAvailable && mounted) {
+        context.push('/reset-password', extra: widget.request);
+      } else if (mounted) {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message: userState.message ?? 'Invalid or expired OTP',
+        );
+      }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'An unexpected error occurred: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> _resendOtp() async {
+    String? username = await LocalStorageService.get(StorageKeys.username);
+    if (username == null) {
+      Navigator.pop(context);
+    }
+    setState(() => _isLoading = true);
+    try {
+      await ref
+          .read(userNotifierProvider.notifier)
+          .forgotPassword(ForgotPasswordRequest(username: username));
+      AppMessenger.show(
+        context,
+        message: 'Verification code sent to your email.',
+        type: MessageType.success,
+      );
+      _startResendTimer();
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        message: 'Failed to resend code: ${e.toString()}',
+        type: MessageType.error,
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void codeUpdated() {
+    setState(() {
+      _otp = code ?? '';
+    });
+    if (_otp.length == 6) {
+      _verifyOtp();
+    }
+  }
+
   @override
   void initState() {
-    _getUsername();
     super.initState();
     _startResendTimer();
+    listenForCode(); // listens for autofill/paste
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(userNotifierProvider);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 20),
-
-              // Title
               const Text(
-                'Enter Code',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+                'Verify Your Account',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-
-              const SizedBox(height: 12),
-
-              // Subtitle with email
+              const SizedBox(height: 8),
               Text(
-                'Enter the code we sent to ${username ?? 'your email'}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
+                'Enter the code we sent to your email.',
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 60),
+
+              PinFieldAutoFill(
+                codeLength: 6,
+                decoration: BoxLooseDecoration(
+                  gapSpace: 12,
+                  strokeColorBuilder: FixedColorBuilder(Colors.grey.shade400),
+                  bgColorBuilder: FixedColorBuilder(
+                    Colors.grey.shade50.withOpacity(0.8),
+                  ),
+                  radius: const Radius.circular(8),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  strokeWidth: 1.4,
+                ),
+                currentCode: _otp,
+                onCodeChanged: (code) {
+                  setState(() => _otp = code ?? '');
+                },
               ),
 
               const SizedBox(height: 40),
 
-              // OTP Input Fields
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (index) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    width: 60,
-                    height: 60,
-                    child: TextFormField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 1,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFFF6B35),
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      onChanged: (value) {
-                        if (value.isNotEmpty && index < 3) {
-                          _focusNodes[index + 1].requestFocus();
-                        } else if (value.isEmpty && index > 0) {
-                          _focusNodes[index - 1].requestFocus();
-                        }
-                      },
-                    ),
-                  );
-                }),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Resend Code Text
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              // Didn't receive the code
+              Wrap(
+                alignment: WrapAlignment.center,
                 children: [
                   Text(
                     "Didn't receive the code? ",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   GestureDetector(
                     onTap: _resendTimer == 0 ? _resendOtp : null,
                     child: Text(
-                      _resendTimer == 0
-                          ? 'Resend'
-                          : 'Resend in ${_resendTimer}seconds',
+                      _isLoading
+                          ? 'Sending...'
+                          : _resendTimer == 0
+                              ? 'Resend'
+                              : 'Resend in $_resendTimer seconds',
                       style: TextStyle(
                         fontSize: 14,
                         color: _resendTimer == 0
-                            ? const Color(0xFFFF6B35)
-                            : Colors.grey.shade400,
-                        fontWeight: FontWeight.w600,
+                            ? appTheme.primaryColor
+                            : Colors.grey,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              const Spacer(),
+              const SizedBox(height: 48),
 
-              // Continue Button
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _verifyOtp,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6B35),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Continue',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
+              const TermsAndConditionsWidget(),
+              const SizedBox(height: 50),
 
-              const SizedBox(height: 24),
+              FullWidthButton(
+                text: 'Continue',
+                isLoading: userState.isInitialLoading && !_isLoading,
+                onPressed: _verifyOtp,
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    for (var focusNode in _focusNodes) {
-      focusNode.dispose();
-    }
-    super.dispose();
   }
 }

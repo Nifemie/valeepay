@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 
 class SignupSuccessScreen extends ConsumerStatefulWidget {
-  final String? firstName;
+  final SignUpRequest request;
 
   const SignupSuccessScreen({
-    this.firstName,
+    required this.request,
     super.key,
   });
 
@@ -20,8 +21,6 @@ class SignupSuccessScreen extends ConsumerStatefulWidget {
 class _SignupSuccessScreenState extends ConsumerState<SignupSuccessScreen> {
   @override
   Widget build(BuildContext context) {
-    final firstName = widget.firstName ?? 'User';
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -48,7 +47,7 @@ class _SignupSuccessScreenState extends ConsumerState<SignupSuccessScreen> {
                   ),
                   SizedBox(height: 48.h),
                   Text(
-                    "Congratulations, $firstName!\nYou've successfully created your account",
+                    "Congratulations, ${widget.request.fullname}!\nYou've successfully created your account",
                     style: TextStyle(
                       fontSize: 22.sp,
                       fontWeight: FontWeight.bold,
@@ -58,7 +57,7 @@ class _SignupSuccessScreenState extends ConsumerState<SignupSuccessScreen> {
                   const Spacer(flex: 3),
                   FullWidthButton(
                     text: 'Proceed to Login',
-                    onPressed: () => context.push('/signin'),
+                    onPressed: () => context.pushReplacement('/signin'),
                   ),
                   SizedBox(height: 40.h),
                 ],

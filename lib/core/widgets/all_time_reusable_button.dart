@@ -64,7 +64,6 @@ class SecondaryButton extends StatelessWidget {
       ),
       child: TextButton(
         onPressed: onPressed,
-        
         style: TextButton.styleFrom(
           padding: const EdgeInsets.all(10),
           shape: RoundedRectangleBorder(
@@ -89,12 +88,14 @@ class FullWidthButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isEnabled;
+  final bool isLoading;
 
   const FullWidthButton({
     Key? key,
     required this.text,
     required this.onPressed,
     this.isEnabled = true,
+    this.isLoading = false,
   }) : super(key: key);
 
   @override
@@ -114,15 +115,17 @@ class FullWidthButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
           ),
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isEnabled ? Colors.black : const Color(0xFF9CA3AF),
-            fontFamily: 'SF Pro',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: isLoading
+            ? CircularProgressIndicator()
+            : Text(
+                text,
+                style: TextStyle(
+                  color: isEnabled ? Colors.black : const Color(0xFF9CA3AF),
+                  fontFamily: 'SF Pro',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }

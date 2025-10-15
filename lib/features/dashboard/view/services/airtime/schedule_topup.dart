@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
@@ -290,8 +290,8 @@ class _ScheduleTopupScreenState extends State<ScheduleTopupScreen> {
             FullWidthButton(
                 text: 'Schedule Top-up',
                 onPressed: () {
-                  CustomToast.showErrorToast(
-                      context: context,
+                  AppMessenger.show(context,
+                      type: MessageType.error,
                       message: 'Top-up schedule coming soon...');
                 })
           ],

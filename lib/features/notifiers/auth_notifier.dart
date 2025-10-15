@@ -4,7 +4,7 @@ import 'package:valarpay/core/network/api_client.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/models/user.dart';
-import 'package:valarpay/features/repositories/user_repository.dart';
+import 'package:valarpay/features/repositories/auth_repository.dart';
 
 class AuthNotifier extends StateNotifier<DataState<UserModel>> {
   final AuthRepository _repository;
@@ -27,7 +27,7 @@ class AuthNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Login failed: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
@@ -47,7 +47,7 @@ class AuthNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Passcode login failed: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
