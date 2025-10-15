@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import '../../../../core/providers/theme_provider.dart';
 
 class ThemesPage extends ConsumerWidget {
@@ -121,8 +121,9 @@ class ThemesPage extends ConsumerWidget {
 
             // Show a toast to indicate the theme change
             if (context.mounted) {
-              CustomToast.showAppToast(
-                context: context,
+              AppMessenger.show(
+                context,
+                type: MessageType.error,
                 message: 'Theme changed to ${title.toLowerCase()}',
               );
             }

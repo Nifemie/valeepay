@@ -127,7 +127,7 @@ class MyRewardsPage extends ConsumerWidget {
           ),
           child: Center(
             child: Image.asset(
-              'assets/images/VALAR PAY LOGOO.png',
+              'assets/images/logo.png',
               width: 36,
               height: 34,
               fit: BoxFit.contain,

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class TransferToValarPayScreen extends StatefulWidget {
   const TransferToValarPayScreen({super.key});
@@ -23,10 +23,11 @@ class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
       setState(() {
         _accountController.text = clipboardData.text!;
       });
-      CustomToast.showAppToast(
-          context: context, message: 'ValarPay pasted from clipboard');
+      AppMessenger.show(context,
+          type: MessageType.success, message: 'ValarPay pasted from clipboard');
     } else {
-      CustomToast.showAppToast(context: context, message: 'Clipboard is empty');
+      AppMessenger.show(context,
+          type: MessageType.error, message: 'Clipboard is empty');
     }
   }
 

@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:valarpay/core/constants/storage_keys.dart';
-import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
-import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/models/signup_request.dart';
+import 'package:valarpay/features/models/user_availablity_request.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class PersonalDetailsScreen extends ConsumerStatefulWidget {
   final SignUpRequest request;
@@ -26,49 +25,47 @@ class PersonalDetailsScreen extends ConsumerStatefulWidget {
 
 class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneNumberController = TextEditingController();
-  final _emailController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _dobController = TextEditingController();
   final _referralController = TextEditingController();
 
-  _register() async {
-    if (_formKey.currentState!.validate()) {
-      SignUpRequest request = SignUpRequest(
-        fullname: '${_firstNameController.text} ${_lastNameController.text}',
-        email: _emailController.text,
-        phoneNumber: _phoneNumberController.text,
-        username: _usernameController.text,
-        dateOfBirth: _dobController.text,
-        countryCode: widget.request.countryCode,
-        referralCode: _referralController.text,
-      );
-
-      FocusScope.of(context).unfocus();
-      final notifier = ref.read(userNotifierProvider.notifier);
-      await notifier.register(request);
-      final state = ref.read(userNotifierProvider);
-
-      if (state.isDataAvailable) {
-        await LocalStorageService.save(StorageKeys.email, request.email!);
-        await LocalStorageService.save(
-            StorageKeys.signupRequest, request.toString());
-
-        context.push('/verify-email');
-      } else {
-        AppMessenger.show(
-          context,
-          message: state.message ?? 'Registration failed',
-          type: MessageType.error,
-        );
+  Future<void> _checkUserAvailablity() async {
+    try {
+      if (_formKey.currentState!.validate()) {
+        await ref.read(userNotifierProvider.notifier).checkUserExistance(
+            UserAvailabilityRequest(username: widget.request.username));
+        final userState = ref.read(userNotifierProvider);
+        if (!userState.isDataAvailable && mounted) {
+          AppMessenger.show(
+            context,
+            type: MessageType.success,
+            message: userState.message ?? ' User already exist',
+          );
+        } else {
+          final updatedRequest = widget.request.copyWith(
+            fullname:
+                '${_firstNameController.text} ${_lastNameController.text}',
+            username: _usernameController.text,
+            dateOfBirth: _dobController.text,
+            referralCode: _referralController.text,
+          );
+          context.push('/security-details', extra: updatedRequest);
+        }
       }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Failed to check username availablity: ${e.toString()}',
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(userNotifierProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -132,22 +129,6 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
 
                 // Username
                 _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hint: 'Enter your Email',
-                ),
-                const SizedBox(height: 16),
-
-                // Username
-                _buildTextField(
-                  controller: _phoneNumberController,
-                  label: 'Phone Number',
-                  hint: 'Enter your Phone Number',
-                ),
-                const SizedBox(height: 16),
-
-                // Username
-                _buildTextField(
                   controller: _usernameController,
                   label: 'Username',
                   hint: 'Enter your username',
@@ -178,7 +159,10 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
                 TermsAndConditionsWidget(),
                 const SizedBox(height: 50),
 
-                FullWidthButton(text: 'Continue', onPressed: _register),
+                FullWidthButton(
+                    text: 'Continue',
+                    isLoading: userState.isInitialLoading,
+                    onPressed: _checkUserAvailablity)
               ],
             ),
           ),

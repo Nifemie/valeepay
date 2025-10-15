@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/dashboard/widgets/services_widgets/betting_widgets/payment_method_modal.dart';
 
 Widget buildDetailRow(String label, String value, bool isDark,
     {bool isTotal = false}) {

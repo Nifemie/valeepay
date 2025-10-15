@@ -1,31 +1,38 @@
 import 'package:local_auth/local_auth.dart';
+import 'package:valarpay/core/constants/enums/enums.dart';
 
 class BiometricAuthService {
-  static final LocalAuthentication _auth = LocalAuthentication();
+  static final _auth = LocalAuthentication();
 
-  static Future<bool> hasBiometrics() async {
+  static Future<BiometricAuthResult> authenticateWithFallback({
+    String promptMessage = 'Authenticate to continue',
+  }) async {
     try {
-      return await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
-    } catch (_) {
-      return false;
-    }
-  }
+      final canCheck = await _auth.canCheckBiometrics;
+      final isAvailable = await _auth.isDeviceSupported();
+      if (!canCheck || !isAvailable) {
+        // Fallback to passcode if biometrics unavailable
+        return BiometricAuthResult.fallback;
+      }
 
-  static Future<bool> authenticate() async {
-    try {
-      final isAvailable = await hasBiometrics();
-      if (!isAvailable) return false;
+      final availableBiometrics = await _auth.getAvailableBiometrics();
+      final supportsFaceID = availableBiometrics.contains(BiometricType.face);
+      availableBiometrics.contains(BiometricType.fingerprint);
 
-      return await _auth.authenticate(
-        localizedReason: 'Scan your fingerprint or face to login securely',
+      final success = await _auth.authenticate(
+        localizedReason: supportsFaceID
+            ? 'Use Face ID to login'
+            : 'Use Fingerprint to login',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
           useErrorDialogs: true,
         ),
       );
-    } catch (e) {
-      return false;
+
+      return success ? BiometricAuthResult.success : BiometricAuthResult.failed;
+    } catch (_) {
+      return BiometricAuthResult.failed;
     }
   }
 }

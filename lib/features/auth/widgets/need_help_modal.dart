@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class NeedHelpModal {
   static void show(BuildContext context) {
@@ -166,7 +166,7 @@ class NeedHelpModal {
   }
 
   static void _showComingSoon(BuildContext context, String feature) {
-    CustomToast.showInfoToast(
-        context: context, message: '$feature coming soon!');
+    AppMessenger.show(context,
+        type: MessageType.error, message: '$feature coming soon!');
   }
 }

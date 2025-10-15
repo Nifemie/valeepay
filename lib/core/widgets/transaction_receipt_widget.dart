@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 
-// Transaction detail model
 class TransactionDetail {
   final String label;
   final String value;
@@ -219,8 +218,8 @@ class TransactionReceiptWidget extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: detail.value));
-                  CustomToast.showAppToast(
-                      context: context, message: 'Copied to clipboard');
+                  AppMessenger.show(context,
+                      type: MessageType.error, message: 'Copied to clipboard');
                 },
                 child: const Icon(
                   Icons.copy,
