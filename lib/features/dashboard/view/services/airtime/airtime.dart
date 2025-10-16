@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
@@ -10,6 +11,9 @@ import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_ser
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/providers/airtime_providers.dart';
+import 'package:valarpay/features/models/network_provider.dart';
+import 'package:valarpay/features/notifiers/airtime_notifier.dart';
 
 class AirtimeScreen extends StatefulWidget {
   const AirtimeScreen({super.key});
@@ -23,12 +27,41 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
   final TextEditingController _amountController = TextEditingController();
   bool _useCashback = false;
   String _selectedNetwork = '';
+  int _selectedOperatorId = 0;
+  late AirtimeNotifier _airtimeNotifier;
+  List<NetworkProvider> _networkProviders = [];
 
   @override
   void initState() {
     super.initState();
     _controller.text = '';
     _amountController.text = '';
+    _airtimeNotifier = AirtimeProviders.notifier;
+    _loadNetworkProviders();
+
+    // Listen to airtime notifier changes
+    _airtimeNotifier.addListener(_onAirtimeStateChanged);
+  }
+
+  void _loadNetworkProviders() async {
+    await _airtimeNotifier.fetchAirtimeProviders();
+  }
+
+  void _onAirtimeStateChanged() {
+    if (mounted) {
+      setState(() {
+        _networkProviders = _airtimeNotifier.airtimeProviders;
+      });
+
+      if (_airtimeNotifier.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_airtimeNotifier.errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showContactAccessDialog() {
@@ -130,14 +163,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               const SizedBox(height: 24),
 
               // Network Provider Selection
-              NetworkProviderSelector(
-                selectedNetwork: _selectedNetwork,
-                onNetworkSelected: (network) {
-                  setState(() {
-                    _selectedNetwork = network;
-                  });
-                },
-              ),
+              _buildNetworkProviderSelector(),
               const SizedBox(height: 24),
 
               // Amount Section
@@ -190,7 +216,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                             _useCashback = value;
                           });
                         },
-                        activeColor: appTheme.primaryColor,
+                        activeTrackColor: appTheme.primaryColor,
                       ),
                     ],
                   ),
@@ -201,68 +227,8 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               // Continue Button
               FullWidthButton(
                 text: 'Continue',
-                onPressed: () {
-                  // Handle continue action
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ReuseableTransactionDetailsScreen(
-                          hasBottom: false,
-                          topTitleText: 'Transaction',
-                              topTransactionsDetailsList: [
-                                buildDetailRow('Recipient Number',
-                                    '${_controller.text}', isDark),
-                                buildDetailRow(
-                                    'Provider', _selectedNetwork, isDark),
-                                buildDetailRow(
-                                    'Amount',
-                                    currencyFormatter(_amountController.text),
-                                    isDark),
-                              ],
-                              onButtonPressed: () async {
-                                final pin =
-                                    await TransactionPinModal.show(context);
-                                if (pin != null && pin.length == 4 && mounted) {
-                                  if (mounted) Navigator.pop(context);
-                                  if (mounted) {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                TransactionReceiptWidget(
-                                                  amount:
-                                                      _amountController.text,
-                                                  topDetails: [
-                                                    TransactionDetail(
-                                                        label: 'Transaction ID',
-                                                        value:
-                                                            'TXN${DateTime.now().millisecondsSinceEpoch}',
-                                                        showCopyIcon: true),
-                                                    TransactionDetail(
-                                                        label: 'Phone Number',
-                                                        value:
-                                                            '${_controller.text}'),
-                                                    TransactionDetail(
-                                                        label: 'Provider',
-                                                        value:
-                                                            _selectedNetwork),
-                                                    TransactionDetail(
-                                                        label: 'Payment Source',
-                                                        value:
-                                                            'ValarPay Account'),
-                                                    TransactionDetail(
-                                                        label: 'Date & Time',
-                                                        value:
-                                                            '29 Sep 2025 | 8:15 pm')
-                                                  ],
-                                                  onShareReceipt: () {},
-                                                )));
-                                  }
-                                }
-                              },
-                            )),
-                  );
-                },
+                onPressed: _handleContinue,
+                isEnabled: _isFormValid(),
               ),
               const SizedBox(height: 32),
 
@@ -276,10 +242,217 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
     );
   }
 
+  // Build network provider selector widget
+  Widget _buildNetworkProviderSelector() {
+    if (_airtimeNotifier.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Network Provider',
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedNetwork.isEmpty ? null : _selectedNetwork,
+              hint: const Text('Select Network Provider'),
+              isExpanded: true,
+              items: _networkProviders.map((provider) {
+                return DropdownMenuItem<String>(
+                  value: provider.network,
+                  child: Text(provider.planName),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedNetwork = value;
+                    final provider = _networkProviders.firstWhere(
+                      (p) => p.network == value,
+                    );
+                    _selectedOperatorId = provider.operatorId;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Check if form is valid
+  bool _isFormValid() {
+    return _controller.text.isNotEmpty &&
+        _amountController.text.isNotEmpty &&
+        _selectedNetwork.isNotEmpty &&
+        _selectedOperatorId > 0;
+  }
+
+  // Handle continue button press
+  void _handleContinue() {
+    if (!_isFormValid()) {
+      AppMessenger.show(context,
+          message: 'Please fill all required fields', type: MessageType.error);
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReuseableTransactionDetailsScreen(
+          hasBottom: false,
+          topTitleText: 'Transaction',
+          topTransactionsDetailsList: [
+            buildDetailRow('Recipient Number', _controller.text, isDark),
+            buildDetailRow('Provider', _selectedNetwork, isDark),
+            buildDetailRow(
+              'Amount',
+              currencyFormatter(_amountController.text),
+              isDark,
+            ),
+          ],
+          onButtonPressed: _handlePinEntry,
+        ),
+      ),
+    );
+  }
+
+  // Handle PIN entry and purchase
+  Future<void> _handlePinEntry() async {
+    final pin = await TransactionPinModal.show(context);
+    if (pin == null || pin.length != 4) return;
+
+    if (!mounted) return;
+    Navigator.pop(context); // Close transaction details screen
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      // Attempt purchase
+      final success = await _airtimeNotifier.purchaseAirtime(
+        walletPin: pin,
+        amount: double.parse(_amountController.text),
+        operatorId: _selectedOperatorId,
+        phone: _controller.text,
+        currency: 'NGN',
+        addBeneficiary: false,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
+      if (success) {
+        // Show success receipt
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionReceiptWidget(
+              amount: _amountController.text,
+              topDetails: [
+                TransactionDetail(
+                  label: 'Transaction ID',
+                  value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                  showCopyIcon: true,
+                ),
+                TransactionDetail(
+                  label: 'Phone Number',
+                  value: _controller.text,
+                ),
+                TransactionDetail(
+                  label: 'Provider',
+                  value: _selectedNetwork,
+                ),
+                TransactionDetail(
+                  label: 'Payment Source',
+                  value: 'ValarPay Account',
+                ),
+                TransactionDetail(
+                  label: 'Date & Time',
+                  value: _formatDateTime(DateTime.now()),
+                ),
+              ],
+              onShareReceipt: () {},
+            ),
+          ),
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_airtimeNotifier.errorMessage.isNotEmpty
+                ? _airtimeNotifier.errorMessage
+                : 'Airtime purchase failed. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // Format date time for display
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day} ${_getMonthName(dateTime.month)} ${dateTime.year} | ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month - 1];
+  }
+
   @override
   void dispose() {
     _controller.dispose();
     _amountController.dispose();
+    _airtimeNotifier.removeListener(_onAirtimeStateChanged);
     super.dispose();
   }
 }

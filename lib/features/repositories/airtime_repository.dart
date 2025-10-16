@@ -1,0 +1,128 @@
+import 'package:dio/dio.dart';
+import 'package:valarpay/core/constants/api_endpoints.dart';
+import 'package:valarpay/features/models/network_provider.dart';
+import 'package:valarpay/features/models/airtime_models.dart';
+import '../../../core/network/api_client.dart';
+
+class AirtimeRepository {
+  final ApiClient apiClient;
+
+  AirtimeRepository(this.apiClient);
+
+  /// Get available network providers for airtime
+  Future<NetworkProvidersResponse> getAirtimeNetworkProviders() async {
+    try {
+      final response =
+          await apiClient.get(ApiEndpoints.getAirtimeNetworkProviders);
+      return NetworkProvidersResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ??
+          'Failed to fetch airtime network providers');
+    }
+  }
+
+  /// Get available network providers for data
+  /// Get airtime plan for a phone number
+  Future<AirtimePlanResponse> getAirtimePlan({
+    required String phone,
+    required String currency,
+  }) async {
+    try {
+      final response = await apiClient.get(
+        ApiEndpoints.getAirtimePlan,
+        query: {
+          'phone': phone,
+          'currency': currency,
+        },
+      );
+      return AirtimePlanResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch airtime plan');
+    }
+  }
+
+  /// Get airtime variation by operator ID
+  Future<AirtimePlanResponse> getAirtimeVariation({
+    required int operatorId,
+  }) async {
+    try {
+      final response = await apiClient.get(
+        ApiEndpoints.getAirtimeVariation,
+        query: {
+          'operatorId': operatorId.toString(),
+        },
+      );
+      return AirtimePlanResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch airtime variation');
+    }
+  }
+
+  /// Purchase airtime
+  Future<AirtimePurchaseResponse> payAirtime(
+      AirtimePurchaseRequest request) async {
+    try {
+      final response = await apiClient.post(
+        ApiEndpoints.payAirtime,
+        data: request.toJson(),
+      );
+      return AirtimePurchaseResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Airtime purchase failed');
+    }
+  }
+
+  /// Get international FX rate
+  Future<InternationalFxRateResponse> getInternationalFxRate({
+    required double amount,
+    required int operatorId,
+  }) async {
+    try {
+      final response = await apiClient.get(
+        ApiEndpoints.getInternationalFxRate,
+        query: {
+          'amount': amount.toString(),
+          'operatorId': operatorId.toString(),
+        },
+      );
+      return InternationalFxRateResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Failed to fetch FX rate');
+    }
+  }
+
+  /// Get international airtime plan
+  Future<AirtimePlanResponse> getInternationalPlan({
+    required String phone,
+  }) async {
+    try {
+      final response = await apiClient.get(
+        ApiEndpoints.getInternationalPlan,
+        query: {
+          'phone': phone,
+        },
+      );
+      return AirtimePlanResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch international plan');
+    }
+  }
+
+  /// Pay for international airtime
+  Future<AirtimePurchaseResponse> payInternationalAirtime(
+      AirtimePurchaseRequest request) async {
+    try {
+      final response = await apiClient.post(
+        ApiEndpoints.payInternationalAirtime,
+        data: request.toJson(),
+      );
+      return AirtimePurchaseResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ??
+          'International airtime purchase failed');
+    }
+  }
+}

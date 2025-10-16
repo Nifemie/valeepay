@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 import '../../../../../features/auth/widgets/need_help_modal.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   String selectedAccountType = 'Personal';
   String selectedCurrency = 'NGN';
 
@@ -269,13 +270,19 @@ class _SignupScreenState extends State<SignupScreen> {
               Icons.money,
             ),
             const SizedBox(height: 50),
+            
             FullWidthButton(
                 text: 'Continue',
                 onPressed: () {
+                  
+                  SignUpRequest request = SignUpRequest(
+                      accountType: selectedAccountType,
+                      countryCode: selectedCurrency);
+
                   if (selectedAccountType == 'Personal') {
-                    context.push('/personal-details');
+                    context.push('/personal-details', extra: request);
                   } else {
-                    context.push('/business-details');
+                    context.push('/business-details', extra: request);
                   }
                 }),
           ],
@@ -287,14 +294,21 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildLogoHeader() {
     return Row(
       children: [
-        ClipRRect(
-          // Use ClipRRect to apply border radius to the image
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            'assets/images/VALAR PAY LOGOO.png',
-            fit: BoxFit.cover, // Cover the container area
-            width: 40,
-            height: 40,
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect(
+            // Use ClipRRect to apply border radius to the image
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/logo2.png',
+              fit: BoxFit.cover, // Cover the container area
+              width: 40,
+              height: 40,
+            ),
           ),
         ),
         const SizedBox(width: 6),

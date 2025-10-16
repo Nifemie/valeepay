@@ -1,26 +1,71 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:valarpay/core/constants/storage_keys.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 
-class PersonalDetailsScreen extends StatefulWidget {
-  const PersonalDetailsScreen({super.key});
+class PersonalDetailsScreen extends ConsumerStatefulWidget {
+  final SignUpRequest request;
+  const PersonalDetailsScreen({
+    required this.request,
+    super.key,
+  });
 
   @override
-  State<PersonalDetailsScreen> createState() => _PersonalDetailsScreenState();
+  ConsumerState<PersonalDetailsScreen> createState() =>
+      _PersonalDetailsScreenState();
 }
 
-class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
+class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _phoneNumberController = TextEditingController();
+  final _emailController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _dobController = TextEditingController();
-  String? _selectedGender;
-  final _addressController = TextEditingController();
+  final _referralController = TextEditingController();
+
+  _register() async {
+    if (_formKey.currentState!.validate()) {
+      SignUpRequest request = SignUpRequest(
+        fullname: '${_firstNameController.text} ${_lastNameController.text}',
+        email: _emailController.text,
+        phoneNumber: _phoneNumberController.text,
+        username: _usernameController.text,
+        dateOfBirth: _dobController.text,
+        countryCode: widget.request.countryCode,
+        referralCode: _referralController.text,
+      );
+
+      FocusScope.of(context).unfocus();
+      final notifier = ref.read(userNotifierProvider.notifier);
+      await notifier.register(request);
+      final state = ref.read(userNotifierProvider);
+
+      if (state.isDataAvailable) {
+        await LocalStorageService.save(StorageKeys.email, request.email!);
+        await LocalStorageService.save(
+            StorageKeys.signupRequest, request.toString());
+
+        context.push('/verify-email');
+      } else {
+        AppMessenger.show(
+          context,
+          message: state.message ?? 'Registration failed',
+          type: MessageType.error,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +130,30 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // Username
+                _buildTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: 'Enter your Email',
+                ),
+                const SizedBox(height: 16),
+
+                // Username
+                _buildTextField(
+                  controller: _phoneNumberController,
+                  label: 'Phone Number',
+                  hint: 'Enter your Phone Number',
+                ),
+                const SizedBox(height: 16),
+
+                // Username
+                _buildTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'Enter your username',
+                ),
+                const SizedBox(height: 16),
+
                 // Date of Birth
                 _buildTextField(
                   controller: _dobController,
@@ -96,37 +165,12 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Gender Dropdown
-                Text(
-                  'Gender',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  items:
-                      ['Male', 'Female', 'Other']
-                          .map(
-                            (g) => DropdownMenuItem(value: g, child: Text(g)),
-                          )
-                          .toList(),
-                  onChanged: (val) => setState(() => _selectedGender = val),
-                  decoration: _inputDecoration('Select gender'),
-                  validator:
-                      (value) =>
-                          value == null ? 'Please select your gender' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Address
+                // Referral Code
                 _buildTextField(
-                  controller: _addressController,
-                  label: 'Address',
-                  hint: 'Enter your address',
-                  maxLines: 3,
+                  controller: _referralController,
+                  label: 'Referral Code (Optional)',
+                  hint: 'Enter referral code',
+                  isRequired: false,
                 ),
                 const SizedBox(height: 24),
 
@@ -134,14 +178,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                 TermsAndConditionsWidget(),
                 const SizedBox(height: 50),
 
-                // Continue Button
-
-                FullWidthButton(text: 'Continue', onPressed: () {
-                   if (_formKey.currentState!.validate()) {
-                        context.push('/email-password');
-                      }
-                }),
-              
+                FullWidthButton(text: 'Continue', onPressed: _register),
               ],
             ),
           ),
@@ -158,6 +195,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     VoidCallback? onTap,
     IconData? suffixIcon,
     int maxLines = 1,
+    bool isRequired = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,11 +214,9 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           onTap: onTap,
           maxLines: maxLines,
           decoration: _inputDecoration(hint, suffixIcon),
-          validator:
-              (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'This field is required'
-                      : null,
+          validator: (value) => (isRequired && (value == null || value.isEmpty))
+              ? 'This field is required'
+              : null,
         ),
       ],
     );
@@ -218,7 +254,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
+      _dobController.text = DateFormat('d-MMM-y').format(picked);
     }
   }
 
@@ -226,8 +262,9 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _usernameController.dispose();
     _dobController.dispose();
-    _addressController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 }

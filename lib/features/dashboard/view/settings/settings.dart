@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/session_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
 import '../../widgets/home_widgets/settings_widgets.dart';
-import 'close_account_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -35,28 +36,22 @@ class SettingsScreen extends StatelessWidget {
                     SettingsListTile(
                       icon: Icons.login_outlined,
                       title: 'Login Settings',
-                      onTap: () {
-                        context.push('/login-settings');
-                      },
+                      onTap: () => context.push('/login-settings'),
                     ),
                     SettingsListTile(
                       icon: Icons.security_outlined,
                       title: 'Security Settings',
-                      onTap: () {
-                        context.push('/security-settings');
-                      },
+                      onTap: () => context.push('/security-settings'),
                     ),
                     SettingsListTile(
                       icon: Icons.pin_outlined,
                       title: 'Transaction PIN Settings',
-                      onTap: () {
-                        context.push('/transaction-pin-settings');
-                      },
+                      onTap: () => context.push('/transaction-pin-settings'),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -69,35 +64,27 @@ class SettingsScreen extends StatelessWidget {
                     SettingsListTile(
                       icon: Icons.account_balance_wallet_outlined,
                       title: 'Finance Settings',
-                      onTap: () {
-                        context.push('/finance-settings');
-                      },
+                      onTap: () => context.push('/finance-settings'),
                     ),
                     SettingsListTile(
                       icon: Icons.notifications_outlined,
                       title: 'Notification Settings',
-                      onTap: () {
-                        context.push('/notification-settings');
-                      },
+                      onTap: () => context.push('/notification-settings'),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               SettingsListTile(
                 icon: Icons.support_agent_outlined,
                 title: 'Close Account',
-                onTap: () {
-                  context.push('/close-account');
-                },
+                onTap: () => context.push('/close-account'),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               SettingsListTile(
                 icon: Icons.logout_outlined,
                 title: 'Logout',
-                onTap: () {
-                  _showLogoutDialog(context);
-                },
+                onTap: () => _showLogoutDialog(context),
               ),
             ],
           ),
@@ -106,6 +93,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  /// 🔒 Logout confirmation dialog
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -118,14 +106,27 @@ class SettingsScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Handle logout
-            },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: appTheme.primaryColor,
               foregroundColor: Colors.white,
             ),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await SessionService.logout();
+              AppMessenger.show(
+                context,
+                message: 'You have been logged out successfully',
+                type: MessageType.success,
+              );
+              if (context.mounted) {
+                String? username = await SessionService.getUsername();
+                if (username != null) {
+                  context.push('/biometric-login');
+                } else {
+                  context.go('/signin');
+                }
+              }
+            },
             child: const Text('Logout'),
           ),
         ],

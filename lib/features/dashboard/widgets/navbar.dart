@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/themes/app_theme.dart'; // Import GoRouter
 
 class CustomBottomNavBar extends StatefulWidget {
   const CustomBottomNavBar({Key? key}) : super(key: key);
@@ -143,7 +144,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
               width: 24,
               height: 24,
               colorFilter: ColorFilter.mode(
-                isSelected ? const Color(0xFFF76301) : Colors.grey,
+                isSelected
+                    ? const Color(0xFFF76301)
+                    : Theme.of(context) == AppTheme.darkTheme
+                        ? Colors.white70
+                        : Colors.black87,
                 BlendMode.srcIn,
               ),
             ),
@@ -151,7 +156,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             Text(
               item.label,
               style: TextStyle(
-                color: isSelected ? const Color(0xFFF76301) : Colors.grey,
+                color: isSelected
+                    ? const Color(0xFFF76301)
+                    : Theme.of(context) == AppTheme.darkTheme
+                        ? Colors.white70
+                        : Colors.black87,
                 fontFamily: 'SF Pro',
                 fontSize: 12,
                 fontWeight: FontWeight.w400,

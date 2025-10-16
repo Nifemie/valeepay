@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/session_service.dart';
 
 class SplashScreen extends StatefulWidget {
-  final VoidCallback onAnimationComplete;
-
-  const SplashScreen({
-    super.key,
-    required this.onAnimationComplete,
-  });
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -28,82 +25,67 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Scale animation controller (logo grows from small to large)
+    // Initialize animations
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-
-    // Background color animation controller
     _backgroundController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-
-    // Text fade animation controller
     _textController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    // Scale animation (60 to 120)
-    _scaleAnimation = Tween<double>(
-      begin: 60.0,
-      end: 120.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 60.0, end: 120.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
 
-    // Border radius animation (square to circle)
-    _borderRadiusAnimation = Tween<double>(
-      begin: 12.0,
-      end: 60.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeInOut,
-    ));
+    _borderRadiusAnimation = Tween<double>(begin: 12.0, end: 60.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
 
-    // Background color animation (black to orange)
     _backgroundAnimation = ColorTween(
       begin: const Color(0xFF000000),
       end: const Color(0xFFF76301),
-    ).animate(CurvedAnimation(
-      parent: _backgroundController,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _backgroundController, curve: Curves.easeInOut),
+    );
 
-    // Text opacity animation
-    _textOpacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: Curves.easeIn,
-    ));
+    _textOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _textController, curve: Curves.easeIn),
+    );
 
-    // Start the animation sequence
+    // Start animation and check session
     _startAnimationSequence();
   }
 
   Future<void> _startAnimationSequence() async {
-    // Wait a bit before starting
     await Future.delayed(const Duration(milliseconds: 500));
-
-    // Step 1: Scale up the logo
     await _scaleController.forward();
-
-    // Step 2: Change background to orange
     await _backgroundController.forward();
-
-    // Step 3: Fade in the text
     await _textController.forward();
-
-    // Wait a bit before completing
     await Future.delayed(const Duration(milliseconds: 800));
+    _checkSession();
+  }
 
-    // Navigate to next screen
-    widget.onAnimationComplete();
+  Future<void> _checkSession() async {
+    final loggedIn = await SessionService.isLoggedIn();
+
+    if (!mounted) return;
+
+    if (loggedIn) {
+      context.pushReplacement('/');
+    } else {
+      String? savedUsername = await SessionService.getUsername();
+      if (savedUsername != null) {
+        context.push('/biometric-login');
+      } else {
+        context.pushReplacement('/signin');
+      }
+    }
   }
 
   @override
@@ -135,12 +117,11 @@ class _SplashScreenState extends State<SplashScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
+                  // Logo animation
                   Container(
                     width: _scaleAnimation.value,
                     height: _scaleAnimation.value,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF6B00),
                       borderRadius: BorderRadius.circular(
                         _borderRadiusAnimation.value,
                       ),
@@ -151,20 +132,20 @@ class _SplashScreenState extends State<SplashScreen>
                           _borderRadiusAnimation.value,
                         ),
                         child: Image.asset(
-                          'assets/images/VALAR PAY LOGOO.png',
-                          width: _scaleAnimation.value * 0.5,
-                          height: _scaleAnimation.value * 0.5,
+                          'assets/images/launcher.png',
+                          width: _scaleAnimation.value * 0.8,
+                          height: _scaleAnimation.value * 0.8,
                           fit: BoxFit.contain,
                         ),
                       ),
                     ),
                   ),
-                  // Text (fades in)
+                  // App name fade-in
                   Opacity(
                     opacity: _textOpacityAnimation.value,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: const Text(
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 16),
+                      child: Text(
                         'Valarpay',
                         style: TextStyle(
                           color: Colors.white,

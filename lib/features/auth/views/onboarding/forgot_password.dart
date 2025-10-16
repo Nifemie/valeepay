@@ -1,18 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/constants/storage_keys.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/features/models/forgot_password.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
+  bool _isLoading = false;
+
+  forgotPassword() async {
+    if (_formKey.currentState!.validate()) {
+      final username = _usernameController.text.trim();
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        await ref
+            .read(userNotifierProvider.notifier)
+            .forgotPassword(ForgotPasswordRequest(username: username));
+        final userState = ref.read(userNotifierProvider);
+        if (userState.isDataAvailable && mounted) {
+          await LocalStorageService.save(StorageKeys.username, username);
+          CustomToast.showAppToast(
+              context: context, message: 'Otp sent to your email');
+          context.push('/forgot-password-verification');
+        } else if (mounted) {
+          CustomToast.showErrorToast(
+              context: context,
+              message: userState.message ?? 'Invalid username');
+        }
+      } catch (e) {
+        CustomToast.showErrorToast(
+            context: context,
+            message: 'An unexpected error occurred: ${e.toString()}');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Enter your email address and we\'ll send you a link to reset your password',
+                'Enter your email or phone number to reset your password',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
@@ -48,12 +88,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 40),
 
-              // Email Address
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Email Address',
+                    'Email/Phone Number',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -62,10 +101,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
+                    controller: _usernameController,
+                    keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      hintText: 'Enter your email address',
+                      hintText: 'Enter your email or phone number',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 14,
@@ -88,50 +127,41 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Email address is required';
+                        return 'Username is required';
                       }
                       if (!value.contains('@')) {
-                        return 'Please enter a valid email address';
+                        return 'Please enter a valid username';
                       }
                       return null;
                     },
                   ),
                 ],
               ),
-
-              const Spacer(),
-
+              const SizedBox(height: 40),
               // Send Reset Link Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Show success message and navigate back
-                      CustomToast.showAppToast(context:context, message: 'Password reset link sent to your email');
-                      
-                      Future.delayed(const Duration(seconds: 2), () {
-                        context.push('/signin');
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: forgotPassword,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: appTheme.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Continue',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
 
               const SizedBox(height: 16),
 
@@ -170,7 +200,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 }

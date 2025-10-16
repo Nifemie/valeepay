@@ -1,12 +1,10 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter/foundation.dart';
+import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
 import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
-import 'package:valarpay/features/dashboard/view/services/data/data_ussd_enquiry.dart';
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
-import 'package:valarpay/features/dashboard/view/services/flight/flight_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
@@ -15,6 +13,7 @@ import 'package:valarpay/features/dashboard/view/services/internet/internet_scre
 import 'package:valarpay/features/dashboard/view/services/shopping/shopping.dart';
 import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
 import 'package:valarpay/features/dashboard/view/settings/close_account_screen.dart';
+import 'package:valarpay/features/models/signup_request.dart';
 import '../../features/dashboard/view/services/airtime/airtime.dart';
 import '../../features/dashboard/view/services/data/data.dart';
 import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
@@ -46,14 +45,13 @@ import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_scre
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_screen.dart';
 import '../../features/dashboard/view/me/about_us.dart';
 import '../../features/auth/views/introductory/intro_wrapper.dart';
-import '../../features/auth/views/onboarding/change_password.dart';
+import '../../features/auth/views/onboarding/reset_password.dart';
 import '../../features/auth/views/onboarding/forgot_password.dart';
+import '../../features/auth/views/onboarding/forgot_password_verification.dart';
 import '../../features/auth/views/onboarding/signin/biometric_login.dart';
 import '../../features/auth/views/onboarding/signin/passcode_login.dart';
 import '../../features/auth/views/onboarding/signin/signin.dart';
-import '../../features/auth/views/onboarding/signin/verify_fingerprint.dart';
 import '../../features/auth/views/onboarding/signup/business_details.dart';
-import '../../features/auth/views/onboarding/signup/email_password.dart';
 import '../../features/auth/views/onboarding/signup/personal_details.dart';
 import '../../features/auth/views/onboarding/signup/phone_number.dart';
 import '../../features/auth/views/onboarding/signup/signup.dart';
@@ -62,7 +60,7 @@ import '../../features/auth/views/onboarding/signup/verify_email.dart';
 import '../../features/auth/views/onboarding/signup/verify_phone.dart';
 import '../../features/auth/views/splashscreen/splashscreen.dart';
 import '../../features/dashboard/dashboard_wrapper.dart';
-import '../../features/dashboard/view/card.dart';
+import '../../features/dashboard/view/cards/card.dart';
 import '../../features/dashboard/view/home/homescreen.dart';
 import '../../features/dashboard/view/home/support/faq_detail_screen.dart';
 import '../../features/dashboard/view/invest.dart';
@@ -78,35 +76,35 @@ import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
 
 final router = GoRouter(
-  initialLocation: kDebugMode ? '/' : '/splash', // Always show splash screen
+  initialLocation: '/splash', // Always show splash screen
 
   routes: [
-    // Auth routes (without dashboard wrapper)
     GoRoute(
       path: '/splash',
-      builder: (context, state) =>
-          SplashScreen(onAnimationComplete: () => context.push('/intro')),
+      builder: (context, state) => SplashScreen(),
     ),
     GoRoute(path: '/intro', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(
       path: '/personal-details',
-      builder: (context, state) => const PersonalDetailsScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return PersonalDetailsScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/business-details',
-      builder: (context, state) => const BusinessDetailsScreen(),
-    ),
-    GoRoute(
-      path: '/email-password',
-      builder: (context, state) => const EmailPasswordScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return BusinessDetailsScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/verify-email',
       builder: (context, state) => const VerifyEmailScreen(),
     ),
     GoRoute(
-      path: '/phone-number',
+      path: '/validate-phone',
       builder: (context, state) => const PhoneNumberScreen(),
     ),
     GoRoute(
@@ -128,10 +126,6 @@ final router = GoRouter(
       builder: (context, state) => const BiometricLoginScreen(),
     ),
     GoRoute(
-      path: '/verify-fingerprint',
-      builder: (context, state) => const VerifyFingerprintScreen(),
-    ),
-    GoRoute(
       path: '/passcode-login',
       builder: (context, state) => const PasscodeLoginScreen(),
     ),
@@ -140,8 +134,12 @@ final router = GoRouter(
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
     GoRoute(
-      path: '/change-password',
-      builder: (context, state) => const ChangePasswordScreen(),
+      path: '/forgot-password-verification',
+      builder: (context, state) => const ForgotPasswordVerificationScreen(),
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) => const ResetPasswordScreen(),
     ),
 
     // Dashboard shell route with bottom navigation
@@ -150,12 +148,7 @@ final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => const Homescreen(
-            firstName: 'John',
-            profileImageUrl:
-                'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
-            balance: '₦ 1000',
-          ),
+          builder: (context, state) => const Homescreen(),
         ),
         GoRoute(
           path: '/finance',
@@ -167,7 +160,11 @@ final router = GoRouter(
         ),
         GoRoute(
           path: '/cards',
-          builder: (context, state) => const CardScreen(),
+          builder: (context, state) => const CardsScreen(),
+        ),
+        GoRoute(
+          path: '/get-phisical-card',
+          builder: (context, state) => const GetPhysicalCardScreen(),
         ),
         GoRoute(
           path: '/me',
@@ -410,10 +407,6 @@ final router = GoRouter(
     GoRoute(
       path: '/gift-card',
       builder: (context, state) => const GiftCardScreen(),
-    ),
-    GoRoute(
-      path: '/data-ussd-section',
-      builder: (context, state) => const DataUSSDEnquiryScreen(),
     ),
   ],
 );

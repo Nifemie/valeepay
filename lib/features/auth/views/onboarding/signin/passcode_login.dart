@@ -1,44 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/session_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/device_utils.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
-class PasscodeLoginScreen extends StatefulWidget {
+class PasscodeLoginScreen extends ConsumerStatefulWidget {
   const PasscodeLoginScreen({super.key});
 
   @override
-  State<PasscodeLoginScreen> createState() => _PasscodeLoginScreenState();
+  ConsumerState<PasscodeLoginScreen> createState() =>
+      _PasscodeLoginScreenState();
 }
 
-class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
+class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
   String _passcode = '';
   final int _passcodeLength = 6;
+  bool _isProcessing = false;
 
-  void _onNumberPressed(String number) {
+  void _onNumberPressed(String number) async {
     if (_passcode.length < _passcodeLength) {
-      setState(() {
-        _passcode += number;
-      });
+      setState(() => _passcode += number);
 
       if (_passcode.length == _passcodeLength) {
-        // Simulate passcode verification
-        Future.delayed(const Duration(milliseconds: 500), () {
-          context.push('/');
-        });
+        FocusScope.of(context).unfocus();
+        setState(() => _isProcessing = true);
+
+        final ip = await DeviceUtils.getIpAddress();
+        final deviceName = await DeviceUtils.getDeviceName();
+        final os = await DeviceUtils.getDeviceOS();
+
+        final savedUsername = await SessionService.getUsername() ?? '';
+        if (savedUsername != '') {
+          final request = PasscodeLoginRequest(
+            username: savedUsername,
+            passcode: _passcode,
+            ipAddress: ip,
+            deviceName: deviceName,
+            operatingSystem: os,
+          );
+
+          final notifier = ref.read(authNotifierProvider.notifier);
+          await notifier.loginWithPasscode(request);
+          final state = ref.read(authNotifierProvider);
+
+          if (state.isDataAvailable) {
+            final user = state.data?.first;
+            ref.read(userProvider.notifier).setUser(user!);
+            await SessionService.saveSession(LoginResponse(
+              message: state.message ?? '',
+              user: user,
+              statusCode: 200,
+            ));
+
+            AppMessenger.show(
+              context,
+              message: 'Welcome ${user.fullname}',
+              type: MessageType.success,
+            );
+
+            context.pushReplacement('/');
+          } else {
+            AppMessenger.show(
+              context,
+              message: state.message ?? 'Invalid passcode',
+              type: MessageType.error,
+            );
+            setState(() => _passcode = '');
+          }
+        } else {
+          AppMessenger.show(
+            context,
+            message: 'Please login with your password first.',
+            type: MessageType.warning,
+          );
+          context.pushReplacement('/signin');
+        }
+        setState(() => _isProcessing = false);
       }
     }
   }
 
   void _onDeletePressed() {
     if (_passcode.isNotEmpty) {
-      setState(() {
-        _passcode = _passcode.substring(0, _passcode.length - 1);
-      });
+      setState(() => _passcode = _passcode.substring(0, _passcode.length - 1));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -65,20 +122,15 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
         child: Column(
           children: [
             const SizedBox(height: 10),
-
-            // Title
             const Text(
               'Enter Passcode',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
-
             const Text(
               'Enter your 6-digit passcode to login',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
-
             const SizedBox(height: 40),
 
             // Passcode dots
@@ -90,10 +142,9 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
-                    color:
-                        index < _passcode.length
-                            ? appTheme.primaryColor
-                            : Colors.grey.shade300,
+                    color: index < _passcode.length
+                        ? appTheme.primaryColor
+                        : Colors.grey.shade300,
                     shape: BoxShape.circle,
                   ),
                 );
@@ -101,17 +152,19 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
             ),
 
             const Spacer(),
-            const SizedBox(height: 16),
-            // Custom Number Pad
-            _buildNumberPad(),
+
+            if (_isProcessing || authState.isInitialLoading)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              ),
+
+            if (!_isProcessing && !authState.isInitialLoading)
+              _buildNumberPad(),
 
             const SizedBox(height: 16),
-
-            // Forgot passcode
             TextButton(
-              onPressed: () {
-                context.push('/forgot-password');
-              },
+              onPressed: () => context.push('/forgot-password'),
               child: const Text(
                 'Forgot Passcode?',
                 style: TextStyle(
@@ -121,7 +174,6 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
           ],
         ),
@@ -158,13 +210,9 @@ class _PasscodeLoginScreenState extends State<PasscodeLoginScreen> {
         itemCount: numbers.length,
         itemBuilder: (context, index) {
           final item = numbers[index];
-          if (item.isEmpty) {
-            return const SizedBox.shrink();
-          } else if (item == 'del') {
-            return _buildDeleteButton();
-          } else {
-            return _buildNumberButton(item);
-          }
+          if (item.isEmpty) return const SizedBox.shrink();
+          if (item == 'del') return _buildDeleteButton();
+          return _buildNumberButton(item);
         },
       ),
     );

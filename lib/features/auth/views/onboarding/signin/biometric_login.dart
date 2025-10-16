@@ -1,19 +1,127 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/biometric_auth_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/platform_responsive.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/services/session_service.dart';
+import 'package:valarpay/core/utils/device_utils.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
-class BiometricLoginScreen extends StatelessWidget {
+class BiometricLoginScreen extends ConsumerStatefulWidget {
   const BiometricLoginScreen({super.key});
+
+  @override
+  ConsumerState<BiometricLoginScreen> createState() =>
+      _BiometricLoginScreenState();
+}
+
+class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
+  String? _username;
+  String? _fullname;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserSession();
+  }
+
+  Future<void> _loadUserSession() async {
+    final userFullName = await SessionService.getUserFullname();
+    final username = await SessionService.getUsername();
+
+    if (userFullName != null && username != null) {
+      setState(() {
+        _username = username;
+        _fullname = userFullName;
+      });
+    } else {
+      final savedUsername = await SessionService.getUsername();
+      setState(() {
+        _username = savedUsername;
+        _fullname = 'User';
+      });
+    }
+  }
+
+  Future<void> _handleBiometricLogin(
+      BuildContext context, WidgetRef ref) async {
+    final success = await BiometricAuthService.authenticate();
+
+    if (!success) {
+      AppMessenger.show(
+        context,
+        message: 'Biometric authentication failed or cancelled.',
+        type: MessageType.error,
+      );
+      return;
+    }
+
+    final ip = await DeviceUtils.getIpAddress();
+    final deviceName = await DeviceUtils.getDeviceName();
+    final os = await DeviceUtils.getDeviceOS();
+    final savedUsername = _username ?? await SessionService.getUsername();
+
+    if (savedUsername == null) {
+      AppMessenger.show(
+        context,
+        message: 'No saved user session found. Please login manually.',
+        type: MessageType.warning,
+      );
+      context.push('/signin');
+      return;
+    }
+
+    final request = PasscodeLoginRequest(
+      username: savedUsername,
+      passcode: '',
+      ipAddress: ip,
+      deviceName: deviceName,
+      operatingSystem: os,
+    );
+
+    final notifier = ref.read(authNotifierProvider.notifier);
+    await notifier.loginWithPasscode(request);
+    final state = ref.read(authNotifierProvider);
+
+    if (state.isDataAvailable) {
+      final user = state.data?.first;
+      ref.read(userProvider.notifier).setUser(user!);
+      await SessionService.saveSession(
+        LoginResponse(
+          message: state.message ?? '',
+          user: user,
+          statusCode: 200,
+        ),
+      );
+
+      AppMessenger.show(
+        context,
+        message: 'Welcome back, ${user.fullname}',
+        type: MessageType.success,
+      );
+      context.pushReplacement('/');
+    } else {
+      AppMessenger.show(
+        context,
+        message: state.message ?? 'Unable to authenticate.',
+        type: MessageType.error,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true, // make bg cover appbar area
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent, // transparent appbar
+        backgroundColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => context.push('/signin'),
           icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
@@ -37,12 +145,12 @@ class BiometricLoginScreen extends StatelessWidget {
           // Background image
           Positioned.fill(
             child: Image.asset(
-              'assets/images/authbg.jpg', // <-- replace with your asset
+              'assets/images/authbg.jpg',
               fit: BoxFit.cover,
             ),
           ),
 
-          // Gradient overlay (black at bottom, transparent at top)
+          // Gradient overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -66,9 +174,39 @@ class BiometricLoginScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 60.h),
+                  Row(
+                    children: [
+                      Container(
+                        width: 40.rw,
+                        height: 50.rh,
+                        decoration: BoxDecoration(
+                          color: appTheme.primaryColor,
+                          borderRadius: PlatformResponsive.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: PlatformResponsive.circular(8),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
+                            width: 40.rw,
+                            height: 40.rh,
+                          ),
+                        ),
+                      ),
+                      PlatformResponsive.sizedBoxW(12),
+                      Text(
+                        'Valarpay',
+                        style: TextStyle(
+                          fontSize: 24.rsp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 40.h),
 
-                  // User avatar/profile
+                  // User avatar
                   CircleAvatar(
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
@@ -81,9 +219,9 @@ class BiometricLoginScreen extends StatelessWidget {
 
                   SizedBox(height: 18.h),
 
-                  // Welcome text
+                  // Welcome text (dynamic)
                   Text(
-                    'Welcome back, Emmanuel',
+                    'Welcome back, ${_fullname ?? 'User'}',
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w600,
@@ -92,17 +230,21 @@ class BiometricLoginScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    'emmanuel@gmail.com',
-                    style: TextStyle(fontSize: 15.sp, color: Colors.grey[300]),
+                    _username ?? 'Loading...',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      color: Colors.grey[300],
+                    ),
                   ),
 
                   SizedBox(height: 50.h),
 
-                  // Fingerprint prompt
-                  Column(
-                    children: [
-                      GestureDetector(
-                        child: Container(
+                  // Fingerprint section (tap triggers auth)
+                  GestureDetector(
+                    onTap: () => _handleBiometricLogin(context, ref),
+                    child: Column(
+                      children: [
+                        Container(
                           width: 90.w,
                           height: 90.w,
                           decoration: BoxDecoration(
@@ -122,26 +264,26 @@ class BiometricLoginScreen extends StatelessWidget {
                             color: appTheme.primaryColor,
                           ),
                         ),
-                      ),
-                      SizedBox(height: 14.h),
-                      Text(
-                        'Tap fingerprint to login',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                        SizedBox(height: 14.h),
+                        Text(
+                          'Tap fingerprint to login',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: 50.h),
 
-                  // Actions
+                  // Login with Passcode
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.push('/signin'),
+                      onPressed: () => context.push('/passcode-login'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: appTheme.primaryColor,
                         padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -150,7 +292,7 @@ class BiometricLoginScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Login with Password',
+                        'Login with Passcode',
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
@@ -159,32 +301,14 @@ class BiometricLoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 14.h),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => context.push('/passcode-login'),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        side: BorderSide(color: Colors.white70, width: 1.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
-                        ),
-                      ),
-                      child: Text(
-                        'Login with Passcode',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
+
                   SizedBox(height: 22.h),
 
+                  // Switch account
                   GestureDetector(
-                    onTap: () => context.push('/signin'),
+                    onTap: () async {
+                      context.push('/signin');
+                    },
                     child: Text(
                       'Switch Account',
                       style: TextStyle(
@@ -197,7 +321,7 @@ class BiometricLoginScreen extends StatelessWidget {
 
                   SizedBox(height: 40.h),
 
-                  // Securely encrypted
+                  // Securely encrypted info
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

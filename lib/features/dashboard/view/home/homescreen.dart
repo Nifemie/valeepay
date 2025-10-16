@@ -1,31 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/home_widgets/payment_widget_icons.dart';
 import '../../widgets/home_widgets/kyc_widget.dart';
 import '../../widgets/home_widgets/ourservice.dart';
 
-class Homescreen extends StatefulWidget {
-  final String firstName;
-  final String profileImageUrl;
-  final String balance;
-
-  const Homescreen({
-    Key? key,
-    required this.firstName,
-    required this.profileImageUrl,
-    required this.balance,
-  }) : super(key: key);
+class Homescreen extends ConsumerStatefulWidget {
+  const Homescreen({Key? key}) : super(key: key);
 
   @override
-  State<Homescreen> createState() => _HomescreenState();
+  ConsumerState<Homescreen> createState() => _HomescreenState();
 }
 
-class _HomescreenState extends State<Homescreen> {
+class _HomescreenState extends ConsumerState<Homescreen> {
   bool _isBalanceVisible = false;
   int _currentImageIndex = 0;
   Timer? _timer;
@@ -59,8 +51,23 @@ class _HomescreenState extends State<Homescreen> {
     super.dispose();
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+
+    // Fallbacks for safety
+    final firstName = (user?.fullname ?? 'Guest').split(' ').first;
+    final profileImageUrl = 'https://i.pravatar.cc/150?img=3';
+    final balance = '₦0.00';
+    final greeting = _getGreeting();
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -68,12 +75,13 @@ class _HomescreenState extends State<Homescreen> {
           child: Column(
             children: [
               _HomeAppBar(
-                profileImageUrl: widget.profileImageUrl,
-                firstName: widget.firstName,
+                profileImageUrl: profileImageUrl,
+                firstName: firstName,
+                greeting: greeting,
               ),
               const SizedBox(height: 16),
               _BalanceCard(
-                balance: widget.balance,
+                balance: balance,
                 isBalanceVisible: _isBalanceVisible,
                 onToggleVisibility: () =>
                     setState(() => _isBalanceVisible = !_isBalanceVisible),
@@ -84,11 +92,12 @@ class _HomescreenState extends State<Homescreen> {
               const KYCWidget(),
               const SizedBox(height: 16),
               Container(
-                  width: MediaQuery.of(context).size.width,
-                  child: Image.asset(
-                    _bannerImages[_currentImageIndex],
-                    fit: BoxFit.cover,
-                  )),
+                width: MediaQuery.of(context).size.width,
+                child: Image.asset(
+                  _bannerImages[_currentImageIndex],
+                  fit: BoxFit.cover,
+                ),
+              ),
               const SizedBox(height: 16),
               const OurServicesWidget(),
               const SizedBox(height: 24),
@@ -104,11 +113,13 @@ class _HomescreenState extends State<Homescreen> {
 class _HomeAppBar extends StatelessWidget {
   final String profileImageUrl;
   final String firstName;
+  final String greeting;
 
   const _HomeAppBar({
     Key? key,
     required this.profileImageUrl,
     required this.firstName,
+    required this.greeting,
   }) : super(key: key);
 
   @override
@@ -123,20 +134,19 @@ class _HomeAppBar extends StatelessWidget {
             backgroundImage: NetworkImage(profileImageUrl),
           ),
           const SizedBox(width: 12),
-
-          /// ✅ Constrain ListTile with Expanded
           Expanded(
             child: ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(
                 'Hello $firstName',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                'Good Morning',
+                greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.normal,
                       color: appTheme.primaryColor,
@@ -144,14 +154,11 @@ class _HomeAppBar extends StatelessWidget {
               ),
             ),
           ),
-
           Row(
             children: [
               _IconButton(
                 svgPath: 'assets/images/payment_wid/Grouping (1).svg',
-                onTap: () {
-                  context.push('/customer-service');
-                },
+                onTap: () => context.push('/customer-service'),
               ),
               const SizedBox(width: 16),
               _IconButton(svgPath: 'assets/images/payment_wid/scanning.svg'),
@@ -159,9 +166,7 @@ class _HomeAppBar extends StatelessWidget {
               _IconButton(
                 svgPath: 'assets/images/payment_wid/bell.svg',
                 hasNotification: true,
-                onTap: () {
-                  context.push('/notifications');
-                },
+                onTap: () => context.push('/notifications'),
               ),
             ],
           ),
@@ -193,9 +198,8 @@ class _IconButton extends StatelessWidget {
             svgPath,
             width: 24,
             height: 24,
-            colorFilter: Theme.of(context) == AppTheme.darkTheme
-                ? const ColorFilter.mode(Colors.black, BlendMode.srcIn)
-                : null,
+            // ignore: deprecated_member_use
+            color: Theme.of(context).iconTheme.color,
           ),
           if (hasNotification)
             Positioned(
@@ -257,7 +261,7 @@ class _BalanceCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Your Balance',
+                'Main Balance',
                 style: textTheme.bodySmall?.copyWith(color: onPrimary),
               ),
               const SizedBox(width: 6),
@@ -303,7 +307,7 @@ class _BalanceCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              _AddMoneyButton(),
+              const _AddMoneyButton(),
             ],
           ),
         ],
@@ -318,14 +322,12 @@ class _AddMoneyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        context.push('/add-money');
-      },
+      onTap: () => context.push('/add-money'),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: const Color(0xFF011131),
+          color: Colors.white,
         ),
         child: Row(
           children: [
@@ -333,9 +335,10 @@ class _AddMoneyButton extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               'Add Money',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: appTheme.primaryColor),
             ),
           ],
         ),
