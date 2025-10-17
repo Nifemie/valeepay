@@ -15,5 +15,13 @@ class ApiEndpoints {
   static const String verifyForgotPassword =
       '/api/v1/user/verify-forgot-password';
 
+  // KYC - BVN Verification
+  static const String initializeBvn =
+      '/api/v1/wallet/initiate-bvn-verification';
+  static const String validateBvn = '/api/v1/wallet/validate-bvn-verification';
+
+  // Wallet - Transaction PIN
+  static const String setWalletPin = '/api/v1/user/set-wallet-pin';
+
   // future endpoints can go here
 }

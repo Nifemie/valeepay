@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/dashboard/view/KYC/CameraPermission.dart';
+import 'package:valarpay/features/dashboard/view/KYC/bvn_otp_verification.dart';
+import 'package:valarpay/features/models/bvn_initialize_request.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'kyc_step_provider.dart';
 
-// State provider for BVN
+/// BVN Collection for KYC
+///
+/// ⚠️ IMPORTANT: BVN data is currently stored in local state only.
+/// No backend endpoint exists yet for BVN verification/submission.
+///
+/// 🔮 FUTURE USE: This BVN will be required for KYC Level 2/3 verification.
+/// When the backend endpoint is ready:
+/// 1. Create BvnVerificationRequest model with toJson()
+/// 2. Add UserRepository.verifyBvn(BvnVerificationRequest) method
+/// 3. Integrate with KycNotifier for state management
+/// 4. Handle BVN validation response from backend
+///
+/// Current validation: Client-side length check only (11 digits)
+/// Future validation: Backend BVN verification via third-party service
+
+// State provider for BVN (temporary local storage for future KYC submission)
 final bvnProvider = StateProvider<String>((ref) => '');
 
 class BVNPage extends ConsumerWidget {
@@ -16,6 +34,7 @@ class BVNPage extends ConsumerWidget {
     final bvn = ref.watch(bvnProvider);
     final isFormValid = bvn.length == 11; // BVN is 11 digits
     final currentStep = ref.watch(kycStepProvider);
+    final userState = ref.watch(userNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -169,13 +188,42 @@ class BVNPage extends ConsumerWidget {
               FullWidthButton(
                 text: 'Continue',
                 isEnabled: isFormValid,
-                onPressed: () {
-                  ref.read(kycStepProvider.notifier).state = 3;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const CameraPermissionPage()),
-                  ); // Navigate to next step
+                isLoading: userState.isInitialLoading,
+                onPressed: () async {
+                  // Step 1: Call initializeBvn API
+                  final bvnRequest = BvnInitializeRequest(bvn: bvn);
+                  final response = await ref
+                      .read(userNotifierProvider.notifier)
+                      .initializeBvn(bvnRequest);
+
+                  // Step 2: Handle response
+                  if (response != null) {
+                    // Success: Get verificationId from response
+                    final verificationId = response.data.verificationId;
+
+                    // Update KYC step
+                    ref.read(kycStepProvider.notifier).state = 3;
+
+                    // Step 3: Navigate to OTP screen with verificationId
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BvnOtpVerificationPage(
+                          bvn: bvn,
+                          verificationId: verificationId,
+                        ),
+                      ),
+                    );
+                  } else {
+                    // Error: Show error message
+                    final userState = ref.read(userNotifierProvider);
+                    AppMessenger.show(
+                      context,
+                      message: userState.message ??
+                          'Failed to initialize BVN verification',
+                      type: MessageType.error,
+                    );
+                  }
                 },
               ),
             ],
