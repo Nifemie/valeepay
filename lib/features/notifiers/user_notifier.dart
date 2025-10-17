@@ -17,7 +17,7 @@ import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/user.dart';
 import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/models/verify_email_request.dart';
-import 'package:valarpay/features/models/verify_forgot_password.dart';
+import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/models/verify_phone_number.dart';
 import 'package:valarpay/features/repositories/user_repository.dart';
 
@@ -184,7 +184,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
     }
   }
 
-  Future<void> verifyForgotPassword(VerifyForgotPassword request) async {
+  Future<void> verifyForgotPassword(VerifyOtpRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.verifyForgotPassword(request);

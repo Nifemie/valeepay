@@ -49,21 +49,14 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
           await notifier.loginWithPasscode(request);
           final state = ref.read(authNotifierProvider);
 
-          if (state.isDataAvailable) {
-            final user = state.data?.first;
-            ref.read(userProvider.notifier).setUser(user!);
-            await SessionService.saveSession(LoginResponse(
-              message: state.message ?? '',
-              user: user,
-              statusCode: 200,
-            ));
-
+          if (state.isDataAvailable && mounted) {
+            final loginResponse = state.data?.first;
+            ref.read(userProvider.notifier).setUser(loginResponse!.user);
             AppMessenger.show(
               context,
-              message: 'Welcome ${user.fullname}',
+              message: 'Welcome ${loginResponse.user.fullname}',
               type: MessageType.success,
             );
-
             context.pushReplacement('/');
           } else {
             AppMessenger.show(

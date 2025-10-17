@@ -11,7 +11,7 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/models/forgot_password.dart';
 import 'package:valarpay/features/models/username_request.dart';
-import 'package:valarpay/features/models/verify_forgot_password.dart';
+import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class ForgotPasswordVerificationScreen extends ConsumerStatefulWidget {
@@ -56,7 +56,7 @@ class _ForgotPasswordVerificationScreenState
     }
     try {
       await ref.read(userNotifierProvider.notifier).verifyForgotPassword(
-          VerifyForgotPassword(
+          VerifyOtpRequest(
               username: widget.request.username, otpCode: _otp));
       final userState = ref.read(userNotifierProvider);
 

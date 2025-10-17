@@ -8,9 +8,6 @@ import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/platform_responsive.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/services/session_service.dart';
-import 'package:valarpay/core/utils/device_utils.dart';
-import 'package:valarpay/features/notifiers/auth_notifier.dart';
-import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
@@ -46,45 +43,21 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   Future<void> _handleBiometricLogin(
       BuildContext context, WidgetRef ref) async {
     try {
-      final ip = await DeviceUtils.getIpAddress();
-      final deviceName = await DeviceUtils.getDeviceName();
-      final os = await DeviceUtils.getDeviceOS();
-      final savedUsername = _username ?? await SessionService.getUsername();
+      final userAccessToken = await SessionService.getAccessToken();
 
-      if (savedUsername == null) {
+      if (userAccessToken == null) {
         AppMessenger.show(
           context,
-          message: 'No saved user session found. Please login manually.',
+          message: 'Please login with your password',
           type: MessageType.warning,
         );
         context.push('/signin');
         return;
       }
 
-      final request = PasscodeLoginRequest(
-        username: savedUsername,
-        passcode: '',
-        ipAddress: ip,
-        deviceName: deviceName,
-        operatingSystem: os,
-      );
-
-      final notifier = ref.read(authNotifierProvider.notifier);
-      await notifier.loginWithPasscode(request);
-      final state = ref.read(authNotifierProvider);
-
-      if (state.isDataAvailable) {
-        final user = state.data?.first;
-        ref.read(userProvider.notifier).setUser(user!);
-
-        await SessionService.saveSession(
-          LoginResponse(
-            message: state.message ?? '',
-            user: user,
-            statusCode: 200,
-          ),
-        );
-
+      final user = await SessionService.getUser();
+      if (user != null) {
+        ref.read(userProvider.notifier).setUser(user);
         AppMessenger.show(
           context,
           message: 'Welcome back, ${user.fullname}',
@@ -94,9 +67,10 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       } else {
         AppMessenger.show(
           context,
-          message: state.message ?? 'Unable to authenticate.',
+          message: 'Authentication failed, login with your password',
           type: MessageType.error,
         );
+        context.push('/signin');
       }
     } catch (e) {
       AppMessenger.show(
