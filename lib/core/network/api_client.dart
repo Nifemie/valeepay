@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:valarpay/core/services/session_service.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://valar-pay-api.up.railway.app';
@@ -15,7 +16,7 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'x-api-key': apiKey, // ✅ global auth header
+          'x-api-key': apiKey,
         },
       ),
     );
@@ -38,23 +39,40 @@ class ApiClient {
     );
   }
 
+  /// Adds Authorization header if access token is available
+  Future<void> _withAuth(Options options) async {
+    final token = await SessionService.getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      options.headers ??= {};
+      options.headers!['Authorization'] = 'Bearer $token';
+    }
+  }
+
   /// POST Request
   Future<Response> post(String path, {Map<String, dynamic>? data}) async {
-    return await dio.post(path, data: data);
+    final options = Options();
+    await _withAuth(options);
+    return await dio.post(path, data: data, options: options);
   }
 
   /// GET Request
   Future<Response> get(String path, {Map<String, dynamic>? query}) async {
-    return await dio.get(path, queryParameters: query);
+    final options = Options();
+    await _withAuth(options);
+    return await dio.get(path, queryParameters: query, options: options);
   }
 
   /// PUT Request
   Future<Response> put(String path, {Map<String, dynamic>? data}) async {
-    return await dio.put(path, data: data);
+    final options = Options();
+    await _withAuth(options);
+    return await dio.put(path, data: data, options: options);
   }
 
   /// DELETE Request
   Future<Response> delete(String path) async {
-    return await dio.delete(path);
+    final options = Options();
+    await _withAuth(options);
+    return await dio.delete(path, options: options);
   }
 }
