@@ -4,7 +4,7 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import '../../widgets/Kyc/Dialog/profile_setup_dialog.dart';
-import 'setup_passcode.dart';
+import 'setup_pin.dart';
 import 'kyc_step_provider.dart';
 
 class IdentityVerificationTipsPage extends ConsumerStatefulWidget {
