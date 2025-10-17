@@ -2,6 +2,8 @@ class ApiEndpoints {
   //auth apis
   static const String login = '/api/v1/auth/login';
   static const String loginWithPasscode = '/api/v1/auth/passcode-login';
+  static const String resend2fa = '/api/v1/auth/resend-2fa';
+  static const String verify2fa = '/api/v1/auth/verify-2fa';
   //user api
   static const String existanceCheck = '/api/v1/user/existance-check';
   static const String register = '/api/v1/user/register';

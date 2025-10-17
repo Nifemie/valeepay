@@ -49,21 +49,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       await notifier.login(request);
       final state = ref.read(authNotifierProvider);
 
-      if (state.isDataAvailable) {
-        final user = state.data?.first;
-        ref.read(userProvider.notifier).setUser(user!);
-        await SessionService.saveSession(
-          LoginResponse(
-            message: state.message ?? '',
-            user: user,
-            statusCode: 200,
-          ),
-        );
+      if (state.isDataAvailable && mounted) {
+        final loginResponse = state.data?.first;
+        ref.read(userProvider.notifier).setUser(loginResponse!.user);
+        await SessionService.saveSession(loginResponse);
         setState(() {
           _hasStoredUsername = true;
-          _hasIncorrectCred = true;
+          _hasIncorrectCred = false;
         });
-        context.push('/');
+
+        if (loginResponse.accessToken != null) {
+          context.pushReplacement('/',);
+        } else {
+          context.push('/verify-2fa', extra: loginResponse.user);
+        }
       } else {
         AppMessenger.show(
           context,

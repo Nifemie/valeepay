@@ -6,17 +6,29 @@ import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/models/user.dart';
 
 class SessionService {
-  static const String _userKey = 'user_session';
-  static const String _tokenKey = 'auth_token';
+  static const String _userDetailsKey = 'user_details';
+  static const String _userAccessToken = 'user_access_token';
   static const String _usernameKey = 'username';
   static const String _userFullnameKey = 'user_fullname';
 
   // Save login session
   static Future<void> saveSession(LoginResponse response) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, jsonEncode(response.user.toJson()));
+    await prefs.setString(_userDetailsKey, jsonEncode(response.user.toJson()));
     await prefs.setString(_usernameKey, response.user.email);
     await prefs.setString(_userFullnameKey, response.user.fullname);
+    await prefs.setString(_userFullnameKey, response.user.fullname);
+    //save token if any
+    if (response.accessToken != null) {
+      await prefs.setString(_userAccessToken, response.accessToken!);
+    }
+  }
+
+  static Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString(_userAccessToken);
+    if (accessToken == null) return null;
+    return accessToken;
   }
 
   static Future<String?> getUsername() async {
@@ -35,29 +47,28 @@ class SessionService {
 
   static Future<UserModel?> getUser() async {
     final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString(_userKey);
+    final userJson = prefs.getString(_userDetailsKey);
     if (userJson == null) return null;
     return UserModel.fromJson(jsonDecode(userJson));
   }
 
   static Future<bool> isLoggedIn() async {
-    final user = await getUser();
-    return user != null;
+    return await getAccessToken() != null && await getUser() != null;
   }
 
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_userKey);
-    await prefs.remove(_tokenKey);
+    await prefs.remove(_userDetailsKey);
+    await prefs.remove(_userAccessToken);
   }
 
   Future<void> checkSession(BuildContext context) async {
     final loggedIn = await SessionService.isLoggedIn();
     if (loggedIn) {
-      context.push('/'); // go to home
+      context.pushReplacement('/'); // go to home
     } else {
       if (await SessionService.getUsername() != null) {
-        context.push('/biometric-login');
+        context.pushReplacement('/biometric-login');
       } else {
         context.pushReplacement('/signin');
       }
