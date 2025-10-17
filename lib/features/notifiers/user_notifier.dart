@@ -287,6 +287,27 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
     }
   }
 
+  Future<UserModel?> refreshUserProfile() async {
+    try {
+      log('[UserNotifier] Fetching user profile...');
+      final user = await _repository.getUserProfile();
+      log('[UserNotifier] User profile fetched successfully');
+      log('[UserNotifier] isPasscodeSet: ${user.isPasscodeSet}');
+      log('[UserNotifier] isBvnVerified: ${user.isBvnVerified}');
+      log('[UserNotifier] Full user data: ${user.toJson()}');
+
+      // Update state with fresh user data
+      state = state.copyWith(
+        data: [user],
+        isDataAvailable: true,
+      );
+      return user;
+    } catch (e, stack) {
+      log('[UserNotifier Refresh Profile Error] $e\n$stack');
+      return null;
+    }
+  }
+
   void reset() => state = DataState<UserModel>.initial();
 }
 

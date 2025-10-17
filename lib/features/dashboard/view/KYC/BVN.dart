@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/KYC/bvn_otp_verification.dart';
+import 'package:valarpay/features/dashboard/view/KYC/setup_pin.dart';
 import 'package:valarpay/features/models/bvn_initialize_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
@@ -225,6 +226,56 @@ class BVNPage extends ConsumerWidget {
                     );
                   }
                 },
+              ),
+              const SizedBox(height: 16),
+
+              // 🚨 DEVELOPMENT ONLY - REMOVE BEFORE PRODUCTION 🚨
+              // Skip button for testing wallet PIN setup without valid BVN
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.orange, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    // Update KYC step to PIN setup
+                    ref.read(kycStepProvider.notifier).state = 4;
+
+                    // Navigate directly to PIN setup (skip BVN verification)
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SetupTransactionPinPage(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.skip_next, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Text(
+                        'SKIP FOR TESTING (Remove Before Production)',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Warning text
+              Text(
+                '⚠️ Development Mode: This button bypasses BVN verification',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ],
           ),

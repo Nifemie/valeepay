@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/home_widgets/payment_widget_icons.dart';
 import '../../widgets/home_widgets/kyc_widget.dart';
@@ -58,6 +59,35 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     return 'Good Evening';
   }
 
+  /// Pull-to-refresh handler
+  Future<void> _refreshData() async {
+    try {
+      // Refresh user profile from backend
+      final updatedUser =
+          await ref.read(userNotifierProvider.notifier).refreshUserProfile();
+
+      // Update user provider with fresh data
+      if (updatedUser != null) {
+        ref.read(userProvider.notifier).setUser(updatedUser);
+      }
+
+      // You can add more refresh logic here:
+      // - Refresh wallet balance
+      // - Refresh recent transactions
+      // - etc.
+    } catch (e) {
+      // Handle errors silently or show a snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to refresh data'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
@@ -70,38 +100,60 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: [
-              _HomeAppBar(
-                profileImageUrl: profileImageUrl,
-                firstName: firstName,
-                greeting: greeting,
-              ),
-              const SizedBox(height: 16),
-              _BalanceCard(
-                balance: balance,
-                isBalanceVisible: _isBalanceVisible,
-                onToggleVisibility: () =>
-                    setState(() => _isBalanceVisible = !_isBalanceVisible),
-              ),
-              const SizedBox(height: 16),
-              const PaymentWidget(),
-              const SizedBox(height: 16),
-              const KYCWidget(),
-              const SizedBox(height: 16),
-              Container(
-                width: MediaQuery.of(context).size.width,
-                child: Image.asset(
-                  _bannerImages[_currentImageIndex],
-                  fit: BoxFit.cover,
+        child: RefreshIndicator(
+          onRefresh: _refreshData,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                _HomeAppBar(
+                  profileImageUrl: profileImageUrl,
+                  firstName: firstName,
+                  greeting: greeting,
                 ),
-              ),
-              const SizedBox(height: 16),
-              const OurServicesWidget(),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 16),
+                _BalanceCard(
+                  balance: balance,
+                  isBalanceVisible: _isBalanceVisible,
+                  onToggleVisibility: () =>
+                      setState(() => _isBalanceVisible = !_isBalanceVisible),
+                ),
+                const SizedBox(height: 16),
+                const PaymentWidget(),
+                const SizedBox(height: 16),
+                // Conditionally show KYC widget only if not complete
+                // NOTE: Backend returns both isPasscodeSet (device unlock) and isWalletPinSet (transaction PIN)
+                // We check isWalletPinSet for transaction PIN status
+                // For testing: Only checking PIN (skip button bypasses BVN)
+                // TODO: Change to AND logic when testing complete:
+                //       user?.isBvnVerified == true && user?.isWalletPinSet == true
+                Consumer(
+                  builder: (context, ref, child) {
+                    final user = ref.watch(userProvider);
+                    // Temporarily only check wallet PIN for testing (skip button bypasses BVN)
+                    final isKycComplete = user?.isWalletPinSet == true;
+
+                    // Hide KYC widget if user has completed KYC
+                    if (isKycComplete) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return const KYCWidget();
+                  },
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: Image.asset(
+                    _bannerImages[_currentImageIndex],
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const OurServicesWidget(),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),

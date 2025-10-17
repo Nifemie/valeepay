@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/models/set_wallet_pin_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 import '../../../../core/widgets/pin_input_fields.dart';
 import '../../../../controller/pin_controller.dart';
@@ -125,11 +128,35 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return PasscodeSuccessDialog(
-          onDone: () {
+          onDone: () async {
             // Clear all PINs from state
             ref.read(pinControllerProvider.notifier).clearAllPins();
 
-            // Navigate back to home screen
+            // Refresh user profile to update isWalletPinSet status
+            final updatedUser = await ref
+                .read(userNotifierProvider.notifier)
+                .refreshUserProfile();
+
+            // Update user provider with fresh data
+            if (updatedUser != null) {
+              ref.read(userProvider.notifier).setUser(updatedUser);
+
+              // Update session storage with new user data
+              final currentToken = await SessionService.getAccessToken();
+              if (currentToken != null) {
+                await SessionService.saveSession(LoginResponse(
+                  user: updatedUser,
+                  accessToken: currentToken,
+                  message: 'Success',
+                  statusCode: 200,
+                ));
+              }
+            }
+
+            // Close the dialog first
+            Navigator.of(context).pop();
+
+            // Navigate to home screen, replacing all previous routes
             context.go('/');
           },
         );

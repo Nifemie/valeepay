@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
@@ -10,6 +11,7 @@ import 'package:valarpay/features/models/user.dart';
 import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class Verify2faScreen extends ConsumerStatefulWidget {
   final UserModel request;
@@ -61,6 +63,12 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
       final userState = ref.read(authNotifierProvider);
 
       if (userState.isDataAvailable && mounted) {
+        // Save the session including access token after 2FA verification
+        final loginResponse = userState.data?.first;
+        if (loginResponse != null) {
+          await SessionService.saveSession(loginResponse);
+          ref.read(userProvider.notifier).setUser(loginResponse.user);
+        }
         context.pushReplacement('/', extra: widget.request);
       } else if (mounted) {
         AppMessenger.show(

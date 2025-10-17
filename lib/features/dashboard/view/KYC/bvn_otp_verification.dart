@@ -118,6 +118,7 @@ class _BvnOtpVerificationPageState extends ConsumerState<BvnOtpVerificationPage>
       }
 
       final request = BvnValidateRequest(
+        bvn: widget.bvn,
         verificationId: verificationId,
         otpCode: _otp,
       );
