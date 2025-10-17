@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/features/auth/views/onboarding/signup/security_details.dart';
+import 'package:valarpay/features/auth/views/onboarding/signup/verify_2fa.dart';
 import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
@@ -15,6 +16,7 @@ import 'package:valarpay/features/dashboard/view/services/shopping/shopping.dart
 import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
 import 'package:valarpay/features/dashboard/view/settings/close_account_screen.dart';
 import 'package:valarpay/features/models/signup_request.dart';
+import 'package:valarpay/features/models/user.dart';
 import 'package:valarpay/features/models/username_request.dart';
 import '../../features/dashboard/view/services/airtime/airtime.dart';
 import '../../features/dashboard/view/services/data/data.dart';
@@ -127,6 +129,13 @@ final router = GoRouter(
       builder: (context, state) {
         final request = state.extra as SignUpRequest;
         return VerifyPhoneScreen(request: request);
+      },
+    ),
+    GoRoute(
+      path: '/verify-2fa',
+      builder: (context, state) {
+        final request = state.extra as UserModel;
+        return Verify2faScreen(request: request);
       },
     ),
     GoRoute(

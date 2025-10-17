@@ -9,7 +9,7 @@ import 'package:valarpay/features/models/reset_password.dart';
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/models/verify_email_request.dart';
-import 'package:valarpay/features/models/verify_forgot_password.dart';
+import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/models/verify_phone_number.dart';
 import '../../../core/network/api_client.dart';
 
@@ -106,7 +106,7 @@ class UserRepository {
     }
   }
 
-  Future<ApiResponse> verifyForgotPassword(VerifyForgotPassword request) async {
+  Future<ApiResponse> verifyForgotPassword(VerifyOtpRequest request) async {
     try {
       final response = await apiClient.post(ApiEndpoints.verifyForgotPassword,
           data: request.toJson());
