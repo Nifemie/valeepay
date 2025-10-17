@@ -203,7 +203,7 @@ Confirm PIN (re-enter 4 digits)
 ### Screen Files:
 1. `lib/features/dashboard/view/KYC/setup_pin.dart` - Setup PIN screen
 2. `lib/features/dashboard/view/KYC/confirm_transaction_pin_page.dart` - Confirm PIN screen
-3. `lib/features/dashboard/view/home/homescreen.dart` - Final destination (Home Screen)
+3. `lib/features/dashboard/view/KYC/KYCSetupPage.dart` - Final destination
 
 ### Dialog Files:
 1. `lib/features/dashboard/widgets/Kyc/Dialog/passcode_success.dart` - Success dialog
