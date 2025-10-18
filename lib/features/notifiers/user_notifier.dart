@@ -19,6 +19,7 @@ import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/models/verify_email_request.dart';
 import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/models/verify_phone_number.dart';
+import 'package:valarpay/features/models/verify_wallet_pin_request.dart';
 import 'package:valarpay/features/repositories/user_repository.dart';
 
 class UserNotifier extends StateNotifier<DataState<UserModel>> {
@@ -305,6 +306,19 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
     } catch (e, stack) {
       log('[UserNotifier Refresh Profile Error] $e\n$stack');
       return null;
+    }
+  }
+
+  Future<bool> verifyWalletPin(String pin) async {
+    try {
+      log('[UserNotifier] Verifying wallet PIN...');
+      final request = VerifyWalletPinRequest(pin: pin);
+      final response = await _repository.verifyWalletPin(request);
+      log('[UserNotifier] PIN verification result: ${response.isSuccess}');
+      return response.isSuccess;
+    } catch (e, stack) {
+      log('[UserNotifier Verify PIN Error] $e\n$stack');
+      return false;
     }
   }
 

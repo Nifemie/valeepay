@@ -1,3 +1,5 @@
+import 'package:valarpay/features/models/wallet.dart';
+
 class UserModel {
   final String id;
   final String email;
@@ -37,6 +39,7 @@ class UserModel {
   final int tokenVersion;
   final num dailyCummulativeTransactionLimit;
   final num cummulativeBalanceLimit;
+  final List<WalletModel> wallets;
 
   UserModel({
     required this.id,
@@ -77,6 +80,7 @@ class UserModel {
     this.tokenVersion = 0,
     this.dailyCummulativeTransactionLimit = 0,
     this.cummulativeBalanceLimit = 0,
+    this.wallets = const [],
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -123,6 +127,10 @@ class UserModel {
         dailyCummulativeTransactionLimit:
             json['dailyCummulativeTransactionLimit'] ?? 0,
         cummulativeBalanceLimit: json['cummulativeBalanceLimit'] ?? 0,
+        wallets: (json['wallet'] as List?)
+                ?.map((wallet) => WalletModel.fromJson(wallet))
+                .toList() ??
+            [],
       );
 
   Map<String, dynamic> toJson() => {
@@ -164,5 +172,6 @@ class UserModel {
         'tokenVersion': tokenVersion,
         'dailyCummulativeTransactionLimit': dailyCummulativeTransactionLimit,
         'cummulativeBalanceLimit': cummulativeBalanceLimit,
+        'wallet': wallets.map((w) => w.toJson()).toList(),
       };
 }

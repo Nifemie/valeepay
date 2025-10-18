@@ -94,8 +94,16 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
     // Fallbacks for safety
     final firstName = (user?.fullname ?? 'Guest').split(' ').first;
-    final profileImageUrl = 'https://i.pravatar.cc/150?img=3';
-    final balance = '₦0.00';
+    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
+        ? user!.profileImageUrl!
+        : 'https://i.pravatar.cc/150?img=3';
+
+    // Get wallet data
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+    final balance = wallet?.formattedBalance ?? '₦0.00';
+    final accountNumber = wallet?.accountNumber ?? '';
+
     final greeting = _getGreeting();
 
     return Scaffold(
@@ -114,6 +122,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                 const SizedBox(height: 16),
                 _BalanceCard(
                   balance: balance,
+                  accountNumber: accountNumber,
                   isBalanceVisible: _isBalanceVisible,
                   onToggleVisibility: () =>
                       setState(() => _isBalanceVisible = !_isBalanceVisible),
@@ -275,12 +284,14 @@ class _IconButton extends StatelessWidget {
 /// ---------- Balance Card ----------
 class _BalanceCard extends StatelessWidget {
   final String balance;
+  final String accountNumber;
   final bool isBalanceVisible;
   final VoidCallback onToggleVisibility;
 
   const _BalanceCard({
     Key? key,
     required this.balance,
+    required this.accountNumber,
     required this.isBalanceVisible,
     required this.onToggleVisibility,
   }) : super(key: key);
@@ -351,12 +362,27 @@ class _BalanceCard extends StatelessWidget {
           /// Balance Row
           Row(
             children: [
-              Text(
-                isBalanceVisible ? balance : '₦ ••••••••••',
-                style: textTheme.headlineSmall?.copyWith(
-                  color: onPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isBalanceVisible ? balance : '₦ ••••••••••',
+                    style: textTheme.headlineSmall?.copyWith(
+                      color: onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (accountNumber.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      accountNumber,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: onPrimary.withOpacity(0.8),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const Spacer(),
               const _AddMoneyButton(),

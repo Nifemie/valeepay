@@ -19,6 +19,8 @@ import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/models/verify_email_request.dart';
 import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/models/verify_phone_number.dart';
+import 'package:valarpay/features/models/verify_wallet_pin_request.dart';
+import 'package:valarpay/features/models/verify_wallet_pin_response.dart';
 import '../../../core/network/api_client.dart';
 
 class UserRepository {
@@ -182,6 +184,21 @@ class UserRepository {
       log('[UserRepository] Error fetching profile: ${e.response?.data}');
       throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch user profile');
+    }
+  }
+
+  Future<VerifyWalletPinResponse> verifyWalletPin(
+      VerifyWalletPinRequest request) async {
+    try {
+      log('[UserRepository] Verifying wallet PIN...');
+      final response = await apiClient.post(ApiEndpoints.verifyWalletPin,
+          data: request.toJson());
+      log('[UserRepository] PIN verification response: ${response.statusCode}');
+      return VerifyWalletPinResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      log('[UserRepository] PIN verification failed: ${e.response?.data}');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to verify wallet PIN');
     }
   }
 }
