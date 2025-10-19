@@ -1,34 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/upload_images_screen.dart';
+import 'package:valarpay/features/models/giftcard.dart';
+import 'package:valarpay/features/notifiers/giftcard_notifier.dart';
 import '/core/themes/color_utils.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_brand_modal.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_country_modal.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_amount_modal.dart';
 import '/features/dashboard/view/services/giftcard/saved_beneficiary_screen.dart';
 
-class GiftCardScreen extends StatefulWidget {
+class GiftCardScreen extends ConsumerStatefulWidget {
   const GiftCardScreen({super.key});
 
   @override
-  State<GiftCardScreen> createState() => _GiftCardScreenState();
+  ConsumerState<GiftCardScreen> createState() => _GiftCardScreenState();
 }
 
-class _GiftCardScreenState extends State<GiftCardScreen> {
+class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   bool isBuySelected = true;
-  String selectedBrand = 'Apple';
-  String selectedCountry = 'United Kingdom';
-  String selectedAmount = '£ 10';
+  GiftCardProduct? selectedProduct;
+  String selectedBrand = 'Select Brand';
+  String selectedCountry = 'Select Country';
+  String selectedAmount = 'Select Amount';
+  double? selectedAmountValue;
   int quantity = 1;
   String codeOptional = '';
+  String currentRate = '₦0';
+  List<GiftCardProduct> availableProducts = [];
+  List<GiftCardCategory> categories = [];
+  bool isLoadingRate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
+  }
+
+  void _loadInitialData() {
+    ref.read(giftCardCategoriesNotifierProvider.notifier).getCategories();
+    ref.read(giftCardNotifierProvider.notifier).getProducts(currency: 'NGN');
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final giftCardState = ref.watch(giftCardNotifierProvider);
+    final categoriesState = ref.watch(giftCardCategoriesNotifierProvider);
+
+    // Update available products when state changes
+    if (giftCardState.isDataAvailable && giftCardState.data != null) {
+      availableProducts = giftCardState.data!;
+    }
+
+    // Update categories when state changes
+    if (categoriesState.isDataAvailable && categoriesState.data != null) {
+      categories = categoriesState.data!;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -137,9 +171,16 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               _buildSectionTitle('Select Giftcard Brand'),
               const SizedBox(height: 8),
               _buildDropdownField(
-                value: selectedBrand,
-                imagePath: 'assets/images/POUNDS.png',
-                onTap: () => _showGiftCardBrandModal(),
+                value: giftCardState.isInitialLoading
+                    ? 'Loading...'
+                    : selectedBrand,
+                imagePath: selectedProduct?.logoUrls.isNotEmpty == true
+                    ? selectedProduct!.logoUrls.first
+                    : 'assets/images/POUNDS.png',
+                onTap: giftCardState.isInitialLoading
+                    ? null
+                    : () => _showGiftCardBrandModal(),
+                isLoading: giftCardState.isInitialLoading,
               ),
 
               const SizedBox(height: 20),
@@ -149,8 +190,11 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               const SizedBox(height: 8),
               _buildDropdownField(
                 value: selectedCountry,
-                imagePath: 'assets/images/POUNDS.png',
-                onTap: () => _showCountryModal(),
+                imagePath: selectedProduct?.country.flagUrl ??
+                    'assets/images/POUNDS.png',
+                onTap:
+                    selectedProduct != null ? () => _showCountryModal() : null,
+                isLoading: false,
               ),
 
               const SizedBox(height: 20),
@@ -159,9 +203,12 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               _buildSectionTitle('Amount'),
               const SizedBox(height: 8),
               _buildDropdownField(
-                value: selectedAmount,
+                value: isLoadingRate ? 'Loading rate...' : selectedAmount,
                 imagePath: 'assets/images/EURO.png',
-                onTap: () => _showAmountModal(),
+                onTap: selectedProduct != null && !isLoadingRate
+                    ? () => _showAmountModal()
+                    : null,
+                isLoading: isLoadingRate,
               ),
 
               const SizedBox(height: 20),
@@ -188,108 +235,15 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               const SizedBox(height: 20),
 
               // Price in Naira
-              CurrentRateWidget(price: '₦50,000', text: 'Price in Naira'),
+              CurrentRateWidget(price: currentRate, text: 'Price in Naira'),
 
               const SizedBox(height: 45),
 
               // Continue Button
               FullWidthButton(
-                  text: 'Continue',
-                  onPressed: () => isBuySelected
-                      ? Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  ReuseableTransactionDetailsScreen(
-                                    hasBottom: false,
-                          topTitleText: 'Transaction',
-                                    topTransactionsDetailsList: [
-                                      buildDetailRow(
-                                          'Card Type', selectedBrand, isDark),
-                                      buildDetailRow(
-                                          'Country', selectedCountry, isDark),
-                                      buildDetailRow('Card Amount',
-                                          selectedAmount, isDark),
-                                      buildDetailRow(
-                                        'Rate',
-                                        '₦1,500/£',
-                                        isDark,
-                                      ),
-                                      buildDetailRow('Expected Amount in Naira',
-                                          '₦150,000', isDark),
-                                    ],
-                                    onButtonPressed: () async {
-                                      final pin =
-                                          await TransactionPinModal.show(
-                                              context);
-                                      if (pin != null &&
-                                          pin.length == 4 &&
-                                          mounted) {
-                                        if (mounted) Navigator.pop(context);
-                                        if (mounted) {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      TransactionReceiptWidget(
-                                                        amount: '₦150,000',
-                                                        topDetails: [
-                                                          TransactionDetail(
-                                                              label:
-                                                                  'Card Type',
-                                                              value:
-                                                                  selectedBrand),
-                                                          TransactionDetail(
-                                                              label: 'Country',
-                                                              value:
-                                                                  selectedCountry,
-                                                              showCopyIcon:
-                                                                  true),
-                                                          TransactionDetail(
-                                                              label:
-                                                                  'Card Amount',
-                                                              value:
-                                                                  selectedAmount),
-                                                          TransactionDetail(
-                                                              label: 'Rate',
-                                                              value:
-                                                                  '₦150,000'),
-                                                          TransactionDetail(
-                                                              label:
-                                                                  'Amount Received',
-                                                              value:
-                                                                  'ValarPay Account'),
-                                                        ],
-                                                        bottomDetails: [
-                                                          TransactionDetail(
-                                                              label:
-                                                                  'Transaction ID',
-                                                              value:
-                                                                  'TXN${DateTime.now().millisecondsSinceEpoch}',
-                                                              showCopyIcon:
-                                                                  true),
-                                                          TransactionDetail(
-                                                              label:
-                                                                  'Payment Source',
-                                                              value:
-                                                                  'ValarPay Account'),
-                                                          TransactionDetail(
-                                                              label:
-                                                                  'Date & Time',
-                                                              value:
-                                                                  '29 Sep 2025 | 8:15 pm')
-                                                        ],
-                                                        onShareReceipt: () {},
-                                                      )));
-                                        }
-                                      }
-                                    },
-                                  )),
-                        )
-                      : Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UploadImagesScreen())))
+                text: 'Continue',
+                onPressed: _canProceed() ? _handleContinue : () {},
+              )
             ],
           ),
         ),
@@ -310,7 +264,8 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
   Widget _buildDropdownField({
     required String value,
     required String imagePath,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
+    bool isLoading = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -322,20 +277,42 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
         ),
         child: Row(
           children: [
-            Image.asset(imagePath, height: 14),
+            if (imagePath.startsWith('http'))
+              Image.network(
+                imagePath,
+                height: 14,
+                width: 14,
+                errorBuilder: (context, error, stackTrace) =>
+                    Image.asset('assets/images/POUNDS.png', height: 14),
+              )
+            else
+              Image.asset(imagePath, height: 14),
             SizedBox(width: 16),
             Expanded(
               child: Text(
                 value,
                 style: TextStyle(
                   fontSize: 16,
+                  color: onTap == null ? Colors.grey : null,
                 ),
               ),
             ),
-            Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.grey[600],
-            ),
+            if (isLoading)
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryColor,
+                  ),
+                ),
+              )
+            else
+              Icon(
+                Icons.keyboard_arrow_down,
+                color: onTap == null ? Colors.grey[400] : Colors.grey[600],
+              ),
           ],
         ),
       ),
@@ -343,14 +320,22 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
   }
 
   void _showGiftCardBrandModal() {
+    if (availableProducts.isEmpty) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => GiftCardBrandModal(
         selectedBrand: selectedBrand,
-        onBrandSelected: (brand) {
-          setState(() => selectedBrand = brand);
+        products: availableProducts,
+        onBrandSelected: (product) {
+          selectedProduct = product;
+          selectedBrand = product.brand.brandName;
+          selectedCountry = product.country.name;
+          selectedAmount = 'Select Amount';
+          selectedAmountValue = null;
+          currentRate = '₦0';
           Navigator.pop(context);
         },
       ),
@@ -358,14 +343,17 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
   }
 
   void _showCountryModal() {
+    if (selectedProduct == null) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => GiftCardCountryModal(
         selectedCountry: selectedCountry,
+        product: selectedProduct!,
         onCountrySelected: (country) {
-          setState(() => selectedCountry = country);
+          selectedCountry = country;
           Navigator.pop(context);
         },
       ),
@@ -373,17 +361,197 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
   }
 
   void _showAmountModal() {
+    if (selectedProduct == null) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => GiftCardAmountModal(
         selectedAmount: selectedAmount,
-        onAmountSelected: (amount) {
-          setState(() => selectedAmount = amount);
+        product: selectedProduct!,
+        onAmountSelected: (amount, value) {
+          selectedAmount = amount;
+          selectedAmountValue = value;
+          _updateRate(value);
           Navigator.pop(context);
         },
       ),
     );
+  }
+
+  void _updateRate(double amount) async {
+    if (selectedProduct == null) return;
+
+    setState(() {
+      isLoadingRate = true;
+    });
+
+    try {
+      final fxRate =
+          await ref.read(giftCardNotifierProvider.notifier).getFxRate(
+                currency: selectedProduct!.recipientCurrencyCode,
+                amount: amount,
+              );
+
+      if (fxRate != null && mounted) {
+        setState(() {
+          currentRate = '₦${fxRate.data.senderAmount.toStringAsFixed(2)}';
+          isLoadingRate = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          currentRate = '₦0';
+          isLoadingRate = false;
+        });
+      }
+    }
+  }
+
+  bool _canProceed() {
+    if (isBuySelected) {
+      return selectedProduct != null &&
+          selectedAmountValue != null &&
+          currentRate != '₦0' &&
+          !isLoadingRate;
+    } else {
+      return true; // For sell giftcard, we can always proceed
+    }
+  }
+
+  void _handleContinue() {
+    if (isBuySelected) {
+      _handleBuyGiftCard();
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => UploadImagesScreen()),
+      );
+    }
+  }
+
+  void _handleBuyGiftCard() {
+    if (selectedProduct == null || selectedAmountValue == null) return;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final rate = currentRate.replaceAll('₦', '').replaceAll(',', '');
+    final rateValue = double.tryParse(rate) ?? 0;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReuseableTransactionDetailsScreen(
+          hasBottom: false,
+          topTitleText: 'Transaction',
+          topTransactionsDetailsList: [
+            buildDetailRow('Card Type', selectedBrand, isDark),
+            buildDetailRow('Country', selectedCountry, isDark),
+            buildDetailRow('Card Amount', selectedAmount, isDark),
+            buildDetailRow(
+              'Rate',
+              '₦${(rateValue / selectedAmountValue!).toStringAsFixed(2)}/${selectedProduct!.recipientCurrencyCode}',
+              isDark,
+            ),
+            buildDetailRow('Expected Amount in Naira', currentRate, isDark),
+          ],
+          onButtonPressed: () => _processPayment(rateValue),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _processPayment(double amount) async {
+    final pin = await TransactionPinModal.show(context);
+    if (pin == null || pin.length != 4 || !mounted) return;
+
+    if (mounted) Navigator.pop(context);
+
+    final paymentRequest = GiftCardPaymentRequest(
+      productId: selectedProduct!.productId,
+      currency: 'NGN',
+      walletPin: pin,
+      amount: amount,
+      unitPrice: selectedAmountValue!,
+      quantity: quantity,
+    );
+
+    try {
+      await ref
+          .read(giftCardNotifierProvider.notifier)
+          .payForGiftCard(paymentRequest);
+
+      if (mounted) {
+        final transactionId = 'TXN${DateTime.now().millisecondsSinceEpoch}';
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionReceiptWidget(
+              amount: currentRate,
+              topDetails: [
+                TransactionDetail(label: 'Card Type', value: selectedBrand),
+                TransactionDetail(
+                  label: 'Country',
+                  value: selectedCountry,
+                  showCopyIcon: true,
+                ),
+                TransactionDetail(label: 'Card Amount', value: selectedAmount),
+                TransactionDetail(
+                  label: 'Rate',
+                  value:
+                      '₦${(amount / selectedAmountValue!).toStringAsFixed(2)}/${selectedProduct!.recipientCurrencyCode}',
+                ),
+                TransactionDetail(label: 'Amount Paid', value: currentRate),
+              ],
+              bottomDetails: [
+                TransactionDetail(
+                  label: 'Transaction ID',
+                  value: transactionId,
+                  showCopyIcon: true,
+                ),
+                TransactionDetail(
+                  label: 'Payment Source',
+                  value: 'ValarPay Account',
+                ),
+                TransactionDetail(
+                  label: 'Date & Time',
+                  value:
+                      '${DateTime.now().day} ${_getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                ),
+              ],
+              onShareReceipt: () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month - 1];
   }
 }

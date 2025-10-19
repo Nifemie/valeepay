@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/features/dashboard/view/me/account_settings.dart';
-import 'package:valarpay/features/dashboard/view/me/portfolio.dart';
-import 'package:valarpay/features/dashboard/view/me/theme.dart';
-import 'package:valarpay/features/dashboard/view/me/transaction_history.dart';
+// unused imports removed
 
 class AccountMenuWidget extends StatelessWidget {
   const AccountMenuWidget({Key? key}) : super(key: key);

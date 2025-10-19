@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/app.dart';
+// import 'package:valarpay/app.dart'; // unused
 import '../../widgets/me_widgets/modal/calendar_picker_moadal.dart';
 import 'package:valarpay/core/widgets/custom_toast.dart';
 
@@ -19,7 +19,7 @@ class AccountStatementPage extends ConsumerWidget {
     final startDate = ref.watch(startDateProvider);
     final endDate = ref.watch(endDateProvider);
     final selectedAccount = ref.watch(selectedAccountProvider);
-    final email = ref.watch(emailProvider);
+    // email provider is used when generating the statement; no local watch needed here
 
     return Scaffold(
       appBar: AppBar(

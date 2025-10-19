@@ -1,228 +1,132 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/network_provider.dart';
 import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/features/repositories/airtime_repository.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
 
-enum AirtimeState {
-  initial,
-  loading,
-  success,
-  error,
-}
+/// Repository provider
+final airtimeRepositoryProvider = Provider<AirtimeRepository>((ref) {
+  return AirtimeRepository(ref.read(apiClientProvider));
+});
 
-class AirtimeNotifier extends ChangeNotifier {
+/// Providers
+class AirtimeProvidersNotifier
+    extends StateNotifier<DataState<NetworkProvider>> {
   final AirtimeRepository _repository;
 
-  AirtimeNotifier(this._repository);
+  AirtimeProvidersNotifier(this._repository)
+      : super(DataState<NetworkProvider>.initial());
 
-  AirtimeState _state = AirtimeState.initial;
-  String _errorMessage = '';
-  List<NetworkProvider> _airtimeProviders = [];
-  List<NetworkProvider> _dataProviders = [];
-  AirtimePlan? _currentPlan;
-  AirtimePlan? _currentVariation;
-  InternationalFxRate? _currentFxRate;
-  AirtimePurchaseResponse? _lastTransaction;
-
-  // Getters
-  AirtimeState get state => _state;
-  String get errorMessage => _errorMessage;
-  List<NetworkProvider> get airtimeProviders => _airtimeProviders;
-  List<NetworkProvider> get dataProviders => _dataProviders;
-  AirtimePlan? get currentPlan => _currentPlan;
-  AirtimePlan? get currentVariation => _currentVariation;
-  InternationalFxRate? get currentFxRate => _currentFxRate;
-  AirtimePurchaseResponse? get lastTransaction => _lastTransaction;
-
-  bool get isLoading => _state == AirtimeState.loading;
-  bool get hasError => _state == AirtimeState.error;
-
-  void _setState(AirtimeState newState) {
-    _state = newState;
-    notifyListeners();
-  }
-
-  void _setError(String message) {
-    _errorMessage = message;
-    _setState(AirtimeState.error);
-  }
-
-  /// Fetch airtime network providers
-  Future<void> fetchAirtimeProviders() async {
-    _setState(AirtimeState.loading);
+  Future<void> fetchProviders() async {
+    state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final response = await _repository.getAirtimeNetworkProviders();
-      _airtimeProviders = response.providers;
-      _setState(AirtimeState.success);
-    } catch (e) {
-      _setError(e.toString());
+      final res = await _repository.getAirtimeNetworkProviders();
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: res.providers,
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[AirtimeProvidersNotifier fetchProviders] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Failed to load providers: ${e.toString()}');
     }
   }
 
-  /// Get airtime plan for a phone number
-  Future<void> getAirtimePlan({
-    required String phone,
-    required String currency,
-  }) async {
-    _setState(AirtimeState.loading);
-    try {
-      final response = await _repository.getAirtimePlan(
-        phone: phone,
-        currency: currency,
-      );
-      _currentPlan = response.plan;
-      _setState(AirtimeState.success);
-    } catch (e) {
-      _setError(e.toString());
-    }
-  }
-
-  /// Get airtime variation by operator ID
-  Future<void> getAirtimeVariation({
-    required int operatorId,
-  }) async {
-    _setState(AirtimeState.loading);
-    try {
-      final response = await _repository.getAirtimeVariation(
-        operatorId: operatorId,
-      );
-      _currentVariation = response.plan;
-      _setState(AirtimeState.success);
-    } catch (e) {
-      _setError(e.toString());
-    }
-  }
-
-  /// Purchase airtime
-  Future<bool> purchaseAirtime({
-    required String walletPin,
-    required double amount,
-    required int operatorId,
-    required String phone,
-    required String currency,
-    bool? addBeneficiary,
-  }) async {
-    _setState(AirtimeState.loading);
-    try {
-      final request = AirtimePurchaseRequest(
-        walletPin: walletPin,
-        amount: amount,
-        operatorId: operatorId,
-        phone: phone,
-        currency: currency,
-        addBeneficiary: addBeneficiary,
-      );
-
-      final response = await _repository.payAirtime(request);
-      _lastTransaction = response;
-      _setState(AirtimeState.success);
-      return true;
-    } catch (e) {
-      _setError(e.toString());
-      return false;
-    }
-  }
-
-  /// Get international FX rate
-  Future<void> getInternationalFxRate({
-    required double amount,
-    required int operatorId,
-  }) async {
-    _setState(AirtimeState.loading);
-    try {
-      final response = await _repository.getInternationalFxRate(
-        amount: amount,
-        operatorId: operatorId,
-      );
-      _currentFxRate = response.data;
-      _setState(AirtimeState.success);
-    } catch (e) {
-      _setError(e.toString());
-    }
-  }
-
-  /// Get international airtime plan
-  Future<void> getInternationalPlan({
-    required String phone,
-  }) async {
-    _setState(AirtimeState.loading);
-    try {
-      final response = await _repository.getInternationalPlan(phone: phone);
-      _currentPlan = response.plan;
-      _setState(AirtimeState.success);
-    } catch (e) {
-      _setError(e.toString());
-    }
-  }
-
-  /// Purchase international airtime
-  Future<bool> purchaseInternationalAirtime({
-    required String walletPin,
-    required double amount,
-    required int operatorId,
-    required String phone,
-    required String currency,
-    bool? addBeneficiary,
-  }) async {
-    _setState(AirtimeState.loading);
-    try {
-      final request = AirtimePurchaseRequest(
-        walletPin: walletPin,
-        amount: amount,
-        operatorId: operatorId,
-        phone: phone,
-        currency: currency,
-        addBeneficiary: addBeneficiary,
-      );
-
-      final response = await _repository.payInternationalAirtime(request);
-      _lastTransaction = response;
-      _setState(AirtimeState.success);
-      return true;
-    } catch (e) {
-      _setError(e.toString());
-      return false;
-    }
-  }
-
-  /// Clear error state
-  void clearError() {
-    _errorMessage = '';
-    if (_state == AirtimeState.error) {
-      _setState(AirtimeState.initial);
-    }
-  }
-
-  /// Reset state
-  void reset() {
-    _state = AirtimeState.initial;
-    _errorMessage = '';
-    _currentPlan = null;
-    _currentVariation = null;
-    _currentFxRate = null;
-    _lastTransaction = null;
-    notifyListeners();
-  }
-
-  /// Get network provider by operator ID
-  NetworkProvider? getProviderByOperatorId(int operatorId) {
-    try {
-      return _airtimeProviders.firstWhere(
-        (provider) => provider.operatorId == operatorId,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Get network provider by network name
-  NetworkProvider? getProviderByNetwork(String network) {
-    try {
-      return _airtimeProviders.firstWhere(
-        (provider) => provider.network.toLowerCase() == network.toLowerCase(),
-      );
-    } catch (e) {
-      return null;
-    }
-  }
+  void reset() => state = DataState<NetworkProvider>.initial();
 }
+
+class AirtimePlanNotifier extends StateNotifier<DataState<AirtimePlan>> {
+  final AirtimeRepository _repository;
+
+  AirtimePlanNotifier(this._repository)
+      : super(DataState<AirtimePlan>.initial());
+
+  Future<void> getPlan(
+      {required String phone, required String currency}) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res =
+          await _repository.getAirtimePlan(phone: phone, currency: currency);
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: [res.plan],
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[AirtimePlanNotifier getPlan] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Failed to load plan: ${e.toString()}');
+    }
+  }
+
+  Future<void> getVariation({required int operatorId}) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.getAirtimeVariation(operatorId: operatorId);
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: [res.plan],
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[AirtimePlanNotifier getVariation] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Failed to load variation: ${e.toString()}');
+    }
+  }
+
+  void reset() => state = DataState<AirtimePlan>.initial();
+}
+
+class AirtimePurchaseNotifier
+    extends StateNotifier<DataState<AirtimePurchaseResponse>> {
+  final AirtimeRepository _repository;
+
+  AirtimePurchaseNotifier(this._repository)
+      : super(DataState<AirtimePurchaseResponse>.initial());
+
+  Future<void> purchase(AirtimePurchaseRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.payAirtime(request);
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: [res],
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[AirtimePurchaseNotifier purchase] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Purchase failed: ${e.toString()}');
+    }
+  }
+
+  void reset() => state = DataState<AirtimePurchaseResponse>.initial();
+}
+
+// Riverpod providers
+final airtimeProvidersNotifierProvider =
+    StateNotifierProvider<AirtimeProvidersNotifier, DataState<NetworkProvider>>(
+  (ref) => AirtimeProvidersNotifier(ref.read(airtimeRepositoryProvider)),
+);
+
+final airtimePlanNotifierProvider =
+    StateNotifierProvider<AirtimePlanNotifier, DataState<AirtimePlan>>(
+  (ref) => AirtimePlanNotifier(ref.read(airtimeRepositoryProvider)),
+);
+
+final airtimePurchaseNotifierProvider = StateNotifierProvider<
+    AirtimePurchaseNotifier, DataState<AirtimePurchaseResponse>>(
+  (ref) => AirtimePurchaseNotifier(ref.read(airtimeRepositoryProvider)),
+);

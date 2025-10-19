@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
-import 'faq_screen.dart';
-import 'visit_office_screen.dart';
-import '../../me/theme.dart';
+// Local imports removed: unused in this file
 
 class CustomerServiceScreen extends StatelessWidget {
   const CustomerServiceScreen({super.key});
@@ -80,8 +78,7 @@ class CustomerServiceScreen extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   double cardWidth = (constraints.maxWidth - 16.w) / 2;
-                  double cardHeight =
-                      cardWidth * 0.65; 
+                  double cardHeight = cardWidth * 0.65;
 
                   return SizedBox(
                     height: cardHeight * 3 + 32.h, // 3 rows + spacing

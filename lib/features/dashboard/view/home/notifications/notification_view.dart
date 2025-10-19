@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:valarpay/app.dart';
+// import 'package:valarpay/app.dart'; // unused
 
 class NotificationViewScreen extends StatelessWidget {
   final String title;

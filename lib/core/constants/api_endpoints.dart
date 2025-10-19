@@ -33,5 +33,22 @@ class ApiEndpoints {
   static const String payInternationalAirtime =
       '/api/v1/bill/airtime/international/pay';
 
+  // Giftcard endpoints
+  static const String getGiftCardCategories =
+      '/api/v1/bill/giftcard/get-categories';
+  static const String getGiftCardProducts = '/api/v1/bill/giftcard/get-product';
+  static const String payGiftCard = '/api/v1/bill/giftcard/pay';
+  static const String getGiftCardRedeemCode =
+      '/api/v1/bill/giftcard/get-redeem-code';
+  static const String getGiftCardFxRate = '/api/v1/bill/giftcard/get-fx-rate';
+
+  // Electricity endpoints
+  static const String getElectricityPlan = '/api/v1/bill/electricity/get-plan';
+  static const String getElectricityBillInfo =
+      '/api/v1/bill/electricity/get-bill-info';
+  static const String verifyMeterNumber =
+      '/api/v1/bill/electricity/verify-meter-number';
+  static const String payElectricity = '/api/v1/bill/electricity/pay';
+
   // future endpoints can go here
 }

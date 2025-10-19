@@ -11,7 +11,6 @@ class SetupTransactionPinPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pinState = ref.watch(pinControllerProvider);
     final isFormValid = ref.read(pinControllerProvider.notifier).isPinValid();
 
     return Scaffold(

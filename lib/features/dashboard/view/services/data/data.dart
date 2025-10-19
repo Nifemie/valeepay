@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
@@ -8,77 +9,106 @@ import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/mobile_data_services_section.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/providers/data_providers.dart';
 import 'package:valarpay/features/notifiers/data_notifier.dart';
 import 'package:valarpay/features/models/data_models.dart';
 import 'package:valarpay/features/models/network_provider.dart';
 
-class DataScreen extends StatefulWidget {
+class DataScreen extends ConsumerStatefulWidget {
   const DataScreen({super.key});
 
   @override
-  State<DataScreen> createState() => _DataScreenState();
+  ConsumerState<DataScreen> createState() => _DataScreenState();
 }
 
-class _DataScreenState extends State<DataScreen> {
+class _DataScreenState extends ConsumerState<DataScreen> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController amountController =
+      TextEditingController(text: '0');
   bool _useCashback = false;
   String _selectedNetwork = '';
   int _selectedOperatorId = 0;
   String _selectedPlan = '';
-  late DataNotifier _dataNotifier;
-  List<NetworkProvider> _networkProviders = [];
-  List<DataPlanInfo> _availablePlans = [];
 
   @override
   void initState() {
     super.initState();
-    _dataNotifier = DataProviders.notifier;
-    _loadNetworkProviders();
-    _dataNotifier.addListener(_onDataStateChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(dataProvidersNotifierProvider.notifier).fetchProviders();
+    });
   }
 
-  void _loadNetworkProviders() async {
-    await _dataNotifier.fetchDataProviders();
-  }
-
-  void _onDataStateChanged() {
-    if (mounted) {
-      setState(() {
-        _networkProviders = _dataNotifier.dataProviders;
-        _availablePlans = _dataNotifier.availablePlans;
-      });
-
-      if (_dataNotifier.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_dataNotifier.errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _showContactAccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => ContactAccessDialog(
-        onAllow: () {
-          Navigator.of(context).pop();
-          // Handle contact access permission
-        },
-        onCancel: () {
-          Navigator.of(context).pop();
-        },
-      ),
-    );
+  @override
+  void dispose() {
+    _controller.dispose();
+    amountController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final providersState = ref.watch(dataProvidersNotifierProvider);
+    final plansState = ref.watch(dataPlansNotifierProvider);
+
+    final networkProviders = providersState.data ?? <NetworkProvider>[];
+    final availablePlans = plansState.data ?? <DataPlanInfo>[];
+
+    // Listen for plan errors
+    ref.listen<DataState<DataPlanInfo>>(dataPlansNotifierProvider,
+        (prev, next) {
+      if (next.message != null &&
+          !next.isInitialLoading &&
+          !next.isDataAvailable) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(next.message!), backgroundColor: Colors.red));
+      }
+    });
+
+    // Listen for variation updates to set amount
+    ref.listen<DataState<DataPlan>>(dataVariationNotifierProvider,
+        (prev, next) {
+      if (!next.isInitialLoading &&
+          next.isDataAvailable &&
+          next.data != null &&
+          next.data!.isNotEmpty) {
+        final variation = next.data!.first;
+        if (variation.fixedAmounts.isNotEmpty) {
+          amountController.text =
+              variation.fixedAmounts.first.toStringAsFixed(0);
+        }
+      }
+    });
+
+    // Listen for purchase results
+    ref.listen<DataState<DataPurchaseResponse>>(dataPurchaseNotifierProvider,
+        (prev, next) {
+      if (!next.isInitialLoading &&
+          next.isDataAvailable &&
+          next.data != null &&
+          next.data!.isNotEmpty) {
+        if (mounted) {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => TransactionReceiptWidget(
+                      amount: '₦${amountController.text}',
+                      topDetails: [
+                        TransactionDetail(
+                            label: 'Data Plan', value: _selectedPlan)
+                      ],
+                      bottomDetails: [
+                        TransactionDetail(
+                            label: 'Recipient Number', value: _controller.text)
+                      ],
+                      onShareReceipt: () {})));
+        }
+      } else if (!next.isInitialLoading &&
+          next.message != null &&
+          !next.isDataAvailable) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(next.message!), backgroundColor: Colors.red));
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -96,9 +126,7 @@ class _DataScreenState extends State<DataScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              // Handle saved beneficiary
-            },
+            onPressed: () {},
             child: Text(
               'Saved Beneficiary',
               style: TextStyle(
@@ -115,7 +143,6 @@ class _DataScreenState extends State<DataScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Phone Number Section
             const Text(
               'Phone Number',
               style: TextStyle(
@@ -126,22 +153,38 @@ class _DataScreenState extends State<DataScreen> {
             ),
             const SizedBox(height: 12),
             ReuseableTextFieldWithCountry(
-                controller: _controller,
-                hintText: "123 567 890",
-                countryCode: '+234',
-                flagImagePath: 'assets/images/ngflag.png',
-                isReadOnly: false,
-                textInputType: TextInputType.phone,
-                showCountryLabel: true),
+              controller: _controller,
+              hintText: "123 567 890",
+              countryCode: '+234',
+              flagImagePath: 'assets/images/ngflag.png',
+              isReadOnly: false,
+              textInputType: TextInputType.phone,
+              showCountryLabel: true,
+              suffixWidget: IconButton(
+                onPressed: _showContactAccessDialog,
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: appTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
 
             // Network Provider Selection
-            _buildNetworkProviderSelector(),
+            _buildNetworkProviderSelector(providersState, networkProviders),
             const SizedBox(height: 24),
 
             // Data Plans Section
-            if (_selectedNetwork.isNotEmpty && _availablePlans.isNotEmpty) ...[
-              _buildDataPlansSection(),
+            if (_selectedNetwork.isNotEmpty && availablePlans.isNotEmpty) ...[
+              _buildDataPlansSection(plansState, availablePlans),
               const SizedBox(height: 24),
             ],
 
@@ -149,15 +192,18 @@ class _DataScreenState extends State<DataScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Use Cashback',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                const Expanded(
+                  child: Text(
+                    'Use Cashback',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
                       '₦50.00',
@@ -174,7 +220,7 @@ class _DataScreenState extends State<DataScreen> {
                           _useCashback = value;
                         });
                       },
-                      activeTrackColor: appTheme.primaryColor,
+                      activeColor: appTheme.primaryColor,
                     ),
                   ],
                 ),
@@ -188,17 +234,36 @@ class _DataScreenState extends State<DataScreen> {
               onPressed: _handleContinue,
               isEnabled: _isFormValid(),
             ),
-            SizedBox(height: 24),
-            DataServicesSection()
+            const SizedBox(height: 24),
+            const DataServicesSection(),
           ],
         ),
       ),
     );
   }
 
-  // Build network provider selector widget
-  Widget _buildNetworkProviderSelector() {
-    if (_dataNotifier.isLoading && _networkProviders.isEmpty) {
+  void _showContactAccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => ContactAccessDialog(
+        onAllow: () {
+          Navigator.of(context).pop();
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
+  Widget _buildNetworkProviderSelector(
+      DataState<NetworkProvider>? providersState,
+      List<NetworkProvider> networkProviders) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if ((providersState?.isInitialLoading ?? false) &&
+        networkProviders.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -217,18 +282,33 @@ class _DataScreenState extends State<DataScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            color: Theme.of(context).cardColor.withOpacity(0.4),
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _selectedNetwork.isEmpty ? null : _selectedNetwork,
-              hint: const Text('Select Network Provider'),
+              hint: Text(
+                'Select Network Provider',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.grey[600],
+                ),
+              ),
               isExpanded: true,
-              items: _networkProviders.map((provider) {
+              dropdownColor: Theme.of(context).cardColor,
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              items: networkProviders.map((provider) {
                 return DropdownMenuItem<String>(
                   value: provider.network,
-                  child: Text(provider.planName),
+                  child: Text(
+                    provider.network,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: (value) async {
@@ -238,12 +318,10 @@ class _DataScreenState extends State<DataScreen> {
                     _selectedPlan = '';
                     _selectedOperatorId = 0;
                   });
-                  // Fetch available plans for this network
                   if (_controller.text.isNotEmpty) {
-                    await _dataNotifier.getDataPlan(
-                      phone: _controller.text,
-                      currency: 'NGN',
-                    );
+                    await ref
+                        .read(dataPlansNotifierProvider.notifier)
+                        .getPlans(phone: _controller.text, currency: 'NGN');
                   }
                 }
               },
@@ -254,8 +332,10 @@ class _DataScreenState extends State<DataScreen> {
     );
   }
 
-  // Build data plans section
-  Widget _buildDataPlansSection() {
+  Widget _buildDataPlansSection(
+      DataState<DataPlanInfo>? plansState, List<DataPlanInfo> availablePlans) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -271,29 +351,47 @@ class _DataScreenState extends State<DataScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            color: Theme.of(context).cardColor.withOpacity(0.4),
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _selectedPlan.isEmpty ? null : _selectedPlan,
-              hint: const Text('Select Data Plan'),
+              hint: Text(
+                'Select Data Plan',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.grey[600],
+                ),
+              ),
               isExpanded: true,
-              items: _availablePlans.map((plan) {
+              dropdownColor: Theme.of(context).cardColor,
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              items: availablePlans.map((plan) {
                 return DropdownMenuItem<String>(
                   value: plan.id,
-                  child: Text(plan.planName),
+                  child: Text(
+                    plan.planName,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
                 );
               }).toList(),
-              onChanged: (value) {
+              onChanged: (value) async {
                 if (value != null) {
                   setState(() {
                     _selectedPlan = value;
-                    final plan = _availablePlans.firstWhere(
-                      (p) => p.id == value,
-                    );
+                    final plan =
+                        availablePlans.firstWhere((p) => p.id == value);
                     _selectedOperatorId = plan.operatorId;
                   });
+                  // Fetch variation for selected operator
+                  await ref
+                      .read(dataVariationNotifierProvider.notifier)
+                      .getVariation(operatorId: _selectedOperatorId);
                 }
               },
             ),
@@ -324,9 +422,8 @@ class _DataScreenState extends State<DataScreen> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selectedPlanInfo = _availablePlans.firstWhere(
-      (p) => p.id == _selectedPlan,
-    );
+    final selectedPlanInfo = (ref.read(dataPlansNotifierProvider).data ?? [])
+        .firstWhere((p) => p.id == _selectedPlan);
 
     Navigator.push(
       context,
@@ -357,66 +454,32 @@ class _DataScreenState extends State<DataScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      // Get the selected plan details
-      final selectedPlanInfo = _availablePlans.firstWhere(
-        (p) => p.id == _selectedPlan,
+      final amount = double.tryParse(amountController.text) ?? 0;
+
+      final request = DataPurchaseRequest(
+        walletPin: pin,
+        amount: amount,
+        operatorId: _selectedOperatorId,
+        phone: _controller.text,
+        currency: 'NGN',
+        addBeneficiary: false,
       );
 
-      // Attempt purchase - Note: amount should come from the plan details
-      // For now using a placeholder, you may need to adjust based on your API
-      final success .isNotEmpty) {
-                    await _dataNotifier.getDataPlan(
-                      phone: _controller.text,
-                      currency: 'NGN',
-                    );
-                  }
-                }
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
+      if (!mounted) return;
+      Navigator.pop(context); // close loading dialog
 
-  // Build data plans section
-  Widget _buildDataPlansSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Select Data Plan',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _selectedOperatorId == 0 ? null : _selectedOperatorId,
-              hint: const Text('Select Data Plan'),
-              isExpanded: true,
-              items: _availablePlans.map((plan) {
-                return DropdownMenuItem<int>(
-                  value: plan.operatorId,
-                  child: Text(plan.planName),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-    
+      // result handling via ref.listen on purchase provider
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Purchase failed: ${e.toString()}'),
+          backgroundColor: Colors.red));
+    }
+  }
+}

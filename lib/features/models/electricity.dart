@@ -1,0 +1,314 @@
+class ElectricityPlan {
+  final String id;
+  final String planName;
+  final String countryISOCode;
+  final String billerCode;
+  final String description;
+  final String shortName;
+  final String createdAt;
+  final String updatedAt;
+
+  ElectricityPlan({
+    required this.id,
+    required this.planName,
+    required this.countryISOCode,
+    required this.billerCode,
+    required this.description,
+    required this.shortName,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ElectricityPlan.fromJson(Map<String, dynamic> json) {
+    return ElectricityPlan(
+      id: json['id'] ?? '',
+      planName: json['planName'] ?? '',
+      countryISOCode: json['countryISOCode'] ?? '',
+      billerCode: json['billerCode'] ?? '',
+      description: json['description'] ?? '',
+      shortName: json['shortName'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'planName': planName,
+      'countryISOCode': countryISOCode,
+      'billerCode': billerCode,
+      'description': description,
+      'shortName': shortName,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+    };
+  }
+}
+
+class ElectricityPlanResponse {
+  final String message;
+  final int statusCode;
+  final List<ElectricityPlan> data;
+
+  ElectricityPlanResponse({
+    required this.message,
+    required this.statusCode,
+    required this.data,
+  });
+
+  factory ElectricityPlanResponse.fromJson(Map<String, dynamic> json) {
+    return ElectricityPlanResponse(
+      message: json['message'] ?? '',
+      statusCode: json['statusCode'] ?? 0,
+      data: (json['data'] as List?)
+              ?.map((item) => ElectricityPlan.fromJson(item))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'statusCode': statusCode,
+      'data': data.map((item) => item.toJson()).toList(),
+    };
+  }
+}
+
+class ElectricityBillInfo {
+  final int id;
+  final String billerCode;
+  final String name;
+  final double defaultCommission;
+  final String dateAdded;
+  final String country;
+  final bool isAirtime;
+  final String billerName;
+  final String itemCode;
+  final String shortName;
+  final double fee;
+  final bool commissionOnFee;
+  final String regExpression;
+  final String labelName;
+  final double amount;
+  final bool isResolvable;
+  final String groupName;
+  final String categoryName;
+  final dynamic isData;
+  final dynamic defaultCommissionOnAmount;
+  final int commissionOnFeeOrAmount;
+  final dynamic validityPeriod;
+  final double payAmount;
+
+  ElectricityBillInfo({
+    required this.id,
+    required this.billerCode,
+    required this.name,
+    required this.defaultCommission,
+    required this.dateAdded,
+    required this.country,
+    required this.isAirtime,
+    required this.billerName,
+    required this.itemCode,
+    required this.shortName,
+    required this.fee,
+    required this.commissionOnFee,
+    required this.regExpression,
+    required this.labelName,
+    required this.amount,
+    required this.isResolvable,
+    required this.groupName,
+    required this.categoryName,
+    this.isData,
+    this.defaultCommissionOnAmount,
+    required this.commissionOnFeeOrAmount,
+    this.validityPeriod,
+    required this.payAmount,
+  });
+
+  factory ElectricityBillInfo.fromJson(Map<String, dynamic> json) {
+    return ElectricityBillInfo(
+      id: json['id'] ?? 0,
+      billerCode: json['biller_code'] ?? '',
+      name: json['name'] ?? '',
+      defaultCommission: (json['default_commission'] ?? 0).toDouble(),
+      dateAdded: json['date_added'] ?? '',
+      country: json['country'] ?? '',
+      isAirtime: json['is_airtime'] ?? false,
+      billerName: json['biller_name'] ?? '',
+      itemCode: json['item_code'] ?? '',
+      shortName: json['short_name'] ?? '',
+      fee: (json['fee'] ?? 0).toDouble(),
+      commissionOnFee: json['commission_on_fee'] ?? false,
+      regExpression: json['reg_expression'] ?? '',
+      labelName: json['label_name'] ?? '',
+      amount: (json['amount'] ?? 0).toDouble(),
+      isResolvable: json['is_resolvable'] ?? false,
+      groupName: json['group_name'] ?? '',
+      categoryName: json['category_name'] ?? '',
+      isData: json['is_data'],
+      defaultCommissionOnAmount: json['default_commission_on_amount'],
+      commissionOnFeeOrAmount: json['commission_on_fee_or_amount'] ?? 0,
+      validityPeriod: json['validity_period'],
+      payAmount: (json['payAmount'] ?? 0).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'biller_code': billerCode,
+      'name': name,
+      'default_commission': defaultCommission,
+      'date_added': dateAdded,
+      'country': country,
+      'is_airtime': isAirtime,
+      'biller_name': billerName,
+      'item_code': itemCode,
+      'short_name': shortName,
+      'fee': fee,
+      'commission_on_fee': commissionOnFee,
+      'reg_expression': regExpression,
+      'label_name': labelName,
+      'amount': amount,
+      'is_resolvable': isResolvable,
+      'group_name': groupName,
+      'category_name': categoryName,
+      'is_data': isData,
+      'default_commission_on_amount': defaultCommissionOnAmount,
+      'commission_on_fee_or_amount': commissionOnFeeOrAmount,
+      'validity_period': validityPeriod,
+      'payAmount': payAmount,
+    };
+  }
+}
+
+class ElectricityBillInfoResponse {
+  final String message;
+  final int statusCode;
+  final List<ElectricityBillInfo> data;
+
+  ElectricityBillInfoResponse({
+    required this.message,
+    required this.statusCode,
+    required this.data,
+  });
+
+  factory ElectricityBillInfoResponse.fromJson(Map<String, dynamic> json) {
+    return ElectricityBillInfoResponse(
+      message: json['message'] ?? '',
+      statusCode: json['statusCode'] ?? 0,
+      data: (json['data'] as List?)
+              ?.map((item) => ElectricityBillInfo.fromJson(item))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'statusCode': statusCode,
+      'data': data.map((item) => item.toJson()).toList(),
+    };
+  }
+}
+
+class VerifyMeterNumberRequest {
+  final String itemCode;
+  final String billerCode;
+  final String billerNumber;
+
+  VerifyMeterNumberRequest({
+    required this.itemCode,
+    required this.billerCode,
+    required this.billerNumber,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'itemCode': itemCode,
+      'billerCode': billerCode,
+      'billerNumber': billerNumber,
+    };
+  }
+}
+
+class ElectricityPaymentRequest {
+  final String walletPin;
+  final String itemCode;
+  final String billerCode;
+  final String currency;
+  final String billerNumber;
+  final double amount;
+
+  ElectricityPaymentRequest({
+    required this.walletPin,
+    required this.itemCode,
+    required this.billerCode,
+    required this.currency,
+    required this.billerNumber,
+    required this.amount,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'walletPin': walletPin,
+      'itemCode': itemCode,
+      'billerCode': billerCode,
+      'currency': currency,
+      'billerNumber': billerNumber,
+      'amount': amount,
+    };
+  }
+}
+
+class ElectricityPaymentResponse {
+  final String message;
+  final int statusCode;
+  final ElectricityPaymentData data;
+
+  ElectricityPaymentResponse({
+    required this.message,
+    required this.statusCode,
+    required this.data,
+  });
+
+  factory ElectricityPaymentResponse.fromJson(Map<String, dynamic> json) {
+    return ElectricityPaymentResponse(
+      message: json['message'] ?? '',
+      statusCode: json['statusCode'] ?? 0,
+      data: ElectricityPaymentData.fromJson(json['data'] ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'statusCode': statusCode,
+      'data': data.toJson(),
+    };
+  }
+}
+
+class ElectricityPaymentData {
+  final String rechargeToken;
+
+  ElectricityPaymentData({
+    required this.rechargeToken,
+  });
+
+  factory ElectricityPaymentData.fromJson(Map<String, dynamic> json) {
+    return ElectricityPaymentData(
+      rechargeToken: json['recharge_token'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recharge_token': rechargeToken,
+    };
+  }
+}

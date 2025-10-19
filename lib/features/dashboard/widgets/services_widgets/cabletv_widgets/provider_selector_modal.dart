@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 class CableTvProviderSelectorModal extends StatelessWidget {
   final String selectedProvider;
   final Function(String) onProviderSelected;
+  final List<String>? providers;
 
   const CableTvProviderSelectorModal({
     super.key,
+    this.providers,
     required this.selectedProvider,
     required this.onProviderSelected,
   });
@@ -14,7 +16,7 @@ class CableTvProviderSelectorModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final providers = ['DStv', 'GOtv', 'Startimes'];
+    final providers = this.providers ?? ['DStv', 'GOtv', 'Startimes'];
 
     return Container(
       decoration: BoxDecoration(

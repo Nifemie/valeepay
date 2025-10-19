@@ -1,0 +1,147 @@
+import 'dart:developer';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/network/data_state.dart';
+import 'package:valarpay/features/models/giftcard.dart';
+import 'package:valarpay/features/repositories/giftcard_repository.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+
+class GiftCardNotifier extends StateNotifier<DataState<GiftCardProduct>> {
+  final GiftCardRepository _repository;
+
+  GiftCardNotifier(this._repository)
+      : super(DataState<GiftCardProduct>.initial());
+
+  Future<void> getCategories() async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      await _repository.getCategories();
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: 'Categories loaded successfully',
+      );
+    } catch (e, stack) {
+      log('[GiftCardNotifier Categories Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load categories: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> getProducts({required String currency}) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final response = await _repository.getProducts(currency: currency);
+      state = state.copyWith(
+        isInitialLoading: false,
+        data: response.data,
+        isDataAvailable: true,
+        message: response.message,
+      );
+    } catch (e, stack) {
+      log('[GiftCardNotifier Products Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load products: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> payForGiftCard(GiftCardPaymentRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      await _repository.payForGiftCard(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: 'Payment successful',
+      );
+    } catch (e, stack) {
+      log('[GiftCardNotifier Payment Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Payment failed: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<GiftCardFxRateResponse?> getFxRate({
+    required String currency,
+    required double amount,
+  }) async {
+    try {
+      return await _repository.getFxRate(currency: currency, amount: amount);
+    } catch (e, stack) {
+      log('[GiftCardNotifier FX Rate Error] $e\n$stack');
+      state = state.copyWith(
+        message: 'Failed to get FX rate: ${e.toString()}',
+      );
+      return null;
+    }
+  }
+
+  Future<GiftCardRedeemCodeResponse?> getRedeemCode(
+      {required String transactionId}) async {
+    try {
+      return await _repository.getRedeemCode(transactionId: transactionId);
+    } catch (e, stack) {
+      log('[GiftCardNotifier Redeem Code Error] $e\n$stack');
+      state = state.copyWith(
+        message: 'Failed to get redeem code: ${e.toString()}',
+      );
+      return null;
+    }
+  }
+
+  void reset() => state = DataState<GiftCardProduct>.initial();
+}
+
+// Categories Notifier
+class GiftCardCategoriesNotifier
+    extends StateNotifier<DataState<GiftCardCategory>> {
+  final GiftCardRepository _repository;
+
+  GiftCardCategoriesNotifier(this._repository)
+      : super(DataState<GiftCardCategory>.initial());
+
+  Future<void> getCategories() async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final categories = await _repository.getCategories();
+      state = state.copyWith(
+        isInitialLoading: false,
+        data: categories,
+        isDataAvailable: true,
+        message: 'Categories loaded successfully',
+      );
+    } catch (e, stack) {
+      log('[GiftCardCategoriesNotifier Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load categories: ${e.toString()}',
+      );
+    }
+  }
+
+  void reset() => state = DataState<GiftCardCategory>.initial();
+}
+
+// Providers
+final giftCardRepositoryProvider = Provider(
+  (ref) => GiftCardRepository(ref.read(apiClientProvider)),
+);
+
+final giftCardNotifierProvider =
+    StateNotifierProvider<GiftCardNotifier, DataState<GiftCardProduct>>(
+  (ref) => GiftCardNotifier(ref.read(giftCardRepositoryProvider)),
+);
+
+final giftCardCategoriesNotifierProvider = StateNotifierProvider<
+    GiftCardCategoriesNotifier, DataState<GiftCardCategory>>(
+  (ref) => GiftCardCategoriesNotifier(ref.read(giftCardRepositoryProvider)),
+);

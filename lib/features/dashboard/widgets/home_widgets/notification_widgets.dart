@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/home/notifications/notification_view.dart';
 
 class NotificationItem {
   final String icon;
@@ -82,17 +81,18 @@ class NotificationEmptyState extends StatelessWidget {
               ),
               child: Center(
                 child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: appTheme.primaryColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(40),
-                    ),
-                    child: tab == 'Transaction'
-                        ? Image.asset('assets/images/notransaction_notif.png',
-                            height: 40)
-                        : Image.asset('assets/images/noother_notif.png',
-                            height: 40)),
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: appTheme.primaryColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                  child: tab == 'Transaction'
+                      ? Image.asset('assets/images/notransaction_notif.png',
+                          height: 40)
+                      : Image.asset('assets/images/noother_notif.png',
+                          height: 40),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -126,7 +126,7 @@ class NotificationTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: notification.isRead
-            ? Theme.of(context).cardColor!.withOpacity(0.5)
+            ? Theme.of(context).cardColor.withOpacity(0.5)
             : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(

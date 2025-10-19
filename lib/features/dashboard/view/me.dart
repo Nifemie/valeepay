@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../widgets/me_widgets/account_widget.dart';
 import '../widgets/me_widgets/user_profile.dart';
 import '../widgets/me_widgets/security_widget.dart';
-import 'package:valarpay/features/dashboard/view/me/rewards.dart';
+// import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 
 class MeScreen extends ConsumerWidget {
   const MeScreen({Key? key}) : super(key: key);
