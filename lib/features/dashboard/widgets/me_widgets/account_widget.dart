@@ -43,6 +43,14 @@ class AccountMenuWidget extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           _buildMenuItem(
+            svgPath: 'assets/images/me_icons/account.svg',
+            title: 'My Profile',
+            onTap: () {
+              context.push('/profile');
+            },
+          ),
+          const SizedBox(height: 20),
+          _buildMenuItem(
             svgPath: 'assets/images/me_icons/port.svg',
             title: 'My Portfolio',
             onTap: () {
