@@ -59,7 +59,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         });
 
         if (loginResponse.accessToken != null) {
-          context.pushReplacement('/',);
+          context.pushReplacement(
+            '/',
+          );
         } else {
           context.push('/verify-2fa', extra: loginResponse.user);
         }
@@ -163,7 +165,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       Row(
                         children: [
                           Container(
-                            width: 40.rw,
+                            width: 50.rw,
                             height: 50.rh,
                             decoration: BoxDecoration(
                               color: Colors.white,

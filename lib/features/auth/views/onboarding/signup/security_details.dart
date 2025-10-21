@@ -245,8 +245,6 @@ class _SecurityDetailsScreenState extends ConsumerState<SecurityDetailsScreen> {
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            filled: true,
-            fillColor: Colors.grey.shade50,
           ),
         ),
       ],

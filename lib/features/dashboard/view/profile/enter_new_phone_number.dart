@@ -43,7 +43,7 @@ class _EnterNewPhoneNumberScreenState extends ConsumerState<EnterNewPhoneNumberS
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'You are changing ${user?.fullname} to a new number',
+                  'You are changing ${user?.phoneNumber} to a new number',
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 48),

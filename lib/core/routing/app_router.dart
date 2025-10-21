@@ -79,12 +79,12 @@ import '../../features/dashboard/view/settings/notification_settings_screen.dart
 import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
-import '../../features/dashboard/profile/profile.dart';
-import '../../features/dashboard/profile/personal_details_screen.dart'
+import '../../features/dashboard/view/profile/profile.dart';
+import '../../features/dashboard/view/profile/personal_details_screen.dart'
     as profile;
-import '../../features/dashboard/profile/contact_details_screen.dart';
-import '../../features/dashboard/profile/address_screen.dart';
-import '../../features/dashboard/profile/change_phone_number.dart';
+import '../../features/dashboard/view/profile/contact_details_screen.dart';
+import '../../features/dashboard/view/profile/address_screen.dart';
+import '../../features/dashboard/view/profile/change_phone_number.dart';
 
 final router = GoRouter(
   initialLocation: '/splash', // Always show splash screen

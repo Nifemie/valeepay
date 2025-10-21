@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/services_widgets/profile_widgets/profile_info_tile.dart';
+import '../../widgets/services_widgets/profile_widgets/profile_info_tile.dart';
 
 class AddressScreen extends ConsumerWidget {
   const AddressScreen({super.key});

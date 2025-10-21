@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/services_widgets/profile_widgets/profile_header.dart';
-import '../widgets/services_widgets/profile_widgets/profile_menu_item.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
+import '../../widgets/services_widgets/profile_widgets/profile_header.dart';
+import '../../widgets/services_widgets/profile_widgets/profile_menu_item.dart';
 import 'personal_details_screen.dart';
 import 'contact_details_screen.dart';
 import 'address_screen.dart';
@@ -11,17 +12,20 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = ref.watch(userProvider);
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+
+    // Extract wallet data
+    final accountNumber = wallet?.accountNumber ?? '00000000';
+    final bankName = wallet?.bankName ?? 'ValarPay Bank';
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -39,7 +43,6 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             // Profile Header
             ProfileHeader(
-              userId: '0000000000',
               onEditTap: () {
                 // Handle edit profile picture
               },
