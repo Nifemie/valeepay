@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import '../../widgets/me_widgets/delete_confirmation_dialog.dart';
 
 // State providers
@@ -30,7 +30,7 @@ final linkedAccountsProvider = StateProvider<List<LinkedAccount>>((ref) => [
       LinkedAccount(
         name: 'Valarpay Bank',
         number: '0000000000',
-        iconPath: 'assets/images/VALAR PAY LOGOO.png',
+        iconPath: 'assets/images/logo.png',
       ),
       LinkedAccount(
         name: 'First Bank of Nigeria',
@@ -259,8 +259,8 @@ class AccountSettingsPage extends ConsumerWidget {
               GestureDetector(
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: value));
-                  CustomToast.showAppToast(
-                      context: context, message: 'Copied to clipboard');
+                  AppMessenger.show(context,
+                      type: MessageType.success, message: 'Copied to clipboard');
                 },
                 child: const Icon(
                   Icons.copy,

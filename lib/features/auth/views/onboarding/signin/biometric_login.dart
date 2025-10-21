@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/constants/enums/enums.dart';
 import 'package:valarpay/core/services/biometric_auth_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/platform_responsive.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/services/session_service.dart';
-import 'package:valarpay/core/utils/device_utils.dart';
-import 'package:valarpay/features/notifiers/auth_notifier.dart';
-import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
@@ -35,84 +33,115 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     final userFullName = await SessionService.getUserFullname();
     final username = await SessionService.getUsername();
 
-    if (userFullName != null && username != null) {
-      setState(() {
-        _username = username;
-        _fullname = userFullName;
-      });
-    } else {
-      final savedUsername = await SessionService.getUsername();
-      setState(() {
-        _username = savedUsername;
-        _fullname = 'User';
-      });
+    setState(() {
+      _username = username ?? 'N/A';
+      _fullname = userFullName ?? 'User';
+    });
+  }
+
+  /// 🔒 Core login handler after biometric succeeds
+  Future<void> _handleBiometricLogin(
+      BuildContext context, WidgetRef ref) async {
+    try {
+      final userAccessToken = await SessionService.getAccessToken();
+
+      if (userAccessToken == null) {
+        AppMessenger.show(
+          context,
+          message: 'Please login with your password',
+          type: MessageType.warning,
+        );
+        context.push('/signin');
+        return;
+      }
+
+      final user = await SessionService.getUser();
+      if (user != null) {
+        ref.read(userProvider.notifier).setUser(user);
+        AppMessenger.show(
+          context,
+          message: 'Welcome back, ${user.fullname}',
+          type: MessageType.success,
+        );
+        context.pushReplacement('/');
+      } else {
+        AppMessenger.show(
+          context,
+          message: 'Authentication failed, login with your password',
+          type: MessageType.error,
+        );
+        context.push('/signin');
+      }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        message: 'An error occurred: ${e.toString()}',
+        type: MessageType.error,
+      );
     }
   }
 
-  Future<void> _handleBiometricLogin(
+  /// 🧩 Shows a biometric bottom sheet and instantly triggers auth
+  Future<void> _showBiometricBottomSheet(
       BuildContext context, WidgetRef ref) async {
-    final success = await BiometricAuthService.authenticate();
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        // start biometric auth right away
+        Future.microtask(() async {
+          final result = await BiometricAuthService.authenticateWithFallback(
+            promptMessage: 'Authenticate with Fingerprint or Face ID',
+          );
 
-    if (!success) {
-      AppMessenger.show(
-        context,
-        message: 'Biometric authentication failed or cancelled.',
-        type: MessageType.error,
-      );
-      return;
-    }
+          if (result == BiometricAuthResult.success && ctx.mounted) {
+            Navigator.pop(ctx);
+            _handleBiometricLogin(context, ref);
+          } else if (result == BiometricAuthResult.fallback && ctx.mounted) {
+            Navigator.pop(ctx);
+            context.push('/passcode-login');
+          } else if (ctx.mounted) {
+            Navigator.pop(ctx);
+            AppMessenger.show(
+              context,
+              message: 'Biometric authentication failed or cancelled.',
+              type: MessageType.error,
+            );
+          }
+        });
 
-    final ip = await DeviceUtils.getIpAddress();
-    final deviceName = await DeviceUtils.getDeviceName();
-    final os = await DeviceUtils.getDeviceOS();
-    final savedUsername = _username ?? await SessionService.getUsername();
-
-    if (savedUsername == null) {
-      AppMessenger.show(
-        context,
-        message: 'No saved user session found. Please login manually.',
-        type: MessageType.warning,
-      );
-      context.push('/signin');
-      return;
-    }
-
-    final request = PasscodeLoginRequest(
-      username: savedUsername,
-      passcode: '',
-      ipAddress: ip,
-      deviceName: deviceName,
-      operatingSystem: os,
+        return SizedBox(
+          height: 260,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.fingerprint,
+                  size: 60, color: appTheme.primaryColor),
+              const SizedBox(height: 16),
+              const Text(
+                'Authenticate to continue',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Use Face ID or Fingerprint',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 36),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child:
+                    const Text('Cancel', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+      },
     );
-
-    final notifier = ref.read(authNotifierProvider.notifier);
-    await notifier.loginWithPasscode(request);
-    final state = ref.read(authNotifierProvider);
-
-    if (state.isDataAvailable) {
-      final user = state.data?.first;
-      ref.read(userProvider.notifier).setUser(user!);
-      await SessionService.saveSession(
-        LoginResponse(
-          message: state.message ?? '',
-          user: user,
-          statusCode: 200,
-        ),
-      );
-
-      AppMessenger.show(
-        context,
-        message: 'Welcome back, ${user.fullname}',
-        type: MessageType.success,
-      );
-      context.pushReplacement('/');
-    } else {
-      AppMessenger.show(
-        context,
-        message: state.message ?? 'Unable to authenticate.',
-        type: MessageType.error,
-      );
-    }
   }
 
   @override
@@ -142,15 +171,9 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       ),
       body: Stack(
         children: [
-          // Background image
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/authbg.jpg',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/images/authbg.jpg', fit: BoxFit.cover),
           ),
-
-          // Gradient overlay
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -166,8 +189,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
               ),
             ),
           ),
-
-          // Main content
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(24.w),
@@ -205,21 +226,13 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                     ],
                   ),
                   SizedBox(height: 40.h),
-
-                  // User avatar
                   CircleAvatar(
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
-                    ),
+                    child:
+                        const Icon(Icons.person, size: 50, color: Colors.white),
                   ),
-
                   SizedBox(height: 18.h),
-
-                  // Welcome text (dynamic)
                   Text(
                     'Welcome back, ${_fullname ?? 'User'}',
                     style: TextStyle(
@@ -236,12 +249,9 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                       color: Colors.grey[300],
                     ),
                   ),
-
                   SizedBox(height: 50.h),
-
-                  // Fingerprint section (tap triggers auth)
                   GestureDetector(
-                    onTap: () => _handleBiometricLogin(context, ref),
+                    onTap: () => _showBiometricBottomSheet(context, ref),
                     child: Column(
                       children: [
                         Container(
@@ -276,10 +286,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: 50.h),
-
-                  // Login with Passcode
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -301,14 +308,9 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                       ),
                     ),
                   ),
-
                   SizedBox(height: 22.h),
-
-                  // Switch account
                   GestureDetector(
-                    onTap: () async {
-                      context.push('/signin');
-                    },
+                    onTap: () => context.push('/signin'),
                     child: Text(
                       'Switch Account',
                       style: TextStyle(
@@ -318,25 +320,17 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                       ),
                     ),
                   ),
-
                   SizedBox(height: 40.h),
-
-                  // Securely encrypted info
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.shield_outlined,
-                        size: 16.sp,
-                        color: Colors.white70,
-                      ),
+                      Icon(Icons.shield_outlined,
+                          size: 16.sp, color: Colors.white70),
                       SizedBox(width: 6.w),
                       Text(
                         'Securely encrypted',
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: Colors.white70,
-                        ),
+                        style:
+                            TextStyle(fontSize: 13.sp, color: Colors.white70),
                       ),
                     ],
                   ),

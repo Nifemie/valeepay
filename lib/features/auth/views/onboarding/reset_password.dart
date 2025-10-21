@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/core/constants/storage_keys.dart';
-import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/reset_password.dart';
+import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key});
+  final UsernameRequest request;
+  const ResetPasswordScreen({super.key, required this.request});
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -23,57 +24,56 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isLoading = false;
 
-  void _resetPassword() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      String? username = await LocalStorageService.get(StorageKeys.username);
-      if (username != null) {
-        Navigator.pop(context);
-      }
-      final password = _passwordController.text.trim();
+  Future<void> _resetPassword() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      setState(() {
-        _isLoading = true;
-      });
+    final password = _passwordController.text.trim();
 
-      try {
-        await ref.read(userNotifierProvider.notifier).resetPassword(
+    try {
+      await ref.read(userNotifierProvider.notifier).resetPassword(
             ResetPasswordRequest(
-                username: username,
-                password: password,
-                confirmPassword: password));
-        final userState = ref.read(userNotifierProvider);
-        if (userState.isDataAvailable && mounted) {
-          CustomToast.showAppToast(
-              context: context, message: 'Password changed successfully');
-          context.push('/signin');
-        } else if (mounted) {
-          CustomToast.showErrorToast(
-              context: context,
-              message: userState.message ??
-                  'Failed to change password. Please try again.');
-        }
-      } catch (e) {
-        CustomToast.showErrorToast(
-            context: context,
-            message: 'An unexpected error occurred: ${e.toString()}');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
+              username: widget.request.username,
+              password: password,
+              confirmPassword: password,
+            ),
+          );
+
+      final userState = ref.read(userNotifierProvider);
+      if (userState.isDataAvailable && mounted) {
+        AppMessenger.show(
+          context,
+          type: MessageType.success,
+          message: 'Password changed successfully',
+        );
+        context.pushReplacement('/signin');
+      } else if (mounted) {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message:
+              userState.message ?? 'Failed to change password. Please try again.',
+        );
       }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'An unexpected error occurred: ${e.toString()}',
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(userNotifierProvider);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => GoRouter.of(context).pop(),
           icon: const Icon(Icons.arrow_back, color: Colors.black),
         ),
       ),
@@ -95,7 +95,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Create a new password that will replace your old password and keep your account secure',
+                  'Create a new password between 8 and 32 characters to keep your account secure.',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade600,
@@ -104,44 +104,46 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Password field
+                // Password Field
                 _buildPasswordField(
                   controller: _passwordController,
                   label: 'Password',
                   hint: '••••••••',
                   obscureText: _obscurePassword,
-                  onToggleVisibility: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
+                  onToggleVisibility: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Password is required';
                     }
-                    if (value.length < 10) {
-                      return 'Minimum of 10 characters';
+                    if (value.length < 8 || value.length > 32) {
+                      return 'Password must be between 8 and 32 characters';
+                    }
+                    final pattern = RegExp(r'^[ -~]+$'); // printable ASCII
+                    if (!pattern.hasMatch(value)) {
+                      return 'Password contains invalid characters';
                     }
                     return null;
                   },
                 ),
+
                 const SizedBox(height: 24),
 
-                // Confirm password field
+                // Confirm Password Field
                 _buildPasswordField(
                   controller: _confirmPasswordController,
                   label: 'Confirm Password',
                   hint: '••••••••',
                   obscureText: _obscureConfirmPassword,
-                  onToggleVisibility: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
+                  onToggleVisibility: () => setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please confirm your password';
                     }
                     if (value != _passwordController.text) {
-                      return 'Passwords don\'t match';
+                      return 'Passwords do not match';
                     }
                     return null;
                   },
@@ -149,30 +151,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
                 const SizedBox(height: 40),
 
-                // Continue button
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _resetPassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: appTheme.primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Continue',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
+                FullWidthButton(
+                  text: 'Continue',
+                  isLoading: userState.isInitialLoading,
+                  onPressed: _resetPassword,
+                ),
               ],
             ),
           ),
@@ -227,10 +210,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: appTheme.primaryColor),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             filled: true,
             fillColor: Colors.grey.shade50,
           ),

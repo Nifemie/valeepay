@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/features/auth/views/onboarding/signup/security_details.dart';
+import 'package:valarpay/features/auth/views/onboarding/signup/verify_2fa.dart';
 import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
@@ -14,6 +16,8 @@ import 'package:valarpay/features/dashboard/view/services/shopping/shopping.dart
 import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
 import 'package:valarpay/features/dashboard/view/settings/close_account_screen.dart';
 import 'package:valarpay/features/models/signup_request.dart';
+import 'package:valarpay/features/models/user.dart';
+import 'package:valarpay/features/models/username_request.dart';
 import '../../features/dashboard/view/services/airtime/airtime.dart';
 import '../../features/dashboard/view/services/data/data.dart';
 import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
@@ -53,7 +57,7 @@ import '../../features/auth/views/onboarding/signin/passcode_login.dart';
 import '../../features/auth/views/onboarding/signin/signin.dart';
 import '../../features/auth/views/onboarding/signup/business_details.dart';
 import '../../features/auth/views/onboarding/signup/personal_details.dart';
-import '../../features/auth/views/onboarding/signup/phone_number.dart';
+import '../../features/auth/views/onboarding/signup/validate_phone.dart';
 import '../../features/auth/views/onboarding/signup/signup.dart';
 import '../../features/auth/views/onboarding/signup/signup_success.dart';
 import '../../features/auth/views/onboarding/signup/verify_email.dart';
@@ -106,21 +110,46 @@ final router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/security-details',
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return SecurityDetailsScreen(request: request);
+      },
+    ),
+    GoRoute(
       path: '/verify-email',
-      builder: (context, state) => const VerifyEmailScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return VerifyEmailScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/validate-phone',
-      builder: (context, state) => const PhoneNumberScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return ValidatePhoneScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/verify-phone',
-      builder: (context, state) => const VerifyPhoneScreen(),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return VerifyPhoneScreen(request: request);
+      },
+    ),
+    GoRoute(
+      path: '/verify-2fa',
+      builder: (context, state) {
+        final request = state.extra as UserModel;
+        return Verify2faScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/signup-success',
-      builder: (context, state) =>
-          SignupSuccessScreen(firstName: state.extra as String? ?? 'User'),
+      builder: (context, state) {
+        final request = state.extra as SignUpRequest;
+        return SignupSuccessScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/signin',
@@ -141,11 +170,17 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/forgot-password-verification',
-      builder: (context, state) => const ForgotPasswordVerificationScreen(),
+      builder: (context, state) {
+        final request = state.extra as UsernameRequest;
+        return ForgotPasswordVerificationScreen(request: request);
+      },
     ),
     GoRoute(
       path: '/reset-password',
-      builder: (context, state) => const ResetPasswordScreen(),
+      builder: (context, state) {
+        final request = state.extra as UsernameRequest;
+        return ResetPasswordScreen(request: request);
+      },
     ),
 
     // Dashboard shell route with bottom navigation

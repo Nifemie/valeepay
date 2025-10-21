@@ -24,7 +24,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: Theme.of(context).cardColor,
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -68,12 +68,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isSelected = option.isSelected;
     return GestureDetector(
       onTap: () {
-        option.onTap();
-        Navigator.pop(context);
+        if (option.disabled == false) {
+          option.onTap();
+          Navigator.pop(context);
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(20), // increased padding for height
         decoration: BoxDecoration(
+          color: option.disabled == true ? Colors.grey.shade100 : Colors.white,
           border: Border.all(
             width: 1,
             color: isSelected
@@ -124,7 +127,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             Radio<T>(
               value: option.value,
               groupValue: option.groupValue,
-              onChanged: (_) => option.onTap(),
+              onChanged: (_) {
+                if (option.disabled == false) {
+                  option.onTap();
+                  Navigator.pop(context);
+                }
+              },
               activeColor: option.activeColor,
             ),
           ],
@@ -140,7 +148,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         DialogOption(
           title: 'Personal',
           subtitle: 'For individuals and everyday needs',
-          value: 'Personal',
+          value: 'PERSONAL',
           groupValue: selectedAccountType,
           activeColor: appTheme.primaryColor,
           onTap: () => setState(() => selectedAccountType = 'Personal'),
@@ -148,7 +156,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         DialogOption(
           title: 'Business',
           subtitle: 'For organizations and corporate needs',
-          value: 'Business',
+          value: 'BUSINESS',
           groupValue: selectedAccountType,
           activeColor: appTheme.primaryColor,
           onTap: () => setState(() => selectedAccountType = 'Business'),
@@ -176,8 +184,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           flag: '🇺🇸',
           value: 'USD',
           groupValue: selectedCurrency,
-          activeColor: Colors.green,
-          onTap: () => setState(() => selectedCurrency = 'USD'),
+          activeColor: Colors.grey,
+          disabled: true,
+          onTap: () => {},
         ),
         DialogOption(
           title: 'GBP',
@@ -185,8 +194,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           flag: '🇬🇧',
           value: 'GBP',
           groupValue: selectedCurrency,
-          activeColor: Colors.green,
-          onTap: () => setState(() => selectedCurrency = 'GBP'),
+          activeColor: Colors.grey,
+          disabled: true,
+          onTap: () => {},
         ),
         DialogOption(
           title: 'EUR',
@@ -194,8 +204,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           flag: '🇪🇺',
           value: 'EUR',
           groupValue: selectedCurrency,
-          activeColor: Colors.green,
-          onTap: () => setState(() => selectedCurrency = 'EUR'),
+          activeColor: Colors.grey,
+          disabled: true,
+          onTap: () => {},
         ),
       ],
     );
@@ -251,7 +262,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             _buildSelectionTile(
               selectedAccountType,
               _showAccountTypeDialog,
-              Icons.person,
+              Icons.account_balance_wallet,
             ),
             const SizedBox(height: 24),
 
@@ -267,16 +278,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             _buildSelectionTile(
               selectedCurrency,
               _showCurrencyDialog,
-              Icons.money,
+              Icons.currency_exchange_sharp,
             ),
             const SizedBox(height: 50),
-            
+
             FullWidthButton(
                 text: 'Continue',
                 onPressed: () {
-                  
                   SignUpRequest request = SignUpRequest(
-                      accountType: selectedAccountType,
+                      accountType: selectedAccountType.toUpperCase(),
                       countryCode: selectedCurrency);
 
                   if (selectedAccountType == 'Personal') {
@@ -360,6 +370,7 @@ class DialogOption<T> {
   final Color? activeColor;
   final bool isSelected;
   final VoidCallback onTap;
+  bool disabled;
 
   DialogOption({
     required this.title,
@@ -369,5 +380,6 @@ class DialogOption<T> {
     this.groupValue,
     this.activeColor,
     required this.onTap,
+    this.disabled = false,
   }) : isSelected = value == groupValue;
 }

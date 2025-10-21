@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:valarpay/app.dart'; // unused
+import 'package:valarpay/app.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import '../../widgets/me_widgets/modal/calendar_picker_moadal.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 
 // State providers
 final startDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -19,7 +19,6 @@ class AccountStatementPage extends ConsumerWidget {
     final startDate = ref.watch(startDateProvider);
     final endDate = ref.watch(endDateProvider);
     final selectedAccount = ref.watch(selectedAccountProvider);
-    // email provider is used when generating the statement; no local watch needed here
 
     return Scaffold(
       appBar: AppBar(
@@ -427,8 +426,8 @@ class AccountStatementPage extends ConsumerWidget {
 
     // Validate email
     if (email.isEmpty) {
-      CustomToast.showErrorToast(
-          context: context, message: 'Please enter an email address');
+      AppMessenger.show(context,
+          type: MessageType.error, message: 'Please enter an email address');
 
       return;
     }
@@ -441,7 +440,7 @@ class AccountStatementPage extends ConsumerWidget {
     print('Email: $email');
 
     // Show success message
-    CustomToast.showAppToast(
-        context: context, message: 'tatement will be sent to your email');
+   AppMessenger.show(context,
+              type: MessageType.success, message: 'tatement will be sent to your email');
   }
 }

@@ -1,24 +1,24 @@
-class VerifyForgotPassword {
+class VerifyOtpRequest {
   final String? username;
   final String? otpCode;
 
-  const VerifyForgotPassword({
+  const VerifyOtpRequest({
     this.username,
     this.otpCode,
   });
 
-  VerifyForgotPassword copyWith({
+  VerifyOtpRequest copyWith({
     String? username,
     String? otpCode,
   }) {
-    return VerifyForgotPassword(
+    return VerifyOtpRequest(
       username: username ?? this.username,
       otpCode: otpCode ?? this.otpCode,
     );
   }
 
-  factory VerifyForgotPassword.fromJson(Map<String, dynamic> json) {
-    return VerifyForgotPassword(
+  factory VerifyOtpRequest.fromJson(Map<String, dynamic> json) {
+    return VerifyOtpRequest(
       username: json['username'],
       otpCode: json['otpCode'],
     );

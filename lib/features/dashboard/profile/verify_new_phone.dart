@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sms_autofill/sms_autofill.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 
 class VerifyNewPhoneScreen extends StatefulWidget {
   const VerifyNewPhoneScreen({super.key});
@@ -12,10 +13,8 @@ class VerifyNewPhoneScreen extends StatefulWidget {
 }
 
 class _VerifyNewPhoneScreenState extends State<VerifyNewPhoneScreen> {
-  final List<TextEditingController> _controllers = List.generate(
-    4,
-    (index) => TextEditingController(),
-  );
+  String _otp = '';
+  
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
 
   @override
@@ -48,68 +47,28 @@ class _VerifyNewPhoneScreenState extends State<VerifyNewPhoneScreen> {
               ),
               const SizedBox(height: 80),
 
-              // OTP Input Fields
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(4, (index) {
-                  return Container(
-                    width: 60,
-                    height: 60,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    child: TextFormField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 1,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color:
-                                index == 1 || index == 2
-                                    ? appTheme.primaryColor
-                                    : Colors.grey.shade300,
-                            width: 2,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color:
-                                index == 1 || index == 2
-                                    ? appTheme.primaryColor
-                                    : Colors.grey.shade300,
-                            width: 2,
-                          ),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(
-                            color: appTheme.primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      onChanged: (value) {
-                        if (value.isNotEmpty && index < 3) {
-                          _focusNodes[index + 1].requestFocus();
-                        } else if (value.isEmpty && index > 0) {
-                          _focusNodes[index - 1].requestFocus();
-                        }
-                      },
-                    ),
-                  );
-                }),
-              ),
-
-              const SizedBox(height: 40),
+              // ✅ OTP Input Fields - Rounded Bordered Boxes (No Hint)
+              PinFieldAutoFill(
+                codeLength: 6,
+                decoration: BoxLooseDecoration(
+                  gapSpace: 12,
+                  strokeColorBuilder: FixedColorBuilder(Colors.grey.shade400),
+                  bgColorBuilder: FixedColorBuilder(
+                    Colors.grey.shade50.withOpacity(0.8),
+                  ),
+                  radius: const Radius.circular(8),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  strokeWidth: 1.4,
+                ),
+                currentCode: _otp,
+                onCodeChanged: (code) {
+                  setState(() => _otp = code ?? '');
+                },
+              ), const SizedBox(height: 40),
 
               // Didn't receive code
               Wrap(
@@ -141,16 +100,7 @@ class _VerifyNewPhoneScreenState extends State<VerifyNewPhoneScreen> {
 
               FullWidthButton(text: 'Continue', onPressed: (){
                   // Validate OTP
-                    String otp =
-                        _controllers
-                            .map((controller) => controller.text)
-                            .join();
-                    if (otp.length == 4) {
-                      context.push('/signup-success');
-                    } else {
-                      CustomToast.showErrorToast(context:context, message: 'Please enter the complete verification code');
-                      
-                    }
+                   
               }),
             const SizedBox(height: 40),
             ],
@@ -164,17 +114,11 @@ class _VerifyNewPhoneScreenState extends State<VerifyNewPhoneScreen> {
   void initState() {
     super.initState();
     // Pre-fill some fields to match the design
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controllers[1].text = '1';
-      _controllers[2].text = '2';
-    });
+    
   }
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
     for (var focusNode in _focusNodes) {
       focusNode.dispose();
     }

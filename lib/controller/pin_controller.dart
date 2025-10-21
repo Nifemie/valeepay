@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // State class for the PIN
 @immutable
@@ -38,7 +39,9 @@ class PinNotifier extends StateNotifier<PinState> {
   }
 
   bool doPinsMatch() {
-    return state.pin.isNotEmpty && state.confirmPin.isNotEmpty && state.pin == state.confirmPin;
+    return state.pin.isNotEmpty &&
+        state.confirmPin.isNotEmpty &&
+        state.pin == state.confirmPin;
   }
 
   void clearAllPins() {
@@ -55,7 +58,8 @@ class PinNotifier extends StateNotifier<PinState> {
     }
   }
 
-  void submitConfirmPin(BuildContext context, {required VoidCallback onSuccess, required VoidCallback onError}) {
+  void submitConfirmPin(BuildContext context,
+      {required VoidCallback onSuccess, required VoidCallback onError}) {
     if (isConfirmPinValid()) {
       if (doPinsMatch()) {
         onSuccess();
@@ -66,12 +70,46 @@ class PinNotifier extends StateNotifier<PinState> {
   }
 
   Future<void> savePinSecurely(String pin) async {
-    // TODO: Implement secure storage
-    print('Saving PIN securely: $pin');
+    // TODO: Use flutter_secure_storage for production
+    // For now, using SharedPreferences (less secure but functional)
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('wallet_pin', pin);
+      print('Saving PIN securely: $pin');
+      print('✅ PIN saved to local storage');
+    } catch (e) {
+      print('❌ Error saving PIN: $e');
+    }
+  }
+
+  Future<String?> getStoredPin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('wallet_pin');
+    } catch (e) {
+      print('❌ Error reading PIN: $e');
+      return null;
+    }
+  }
+
+  Future<bool> validateStoredPin(String enteredPin) async {
+    final storedPin = await getStoredPin();
+    return storedPin == enteredPin;
+  }
+
+  Future<void> clearStoredPin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('wallet_pin');
+      print('✅ PIN cleared from local storage');
+    } catch (e) {
+      print('❌ Error clearing PIN: $e');
+    }
   }
 }
 
 // PIN Controller Provider
-final pinControllerProvider = StateNotifierProvider<PinNotifier, PinState>((ref) {
+final pinControllerProvider =
+    StateNotifierProvider<PinNotifier, PinState>((ref) {
   return PinNotifier();
 });

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// flutter_svg removed: not used in this widget
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 // State provider for the PIN
 final pinProvider =
@@ -43,12 +42,14 @@ class TransactionPinModal extends ConsumerStatefulWidget {
   final String title;
   final Function(String pin)? onComplete;
   final VoidCallback? onForgotPin;
+  final bool verifyWithBackend; // New parameter for backend verification
 
   const TransactionPinModal({
     Key? key,
     this.title = 'Enter Transaction Pin',
     this.onComplete,
     this.onForgotPin,
+    this.verifyWithBackend = true, // Default to true for security
   }) : super(key: key);
 
   @override
@@ -61,6 +62,7 @@ class TransactionPinModal extends ConsumerStatefulWidget {
     String title = 'Enter Transaction Pin',
     VoidCallback? onForgotPin,
     Function(String)? onCompletePin,
+    bool verifyWithBackend = true, // Add verification parameter
   }) {
     return showModalBottomSheet<String>(
       context: context,
@@ -70,6 +72,7 @@ class TransactionPinModal extends ConsumerStatefulWidget {
         title: title,
         onForgotPin: onForgotPin,
         onComplete: onCompletePin,
+        verifyWithBackend: verifyWithBackend,
       ),
     );
   }
@@ -77,6 +80,10 @@ class TransactionPinModal extends ConsumerStatefulWidget {
 
 class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
   bool _isCompleting = false;
+  bool _isVerifying = false;
+  String? _errorMessage;
+  int _attemptCount = 0;
+  static const int _maxAttempts = 3;
 
   @override
   void initState() {
@@ -88,8 +95,72 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
   }
 
   void _onNumberPressed(String number) {
+    // Clear error when user starts typing again
+    if (_errorMessage != null) {
+      setState(() => _errorMessage = null);
+    }
+
     final pinNotifier = ref.read(pinProvider.notifier);
     pinNotifier.addDigit(number);
+  }
+
+  Future<void> _verifyPinWithBackend(String pin) async {
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final isValid =
+          await ref.read(userNotifierProvider.notifier).verifyWalletPin(pin);
+
+      if (!mounted) return;
+
+      if (isValid) {
+        // PIN is correct
+        if (widget.onComplete != null) {
+          widget.onComplete!(pin);
+        } else {
+          Navigator.of(context).pop(pin);
+        }
+      } else {
+        // PIN is wrong
+        _attemptCount++;
+
+        if (_attemptCount >= _maxAttempts) {
+          // Max attempts reached - close modal
+          setState(() {
+            _errorMessage = 'Maximum attempts reached. Please try again later.';
+          });
+
+          await Future.delayed(const Duration(seconds: 2));
+          if (mounted) {
+            Navigator.of(context).pop(null);
+          }
+        } else {
+          // Show error and allow retry
+          final remainingAttempts = _maxAttempts - _attemptCount;
+          setState(() {
+            _errorMessage =
+                'Wrong PIN. $remainingAttempts attempt${remainingAttempts > 1 ? 's' : ''} remaining.';
+            _isVerifying = false;
+          });
+
+          // Reset PIN input
+          ref.read(pinProvider.notifier).reset();
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = 'Network error. Please try again.';
+        _isVerifying = false;
+      });
+
+      // Reset PIN input
+      ref.read(pinProvider.notifier).reset();
+    }
   }
 
   @override
@@ -97,18 +168,26 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
     final pin = ref.watch(pinProvider);
     final pinNotifier = ref.read(pinProvider.notifier);
 
-    // Check if PIN is complete and not already completing
-    if (pin.every((element) => element.isNotEmpty) && !_isCompleting) {
+    // Check if PIN is complete and not already completing/verifying
+    if (pin.every((element) => element.isNotEmpty) &&
+        !_isCompleting &&
+        !_isVerifying) {
       final completePin = pin.join();
       _isCompleting = true;
 
-      // Schedule completion for next frame
+      // Schedule verification or completion for next frame
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          if (widget.onComplete != null) {
-            widget.onComplete!(completePin);
+          if (widget.verifyWithBackend) {
+            // Verify with backend before returning
+            _verifyPinWithBackend(completePin);
           } else {
-            Navigator.of(context).pop(completePin);
+            // Skip verification, return immediately
+            if (widget.onComplete != null) {
+              widget.onComplete!(completePin);
+            } else {
+              Navigator.of(context).pop(completePin);
+            }
           }
         }
       });
@@ -173,11 +252,55 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
                   ),
                   child: _PinBox(
                     value: pin[index],
+                    hasError: _errorMessage != null,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 20),
+
+            // Loading or Error Message
+            SizedBox(
+              height: 24,
+              child: _isVerifying
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              appTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Verifying PIN...',
+                          style: TextStyle(
+                            fontFamily: 'SF Pro',
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    )
+                  : _errorMessage != null
+                      ? Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: 'SF Pro',
+                            fontSize: 12,
+                            color: Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 8),
 
             // Forgot Pin
             TextButton(
@@ -196,8 +319,10 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
 
             // Number Pad
             _NumberPad(
-              onNumberPressed: _onNumberPressed,
-              onDeletePressed: () => pinNotifier.removeDigit(),
+              onNumberPressed: _isVerifying ? (_) {} : _onNumberPressed,
+              onDeletePressed:
+                  _isVerifying ? () {} : () => pinNotifier.removeDigit(),
+              enabled: !_isVerifying,
             ),
             const SizedBox(height: 16),
           ],
@@ -209,10 +334,12 @@ class _TransactionPinModalState extends ConsumerState<TransactionPinModal> {
 
 class _PinBox extends StatelessWidget {
   final String value;
+  final bool hasError;
 
   const _PinBox({
     Key? key,
     required this.value,
+    this.hasError = false,
   }) : super(key: key);
 
   @override
@@ -223,7 +350,7 @@ class _PinBox extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE5E7EB),
+          color: hasError ? Colors.red : const Color(0xFFE5E7EB),
           width: 1.5,
         ),
       ),
@@ -232,8 +359,8 @@ class _PinBox extends StatelessWidget {
           ? Container(
               width: 12,
               height: 12,
-              decoration: const BoxDecoration(
-                color: appTheme.primaryColor,
+              decoration: BoxDecoration(
+                color: hasError ? Colors.red : appTheme.primaryColor,
                 shape: BoxShape.circle,
               ),
             )
@@ -245,11 +372,13 @@ class _PinBox extends StatelessWidget {
 class _NumberPad extends StatelessWidget {
   final Function(String) onNumberPressed;
   final VoidCallback onDeletePressed;
+  final bool enabled;
 
   const _NumberPad({
     Key? key,
     required this.onNumberPressed,
     required this.onDeletePressed,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -276,6 +405,7 @@ class _NumberPad extends StatelessWidget {
         }
         return _NumberButton(
           value: number,
+          enabled: enabled,
           onPressed: () {
             if (number == 'delete') {
               onDeletePressed();
@@ -292,11 +422,13 @@ class _NumberPad extends StatelessWidget {
 class _NumberButton extends StatelessWidget {
   final String value;
   final VoidCallback onPressed;
+  final bool enabled;
 
   const _NumberButton({
     Key? key,
     required this.value,
     required this.onPressed,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -304,36 +436,39 @@ class _NumberButton extends StatelessWidget {
     final isDelete = value == 'delete';
 
     return InkWell(
-      onTap: onPressed,
+      onTap: enabled ? onPressed : null,
       borderRadius: BorderRadius.circular(40),
-      child: Container(
-        width: 80,
-        height: 60,
-        alignment: Alignment.center,
-        child: isDelete
-            ? Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF111827),
-                    width: 1.5,
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.4,
+        child: Container(
+          width: 80,
+          height: 60,
+          alignment: Alignment.center,
+          child: isDelete
+              ? Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF111827),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    size: 18,
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
-                child: const Icon(
-                  Icons.close,
-                  size: 18,
-                ),
-              )
-            : Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+        ),
       ),
     );
   }

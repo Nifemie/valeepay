@@ -1,92 +1,52 @@
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
-import 'package:valarpay/features/models/api_response.dart';
-import 'package:valarpay/features/models/email_request.dart';
-import 'package:valarpay/features/models/forgot_password.dart';
 import 'package:valarpay/features/models/login.dart';
-import 'package:valarpay/features/models/reset_password.dart';
-import 'package:valarpay/features/models/signup_request.dart';
-import 'package:valarpay/features/models/verify_email_request.dart';
-import 'package:valarpay/features/models/verify_forgot_password.dart';
+import 'package:valarpay/features/models/username_request.dart';
+import 'package:valarpay/features/models/verify_otp_request.dart';
 import '../../../core/network/api_client.dart';
 
-class UserRepository {
+class AuthRepository {
   final ApiClient apiClient;
 
-  UserRepository(this.apiClient);
+  AuthRepository(this.apiClient);
 
-  Future<LoginResponse> signUp(SignUpRequest request) async {
+  Future<LoginResponse> login(LoginRequest request) async {
     try {
       final response =
-          await apiClient.post(ApiEndpoints.register, data: request.toJson());
+          await apiClient.post(ApiEndpoints.login, data: request.toJson());
       return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Sign up failed');
+      throw Exception(e.response?.data['message'] ?? 'Login failed');
     }
   }
 
-  Future<ApiResponse> validateEmail(EmailRequest request) async {
+  Future<LoginResponse> loginWithPasscode(PasscodeLoginRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.resendVerificationCode,
-          data: request.toJson());
-      return ApiResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Failed to resend verification code');
-    }
-  }
-
-  Future<ApiResponse> verifyEmail(VerifyEmailRequest request) async {
-    try {
-      final response = await apiClient.post(ApiEndpoints.verifyEmail,
-          data: request.toJson());
-      return ApiResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Email verification failed');
-    }
-  }
-
-  Future<LoginResponse> registerBusiness(SignUpRequest request) async {
-    try {
-      final response = await apiClient.post(ApiEndpoints.registerBusiness,
+      final response = await apiClient.post(ApiEndpoints.loginWithPasscode,
           data: request.toJson());
       return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Business registration failed');
+      throw Exception(e.response?.data['message'] ?? 'Login failed');
     }
   }
 
-  Future<ApiResponse> forgotPassword(ForgotPasswordRequest request) async {
+  Future<LoginResponse> resend2fa(UsernameRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.forgotPassword,
-          data: request.toJson());
-      return ApiResponse.fromJson(response.data);
+      final response =
+          await apiClient.post(ApiEndpoints.resend2fa, data: request.toJson());
+      return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Failed to send reset link');
+      throw Exception(e.response?.data['message'] ?? 'Login failed');
     }
   }
 
-  Future<ApiResponse> verifyForgotPassword(VerifyForgotPassword request) async {
+  Future<LoginResponse> verify2fa(VerifyOtpRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.verifyForgotPassword,
-          data: request.toJson());
-      return ApiResponse.fromJson(response.data);
+      final response =
+          await apiClient.post(ApiEndpoints.verify2fa, data: request.toJson());
+      return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to verify OTP');
-    }
-  }
-
-  Future<ApiResponse> resetPassword(ResetPasswordRequest request) async {
-    try {
-      final response = await apiClient.post(ApiEndpoints.resetPassword,
-          data: request.toJson());
-      return ApiResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(
-          e.response?.data['message'] ?? 'Failed to reset password');
+      throw Exception(e.response?.data['message'] ?? 'Login failed');
     }
   }
 }

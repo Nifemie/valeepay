@@ -1,16 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'identity_verification.dart';
 import 'kyc_step_provider.dart';
 
-class CameraPermissionPage extends ConsumerWidget {
+class CameraPermissionPage extends ConsumerStatefulWidget {
   const CameraPermissionPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CameraPermissionPage> createState() =>
+      _CameraPermissionPageState();
+}
+
+class _CameraPermissionPageState extends ConsumerState<CameraPermissionPage> {
+  bool _isLoading = false;
+
+  /// Request camera permission using permission_handler package
+  Future<void> _requestCameraPermission() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final status = await Permission.camera.request();
+
+      if (status.isGranted) {
+        // Permission granted - navigate to next screen
+        ref.read(kycStepProvider.notifier).state = 5;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const IdentityVerificationTipsPage(),
+          ),
+        );
+      } else if (status.isDenied) {
+        // Permission denied
+        AppMessenger.show(
+          context,
+          message: 'Camera permission is required for identity verification',
+          type: MessageType.error,
+        );
+      } else if (status.isPermanentlyDenied) {
+        // Permission permanently denied - show dialog to open settings
+        _showOpenSettingsDialog();
+      }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        message: 'Failed to request camera permission: ${e.toString()}',
+        type: MessageType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  /// Show dialog to guide user to app settings
+  void _showOpenSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Camera Permission Required'),
+          content: const Text(
+            'Camera access has been permanently denied. Please enable it in app settings to continue with identity verification.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await openAppSettings();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentStep = ref.watch(kycStepProvider);
 
     return Scaffold(
@@ -93,15 +169,8 @@ class CameraPermissionPage extends ConsumerWidget {
               FullWidthButton(
                 text: 'Allow Permission',
                 isEnabled: true,
-                onPressed: () {
-                  ref.read(kycStepProvider.notifier).state = 3;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const IdentityVerificationTipsPage()),
-                  );
-                },
+                isLoading: _isLoading,
+                onPressed: _requestCameraPermission,
               ),
             ],
           ),

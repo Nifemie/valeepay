@@ -3,14 +3,24 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/api_client.dart';
 import 'package:valarpay/core/network/data_state.dart';
+import 'package:valarpay/features/models/bvn_initialize_request.dart';
+import 'package:valarpay/features/models/bvn_initialize_response.dart';
+import 'package:valarpay/features/models/bvn_validate_request.dart';
+import 'package:valarpay/features/models/bvn_validate_response.dart';
 import 'package:valarpay/features/models/email_request.dart';
+import 'package:valarpay/features/models/set_wallet_pin_request.dart';
+import 'package:valarpay/features/models/set_wallet_pin_response.dart';
 import 'package:valarpay/features/models/forgot_password.dart';
+import 'package:valarpay/features/models/phone_number_request.dart';
 import 'package:valarpay/features/models/reset_password.dart';
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/user.dart';
+import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/models/verify_email_request.dart';
-import 'package:valarpay/features/models/verify_forgot_password.dart';
-import 'package:valarpay/features/repositories/auth_repository.dart';
+import 'package:valarpay/features/models/verify_otp_request.dart';
+import 'package:valarpay/features/models/verify_phone_number.dart';
+import 'package:valarpay/features/models/verify_wallet_pin_request.dart';
+import 'package:valarpay/features/repositories/user_repository.dart';
 
 class UserNotifier extends StateNotifier<DataState<UserModel>> {
   final UserRepository _repository;
@@ -20,7 +30,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
   Future<void> register(SignUpRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final res = await _repository.signUp(request);
+      final res = await _repository.register(request);
       state = state.copyWith(
         isInitialLoading: false,
         data: [res.user],
@@ -32,7 +42,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Sign up failed: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
@@ -52,7 +62,26 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Business registration failed: ${e.toString()}',
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<void> checkUserExistance(UserAvailabilityRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.checkUserExistance(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[UserNotifier Availablity Check Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
       );
     }
   }
@@ -71,7 +100,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Failed to resend verification code: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
@@ -90,7 +119,49 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Email verification failed: ${e.toString()}',
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<void> validatePhone(PhoneNumberRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.validatePhone(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[UserNotifier Resend Code Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<void> verifyPhone(VerifyPhoneOtpRequest request) async {
+    log(request.phoneNumber.toString());
+    log(request.otpCode.toString());
+
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.verifyPhone(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[UserNotifier Verify Phone Number Error] $e\n$stack');
+      log(e.toString());
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
       );
     }
   }
@@ -109,12 +180,12 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Failed to send reset link: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
 
-  Future<void> verifyForgotPassword(VerifyForgotPassword request) async {
+  Future<void> verifyForgotPassword(VerifyOtpRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.verifyForgotPassword(request);
@@ -128,7 +199,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Failed to verify OTP: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
@@ -147,8 +218,107 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Failed to reset password: ${e.toString()}',
+        message: e.toString(),
       );
+    }
+  }
+
+  Future<BvnInitializeResponse?> initializeBvn(
+      BvnInitializeRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.initializeBvn(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+      return res; // Return the response so caller can access verificationId
+    } catch (e, stack) {
+      log('[UserNotifier BVN Initialize Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
+      );
+      return null;
+    }
+  }
+
+  Future<BvnValidateResponse?> validateBvn(BvnValidateRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.validateBvn(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+      return res;
+    } catch (e, stack) {
+      log('[UserNotifier BVN Validate Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
+      );
+      return null;
+    }
+  }
+
+  Future<SetWalletPinResponse?> setWalletPin(
+      SetWalletPinRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.setWalletPin(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
+      return res;
+    } catch (e, stack) {
+      log('[UserNotifier Set Wallet PIN Error] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
+      );
+      return null;
+    }
+  }
+
+  Future<UserModel?> refreshUserProfile() async {
+    try {
+      log('[UserNotifier] Fetching user profile...');
+      final user = await _repository.getUserProfile();
+      log('[UserNotifier] User profile fetched successfully');
+      log('[UserNotifier] isPasscodeSet: ${user.isPasscodeSet}');
+      log('[UserNotifier] isBvnVerified: ${user.isBvnVerified}');
+      log('[UserNotifier] Full user data: ${user.toJson()}');
+
+      // Update state with fresh user data
+      state = state.copyWith(
+        data: [user],
+        isDataAvailable: true,
+      );
+      return user;
+    } catch (e, stack) {
+      log('[UserNotifier Refresh Profile Error] $e\n$stack');
+      return null;
+    }
+  }
+
+  Future<bool> verifyWalletPin(String pin) async {
+    try {
+      log('[UserNotifier] Verifying wallet PIN...');
+      final request = VerifyWalletPinRequest(pin: pin);
+      final response = await _repository.verifyWalletPin(request);
+      log('[UserNotifier] PIN verification result: ${response.isSuccess}');
+      return response.isSuccess;
+    } catch (e, stack) {
+      log('[UserNotifier Verify PIN Error] $e\n$stack');
+      return false;
     }
   }
 

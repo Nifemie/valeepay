@@ -4,11 +4,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 import 'package:valarpay/core/constants/storage_keys.dart';
 import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/core/widgets/custom_toast.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/verify_email_request.dart';
@@ -16,13 +17,15 @@ import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class VerifyNewEmailScreen extends ConsumerStatefulWidget {
   String emailAddress;
-   VerifyNewEmailScreen({required this.emailAddress, super.key});
+  VerifyNewEmailScreen({required this.emailAddress, super.key});
 
   @override
-  ConsumerState<VerifyNewEmailScreen> createState() => _VerifyNewEmailScreenState();
+  ConsumerState<VerifyNewEmailScreen> createState() =>
+      _VerifyNewEmailScreenState();
 }
 
-class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
+class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen>
+    with CodeAutoFill {
   final List<TextEditingController> _controllers = List.generate(
     6,
     (index) => TextEditingController(),
@@ -31,7 +34,7 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
   bool _isLoading = false;
   int _resendTimer = 30;
   Timer? _timer;
-
+  String _otp = '';
 
   _startResendTimer() {
     _timer?.cancel();
@@ -77,13 +80,11 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
           }
           context.push('/signup-success', extra: {"firstName": firstName});
         } else if (mounted) {
-          CustomToast.showErrorToast(
-              context: context,
+          AppMessenger.show(context,
               message: userState.message ?? 'Invalid otp or expired');
         }
       } catch (e) {
-        CustomToast.showErrorToast(
-            context: context,
+        AppMessenger.show(context,
             message: 'An unexpected error occurred: ${e.toString()}');
       } finally {
         setState(() {
@@ -91,8 +92,7 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
         });
       }
     } else {
-      CustomToast.showErrorToast(
-          context: context,
+      AppMessenger.show(context,
           message: 'Please enter the complete verification code');
     }
   }
@@ -105,12 +105,12 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
       // await ref
       //     .read(userNotifierProvider.notifier)
       //     .validateEmail(EmailRequest(email: username));
-      CustomToast.showSuccessToast(
-          context: context, message: 'Verification code sent to your email.');
+      AppMessenger.show(context,
+          message: 'Verification code sent to your email.');
       _startResendTimer();
     } catch (e) {
-      CustomToast.showErrorToast(
-          context: context, message: 'Failed to resend code: ${e.toString()}');
+      AppMessenger.show(context,
+          message: 'Failed to resend code: ${e.toString()}');
     } finally {
       setState(() {
         _isLoading = false;
@@ -122,6 +122,14 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
   void initState() {
     super.initState();
     _startResendTimer();
+    listenForCode();
+  }
+
+  @override
+  void codeUpdated() {
+    setState(() {
+      _otp = code ?? '';
+    });
   }
 
   @override
@@ -153,50 +161,26 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
               const SizedBox(height: 48),
 
               // OTP Input Fields
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 45,
-                    height: 45,
-                    child: TextFormField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 1,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: appTheme.primaryColor,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.all(8),
-                      ),
-                      onChanged: (value) {
-                        if (value.isNotEmpty && index < 5) {
-                          _focusNodes[index + 1].requestFocus();
-                        } else if (value.isEmpty && index > 0) {
-                          _focusNodes[index - 1].requestFocus();
-                        }
-                      },
-                    ),
-                  );
-                }),
+              PinFieldAutoFill(
+                codeLength: 6,
+                decoration: BoxLooseDecoration(
+                  gapSpace: 12,
+                  strokeColorBuilder: FixedColorBuilder(Colors.grey.shade400),
+                  bgColorBuilder: FixedColorBuilder(
+                    Colors.grey.shade50.withOpacity(0.8),
+                  ),
+                  radius: const Radius.circular(8),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  strokeWidth: 1.4,
+                ),
+                currentCode: _otp,
+                onCodeChanged: (code) {
+                  setState(() => _otp = code ?? '');
+                },
               ),
 
               const SizedBox(height: 24),
@@ -229,9 +213,6 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
 
               const SizedBox(height: 48),
 
-              TermsAndConditionsWidget(),
-              const SizedBox(height: 50),
-
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : FullWidthButton(text: 'Continue', onPressed: _verifyOtp),
@@ -245,6 +226,7 @@ class _VerifyNewEmailScreenState extends ConsumerState<VerifyNewEmailScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    cancel();
     for (var controller in _controllers) {
       controller.dispose();
     }

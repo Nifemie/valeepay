@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/device_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../../../core/utils/platform_responsive.dart';
 import '../../../../../../features/auth/widgets/need_help_modal.dart';
 import '../../../../../../core/utils/color_utils.dart';
@@ -24,10 +26,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
-  bool _hasIncorrectPassword = false;
+  bool _hasIncorrectCred = false;
   bool _hasStoredUsername = false;
 
-  onPressed() async {
+  _login() async {
     if (_formKey.currentState!.validate()) {
       final ip = await DeviceUtils.getIpAddress();
       final deviceName = await DeviceUtils.getDeviceName();
@@ -47,26 +49,27 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       await notifier.login(request);
       final state = ref.read(authNotifierProvider);
 
-      if (state.isDataAvailable) {
-        final user = state.data?.first;
-        await SessionService.saveSession(
-          LoginResponse(
-            message: state.message ?? '',
-            user: user!,
-            statusCode: 200,
-          ),
-        );
+      if (state.isDataAvailable && mounted) {
+        final loginResponse = state.data?.first;
+        ref.read(userProvider.notifier).setUser(loginResponse!.user);
+        await SessionService.saveSession(loginResponse);
+        setState(() {
+          _hasStoredUsername = true;
+          _hasIncorrectCred = false;
+        });
 
-        setState(() => _hasStoredUsername = true); // ✅ Update availability
-
-        context.push('/'); // Navigate to home
+        if (loginResponse.accessToken != null) {
+          context.pushReplacement('/',);
+        } else {
+          context.push('/verify-2fa', extra: loginResponse.user);
+        }
       } else {
         AppMessenger.show(
           context,
           message: state.message ?? 'Login failed',
           type: MessageType.error,
         );
-        setState(() => _hasIncorrectPassword = true);
+        setState(() => _hasIncorrectCred = true);
       }
     }
   }
@@ -225,95 +228,47 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         obscureText: _obscurePassword,
                         onToggleVisibility: () => setState(
                             () => _obscurePassword = !_obscurePassword),
-                        hasError: _hasIncorrectPassword,
+                        hasError: _hasIncorrectCred,
                         isDark: true,
                       ),
 
-                      if (_hasIncorrectPassword) ...[
-                        SizedBox(height: 8.h),
-                        Row(
-                          children: [
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          if (_hasIncorrectCred)
                             const Icon(
                               Icons.error_outline,
                               color: Colors.red,
                               size: 16,
                             ),
-                            SizedBox(width: 8.w),
+                          if (_hasIncorrectCred) SizedBox(width: 8.w),
+                          if (_hasIncorrectCred)
                             const Text(
-                              'Incorrect password',
+                              'Invalid Username or password',
                               style: TextStyle(color: Colors.red, fontSize: 12),
                             ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () => context.push('/forgot-password'),
-                              child: const Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  color: appTheme.primaryColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      // Back to Login
-                      SizedBox(height: 3),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const Text(
-                            'Forgot your password? ',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
+                          const Spacer(),
                           GestureDetector(
-                            onTap: () {
-                              context.push('/forgot-password');
-                            },
+                            onTap: () => context.push('/forgot-password'),
                             child: const Text(
-                              'Reset Password',
+                              'Forgot Password?',
                               style: TextStyle(
-                                fontSize: 14,
                                 color: appTheme.primaryColor,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                         ],
                       ),
+
                       SizedBox(height: 40.h),
 
-                      // Login button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed:
-                              !authState.isInitialLoading ? onPressed : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: appTheme.primaryColor,
-                            padding: EdgeInsets.symmetric(vertical: 16.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                          ),
-                          child: authState.isInitialLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
-                              : Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                        ),
+                      FullWidthButton(
+                        text: 'Login',
+                        isLoading: authState.isInitialLoading,
+                        onPressed: _login,
                       ),
-
                       SizedBox(height: 24.h),
 
                       // 🔹 Conditional Login Options

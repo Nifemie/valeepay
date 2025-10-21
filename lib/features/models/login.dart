@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:valarpay/features/models/user.dart';
 
 class LoginRequest {
@@ -53,23 +56,29 @@ class PasscodeLoginRequest {
 class LoginResponse {
   final String message;
   final UserModel user;
+  final String? accessToken;
   final int statusCode;
 
   LoginResponse({
     required this.message,
     required this.user,
+    this.accessToken,
     required this.statusCode,
   });
 
-  factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
-        message: json['message'] ?? '',
-        user: UserModel.fromJson(json['user']),
-        statusCode: json['statusCode'] ?? 0,
-      );
+  factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    return LoginResponse(
+      message: json['message'] ?? '',
+      user: UserModel.fromJson(json['user']),
+      accessToken: json['accessToken'],
+      statusCode: json['statusCode'] ?? 0,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'message': message,
         'user': user.toJson(),
+        'accessToken': accessToken,
         'statusCode': statusCode,
       };
 }
