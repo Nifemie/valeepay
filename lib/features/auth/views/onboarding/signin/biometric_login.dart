@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/constants/enums/enums.dart';
 import 'package:valarpay/core/services/biometric_auth_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
@@ -81,7 +83,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     }
   }
 
-  /// 🧩 Shows a biometric bottom sheet and instantly triggers auth
   Future<void> _showBiometricBottomSheet(
       BuildContext context, WidgetRef ref) async {
     showModalBottomSheet(
@@ -142,6 +143,55 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         );
       },
     );
+  }
+
+  /// Request biometric (Face ID / Fingerprint) and camera permission
+  Future<void> _requestBiometricAndCameraPermissions() async {
+    try {
+      // Request camera permission
+      final cameraStatus = await Permission.camera.request();
+
+      // Request biometric permission (Android-specific)
+      final biometricStatus = await Permission.sensors.request();
+
+      // Check biometric availability using local_auth
+      final localAuth = LocalAuthentication();
+      final canCheckBiometrics = await localAuth.canCheckBiometrics;
+      final isDeviceSupported = await localAuth.isDeviceSupported();
+
+      if (cameraStatus.isGranted &&
+          biometricStatus.isGranted &&
+          canCheckBiometrics &&
+          isDeviceSupported) {
+        _showBiometricBottomSheet(context, ref);
+      } else if (!cameraStatus.isGranted) {
+        AppMessenger.show(
+          context,
+          message: 'Camera permission is required for face verification',
+          type: MessageType.error,
+        );
+      } else if (!biometricStatus.isGranted || !canCheckBiometrics) {
+        AppMessenger.show(
+          context,
+          message:
+              'Biometric (Face ID / Fingerprint) permission is required for verification',
+          type: MessageType.error,
+        );
+      } else {
+        AppMessenger.show(
+          context,
+          message:
+              'Device biometrics not configured. Please set up Face ID or Fingerprint.',
+          type: MessageType.error,
+        );
+      }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        message: 'Failed to request permissions: ${e.toString()}',
+        type: MessageType.error,
+      );
+    }
   }
 
   @override
@@ -251,7 +301,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   ),
                   SizedBox(height: 50.h),
                   GestureDetector(
-                    onTap: () => _showBiometricBottomSheet(context, ref),
+                    onTap: () => _requestBiometricAndCameraPermissions(),
                     child: Column(
                       children: [
                         Container(
