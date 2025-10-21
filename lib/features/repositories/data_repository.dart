@@ -10,10 +10,11 @@ class DataRepository {
   DataRepository(this.apiClient);
 
   /// Get available network providers for data
+  /// Uses airtime network providers endpoint since data providers endpoint doesn't exist
   Future<NetworkProvidersResponse> getDataNetworkProviders() async {
     try {
       final response =
-          await apiClient.get(ApiEndpoints.getDataNetworkProviders);
+          await apiClient.get(ApiEndpoints.getAirtimeNetworkProviders);
       return NetworkProvidersResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ??

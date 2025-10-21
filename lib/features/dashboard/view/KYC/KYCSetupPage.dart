@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:valarpay/features/dashboard/view/KYC/Residential_address.dart';
+import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
 
 class KYCSetupPage extends ConsumerWidget {
   const KYCSetupPage({Key? key}) : super(key: key);

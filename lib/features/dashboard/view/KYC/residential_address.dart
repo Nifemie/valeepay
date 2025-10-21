@@ -1,26 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
 
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'BVN.dart';
 import 'kyc_step_provider.dart';
 
-/// Residential Address Collection for KYC
-///
-/// ⚠️ IMPORTANT: This data is currently stored in local state only.
-/// No backend endpoint exists yet for submitting residential address.
-///
-/// 🔮 FUTURE USE: This information will be required for KYC Level 3 upgrades.
-/// When the backend endpoint is ready, these providers should be:
-/// 1. Consolidated into a KycAddressRequest model with toJson()
-/// 2. Submitted via UserRepository.submitKycAddress() or similar
-/// 3. Integrated with KycNotifier following the project's state management pattern
-///
-/// Current flow: User fills form → validates → navigates to BVN page
-/// Future flow: User fills form → validates → API submission → success/error handling
-
-// State providers for form fields (temporary local storage for future KYC3)
 final stateProvider = StateProvider<String>((ref) => '');
 final lgaProvider = StateProvider<String>((ref) => '');
 final houseAddressProvider = StateProvider<String>((ref) => '');
@@ -138,19 +124,18 @@ class ResidentialAddressPage extends ConsumerWidget {
                   text: 'Continue',
                   isEnabled: isFormValid,
                   onPressed: () {
-                    // TODO: When KYC3 endpoint is ready, submit address data here:
-                    // final addressRequest = KycAddressRequest(
-                    //   state: state,
-                    //   lga: lga,
-                    //   houseAddress: houseAddress,
-                    //   landmark: landmark,
-                    // );
-                    // ref.read(kycNotifierProvider.notifier).submitAddress(addressRequest);
-
+                    final addressRequest = KycAddressRequest(
+                      state: state,
+                      lga: lga,
+                      houseAddress: houseAddress,
+                      landmark: landmark,
+                    );
                     ref.read(kycStepProvider.notifier).state = 2;
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const BVNPage()),
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              BVNPage(request: addressRequest)),
                     );
                   },
                 ),

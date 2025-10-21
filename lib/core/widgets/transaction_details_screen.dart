@@ -141,7 +141,7 @@ class _ReuseableTransactionDetailsScreenState
                   children: [
                     // Payment methods
                     _buildPaymentMethod('Vconnect Bank', '0000000000',
-                        'assets/images/valar.png', isDark),
+                        'assets/images/new_valapay.png', isDark),
                     const SizedBox(height: 12),
                     _buildPaymentMethod('First Bank of Nigeria', '0000000000',
                         'assets/images/firstbank.png', isDark),

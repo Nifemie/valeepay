@@ -1,39 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/dashboard/view/KYC/bvn_otp_verification.dart';
-import 'package:valarpay/features/dashboard/view/KYC/setup_pin.dart';
-import 'package:valarpay/features/models/bvn_initialize_request.dart';
+import 'package:valarpay/features/dashboard/view/KYC/camera_Permission.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'kyc_step_provider.dart';
 
-/// BVN Collection for KYC
-///
-/// ⚠️ IMPORTANT: BVN data is currently stored in local state only.
-/// No backend endpoint exists yet for BVN verification/submission.
-///
-/// 🔮 FUTURE USE: This BVN will be required for KYC Level 2/3 verification.
-/// When the backend endpoint is ready:
-/// 1. Create BvnVerificationRequest model with toJson()
-/// 2. Add UserRepository.verifyBvn(BvnVerificationRequest) method
-/// 3. Integrate with KycNotifier for state management
-/// 4. Handle BVN validation response from backend
-///
-/// Current validation: Client-side length check only (11 digits)
-/// Future validation: Backend BVN verification via third-party service
-
-// State provider for BVN (temporary local storage for future KYC submission)
 final bvnProvider = StateProvider<String>((ref) => '');
 
-class BVNPage extends ConsumerWidget {
-  const BVNPage({Key? key}) : super(key: key);
+class BVNPage extends ConsumerStatefulWidget {
+  final KycAddressRequest request;
+
+  const BVNPage({required this.request, Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BVNPage> createState() => _BVNPageState();
+}
+
+class _BVNPageState extends ConsumerState<BVNPage> {
+  late TextEditingController _bvnController;
+
+  @override
+  void initState() {
+    super.initState();
+    _bvnController = TextEditingController(
+      text: ref.read(bvnProvider),
+    );
+  }
+
+  @override
+  void dispose() {
+    _bvnController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final bvn = ref.watch(bvnProvider);
-    final isFormValid = bvn.length == 11; // BVN is 11 digits
+    final isFormValid = bvn.length == 11;
     final currentStep = ref.watch(kycStepProvider);
     final userState = ref.watch(userNotifierProvider);
 
@@ -41,11 +46,12 @@ class BVNPage extends ConsumerWidget {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              ref.read(kycStepProvider.notifier).state = 1;
-              Navigator.pop(context);
-            }),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            ref.read(kycStepProvider.notifier).state = 2;
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -56,6 +62,7 @@ class BVNPage extends ConsumerWidget {
               // Step Progress Bar
               StepProgressBar(currentStep: currentStep),
               const SizedBox(height: 32),
+
               // Title
               const Text(
                 'Your BVN',
@@ -68,6 +75,7 @@ class BVNPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
+
               // Subtitle
               const Text(
                 'Enter your BVN to verify your identity',
@@ -81,11 +89,11 @@ class BVNPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
+
               // BVN Input Field
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Label
                   const Text(
                     'Your BVN',
                     style: TextStyle(
@@ -97,7 +105,6 @@ class BVNPage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Input Container
                   Container(
                     height: 40,
                     padding: const EdgeInsets.symmetric(
@@ -107,6 +114,7 @@ class BVNPage extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
+                      controller: _bvnController,
                       onChanged: (value) {
                         ref.read(bvnProvider.notifier).state = value;
                       },
@@ -128,13 +136,14 @@ class BVNPage extends ConsumerWidget {
                         ),
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
-                        counterText: '', // Hide character counter
+                        counterText: '', // Hide counter
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
+
               // Info Section
               Column(
                 children: [
@@ -185,97 +194,23 @@ class BVNPage extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 40),
+
               // Continue Button
               FullWidthButton(
                 text: 'Continue',
                 isEnabled: isFormValid,
                 isLoading: userState.isInitialLoading,
                 onPressed: () async {
-                  // Step 1: Call initializeBvn API
-                  final bvnRequest = BvnInitializeRequest(bvn: bvn);
-                  final response = await ref
-                      .read(userNotifierProvider.notifier)
-                      .initializeBvn(bvnRequest);
-
-                  // Step 2: Handle response
-                  if (response != null) {
-                    // Success: Get verificationId from response
-                    final verificationId = response.data.verificationId;
-
-                    // Update KYC step
-                    ref.read(kycStepProvider.notifier).state = 3;
-
-                    // Step 3: Navigate to OTP screen with verificationId
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BvnOtpVerificationPage(
-                          bvn: bvn,
-                          verificationId: verificationId,
-                        ),
+                  // Pass the address request and BVN forward to the camera permission page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CameraPermissionPage(
+                        request: widget.request.copyWith(bvn: bvn),
                       ),
-                    );
-                  } else {
-                    // Error: Show error message
-                    final userState = ref.read(userNotifierProvider);
-                    AppMessenger.show(
-                      context,
-                      message: userState.message ??
-                          'Failed to initialize BVN verification',
-                      type: MessageType.error,
-                    );
-                  }
+                    ),
+                  );
                 },
-              ),
-              const SizedBox(height: 16),
-
-              // 🚨 DEVELOPMENT ONLY - REMOVE BEFORE PRODUCTION 🚨
-              // Skip button for testing wallet PIN setup without valid BVN
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.orange, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    // Update KYC step to PIN setup
-                    ref.read(kycStepProvider.notifier).state = 4;
-
-                    // Navigate directly to PIN setup (skip BVN verification)
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SetupTransactionPinPage(),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.skip_next, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Text(
-                        'SKIP FOR TESTING (Remove Before Production)',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Warning text
-              Text(
-                '⚠️ Development Mode: This button bypasses BVN verification',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.red.shade700,
-                  fontSize: 11,
-                  fontStyle: FontStyle.italic,
-                ),
               ),
             ],
           ),
