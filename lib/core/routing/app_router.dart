@@ -9,6 +9,7 @@ import 'package:valarpay/features/dashboard/view/services/education/education.da
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
+import 'package:valarpay/features/dashboard/view/settings/create_passcode.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
 import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/internet/internet_screen.dart';
@@ -18,7 +19,7 @@ import 'package:valarpay/features/dashboard/view/settings/close_account_screen.d
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/user.dart';
 import 'package:valarpay/features/models/username_request.dart';
-import '../../features/dashboard/view/services/airtime/airtime.dart';
+import '../../features/dashboard/view/services/airtime/airtime_screen.dart';
 import '../../features/dashboard/view/services/data/data.dart';
 import '../../features/dashboard/view/services/airtime/schedule_topup.dart';
 import '../../features/dashboard/view/services/airtime/ussd_enquiry.dart';
@@ -274,6 +275,10 @@ final router = GoRouter(
     GoRoute(
       path: '/auto-logout-settings',
       builder: (context, state) => const AutoLogoutSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/create-passcode',
+      builder: (context, state) => const CreatePasscodeScreen(),
     ),
     GoRoute(
       path: '/my-rewards',

@@ -77,13 +77,13 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (loggedIn) {
-      context.pushReplacement('/profile');
+      context.pushReplacement('/');
     } else {
       String? savedUsername = await SessionService.getUsername();
       if (savedUsername != null) {
-        context.push('/profile');
+        context.push('/biometric-login');
       } else {
-        context.pushReplacement('/profile');
+        context.pushReplacement('/');
       }
     }
   }

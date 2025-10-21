@@ -295,6 +295,13 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       log('[UserNotifier] User profile fetched successfully');
       log('[UserNotifier] isPasscodeSet: ${user.isPasscodeSet}');
       log('[UserNotifier] isBvnVerified: ${user.isBvnVerified}');
+      log('[UserNotifier] 🏦 Wallet Count: ${user.wallets.length}');
+      if (user.wallets.isNotEmpty) {
+        log('[UserNotifier] 💰 Balance: ${user.wallets.first.formattedBalance}');
+        log('[UserNotifier] 🔢 Account Number: ${user.wallets.first.accountNumber}');
+      } else {
+        log('[UserNotifier] ⚠️ No wallet found for user!');
+      }
       log('[UserNotifier] Full user data: ${user.toJson()}');
 
       // Update state with fresh user data
