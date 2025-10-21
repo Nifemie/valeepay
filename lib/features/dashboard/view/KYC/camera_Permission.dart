@@ -4,12 +4,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/dashboard/view/KYC/identity_verification.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
-import 'identity_verification.dart';
 import 'kyc_step_provider.dart';
 
 class CameraPermissionPage extends ConsumerStatefulWidget {
-  const CameraPermissionPage({Key? key}) : super(key: key);
+  final KycAddressRequest request;
+  const CameraPermissionPage({required this.request, Key? key})
+      : super(key: key);
 
   @override
   ConsumerState<CameraPermissionPage> createState() =>
@@ -19,20 +22,18 @@ class CameraPermissionPage extends ConsumerStatefulWidget {
 class _CameraPermissionPageState extends ConsumerState<CameraPermissionPage> {
   bool _isLoading = false;
 
-  /// Request camera permission using permission_handler package
   Future<void> _requestCameraPermission() async {
     setState(() => _isLoading = true);
-
     try {
       final status = await Permission.camera.request();
 
       if (status.isGranted) {
-        // Permission granted - navigate to next screen
         ref.read(kycStepProvider.notifier).state = 5;
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const IdentityVerificationTipsPage(),
+            builder: (context) =>
+                IdentityVerificationPage(request: widget.request),
           ),
         );
       } else if (status.isDenied) {
@@ -43,7 +44,6 @@ class _CameraPermissionPageState extends ConsumerState<CameraPermissionPage> {
           type: MessageType.error,
         );
       } else if (status.isPermanentlyDenied) {
-        // Permission permanently denied - show dialog to open settings
         _showOpenSettingsDialog();
       }
     } catch (e) {
@@ -95,7 +95,7 @@ class _CameraPermissionPageState extends ConsumerState<CameraPermissionPage> {
         leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              ref.read(kycStepProvider.notifier).state = 2;
+              ref.read(kycStepProvider.notifier).state = 3;
               Navigator.pop(context);
             }),
       ),

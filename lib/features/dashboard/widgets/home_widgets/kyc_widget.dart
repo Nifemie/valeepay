@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/dashboard/view/KYC/identity_verification.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
 import '../../view/KYC/KYCSetupPage.dart';
 
 class KYCWidget extends StatelessWidget {
@@ -53,17 +55,17 @@ class KYCWidget extends StatelessWidget {
                 Text(
                   'Complete Your KYC',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Verify your identity to unlock access',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
                 ),
               ],
             ),
@@ -73,12 +75,17 @@ class KYCWidget extends StatelessWidget {
 
           // Button
           ElevatedButton(
-            onPressed: onSetup ?? () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const KYCSetupPage()),
-              );
-            },
+            onPressed: onSetup ??
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const IdentityVerificationPage(
+                              request: KycAddressRequest(bvn: ""),
+                            )),
+                  );
+                },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: appTheme.primaryColor, // secondary blue
