@@ -45,18 +45,15 @@ class _SelectBankScreenState extends State<SelectBankScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: appTheme.darkColor),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "Select Bank",
           style: TextStyle(
-            color: Colors.black87,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -90,7 +87,6 @@ class _SelectBankScreenState extends State<SelectBankScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 12),
@@ -104,7 +100,6 @@ class _SelectBankScreenState extends State<SelectBankScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 12),
