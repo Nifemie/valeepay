@@ -51,7 +51,13 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
 
           if (state.isDataAvailable && mounted) {
             final loginResponse = state.data?.first;
-            ref.read(userProvider.notifier).setUser(loginResponse!.user);
+
+            // Save session with access token
+            await SessionService.saveSession(loginResponse!);
+
+            // Update user provider
+            ref.read(userProvider.notifier).setUser(loginResponse.user);
+
             AppMessenger.show(
               context,
               message: 'Welcome ${loginResponse.user.fullname}',

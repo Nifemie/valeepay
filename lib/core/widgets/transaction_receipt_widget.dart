@@ -219,7 +219,8 @@ class TransactionReceiptWidget extends StatelessWidget {
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: detail.value));
                   AppMessenger.show(context,
-                      type: MessageType.error, message: 'Copied to clipboard');
+                      type: MessageType.success,
+                      message: 'Copied to clipboard');
                 },
                 child: const Icon(
                   Icons.copy,

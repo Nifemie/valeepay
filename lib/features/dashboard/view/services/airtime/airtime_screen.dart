@@ -15,7 +15,6 @@ import 'package:valarpay/features/providers/airtime_providers.dart';
 import 'package:valarpay/features/models/network_provider.dart';
 import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/features/notifiers/airtime_notifier.dart';
-import 'package:valarpay/core/network/data_state.dart';
 
 /// Clean AirtimeScreen implementation. Use this file instead of the legacy `airtime.dart`.
 class AirtimeScreen extends ConsumerStatefulWidget {
@@ -64,7 +63,10 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     if (pin == null || pin.length != 4) return;
     if (!mounted) return;
 
-    Navigator.pop(context); // close details screen
+    // Close details screen first
+    Navigator.pop(context);
+
+    // Show loading dialog
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -84,12 +86,55 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
-      if (mounted) Navigator.pop(context); // close loading
+
+      // Use post frame callback to close dialog and navigate after frame completes
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+
+          // Close loading dialog
+          Navigator.pop(context);
+
+          // Check the state and navigate
+          final state = ref.read(airtimePurchaseNotifierProvider);
+          if (state.isDataAvailable &&
+              state.data != null &&
+              state.data!.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TransactionReceiptWidget(
+                  amount: '₦${_amountController.text}',
+                  topDetails: [
+                    TransactionDetail(
+                        label: 'Transaction ID',
+                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                        showCopyIcon: true),
+                    TransactionDetail(
+                        label: 'Recipient Number', value: _controller.text),
+                    TransactionDetail(
+                        label: 'Network',
+                        value: ref.read(airtimeSelectedNetworkProvider)),
+                    TransactionDetail(
+                        label: 'Amount', value: '₦${_amountController.text}'),
+                  ],
+                  onShareReceipt: () {},
+                ),
+              ),
+            );
+          } else if (state.message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(state.message!), backgroundColor: Colors.red));
+          }
+        });
+      }
     } catch (e) {
-      if (mounted) Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red));
+      if (mounted) Navigator.pop(context); // close loading
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -121,37 +166,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
     final providersState = ref.watch(airtimeProvidersNotifierProvider);
     final networkProviders = providersState.data ?? <NetworkProvider>[];
-
-    ref.listen<DataState<AirtimePurchaseResponse>>(
-        airtimePurchaseNotifierProvider, (prev, next) {
-      if (!next.isInitialLoading) {
-        if (next.isDataAvailable &&
-            next.data != null &&
-            next.data!.isNotEmpty) {
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TransactionReceiptWidget(
-                  amount: '₦${_amountController.text}',
-                  topDetails: [
-                    TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true)
-                  ],
-                  onShareReceipt: () {},
-                ),
-              ),
-            );
-          }
-        } else if (next.message != null) {
-          if (mounted)
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(next.message!), backgroundColor: Colors.red));
-        }
-      }
-    });
 
     return Scaffold(
       appBar: AppBar(
@@ -207,7 +221,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                           isExpanded: true,
                           items: networkProviders
                               .map((p) => DropdownMenuItem(
-                                  value: p.network, child: Text(p.planName)))
+                                  value: p.network, child: Text(p.network)))
                               .toList(),
                           onChanged: (value) async {
                             if (value == null) return;
