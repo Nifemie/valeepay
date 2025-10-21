@@ -3,22 +3,25 @@ import 'package:flutter/material.dart';
 class CableTvPlanSelectorModal extends StatelessWidget {
   final String selectedPlan;
   final Function(String) onPlanSelected;
+  final List<String>? plans;
 
   const CableTvPlanSelectorModal({
     super.key,
     required this.selectedPlan,
     required this.onPlanSelected,
+    this.plans,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final cableTvPlans = [
-      'Plan A', // Example plans
-      'Plan B',
-      'Plan C',
-    ];
+    final cableTvPlans = plans ??
+        [
+          'Plan A', // fallback
+          'Plan B',
+          'Plan C',
+        ];
 
     return Container(
       decoration: BoxDecoration(

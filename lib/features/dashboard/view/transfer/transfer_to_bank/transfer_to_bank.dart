@@ -67,6 +67,7 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
             TextField(
               controller: accountController,
               keyboardType: TextInputType.number,
+              maxLength: 10,
               decoration: InputDecoration(
                 hintText: "Account number of beneficiary",
                 filled: true,

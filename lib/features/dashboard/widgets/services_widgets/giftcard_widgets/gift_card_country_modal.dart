@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/features/models/giftcard.dart';
 import '/core/themes/color_utils.dart';
 
 class GiftCardCountryModal extends StatelessWidget {
   final String selectedCountry;
+  final GiftCardProduct product;
   final Function(String) onCountrySelected;
 
   const GiftCardCountryModal({
     super.key,
     required this.selectedCountry,
+    required this.product,
     required this.onCountrySelected,
   });
 
@@ -15,17 +18,13 @@ class GiftCardCountryModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // For now, we'll show just the product's country since most products are country-specific
     final countries = [
-      {'name': 'United Kingdom', 'flag': '🇬🇧'},
-      {'name': 'United States', 'flag': '🇺🇸'},
-      {'name': 'Canada', 'flag': '🇨🇦'},
-      {'name': 'Australia', 'flag': '🇦🇺'},
-      {'name': 'Germany', 'flag': '🇩🇪'},
-      {'name': 'France', 'flag': '🇫🇷'},
-      {'name': 'Italy', 'flag': '🇮🇹'},
-      {'name': 'Spain', 'flag': '🇪🇸'},
-      {'name': 'Netherlands', 'flag': '🇳🇱'},
-      {'name': 'Japan', 'flag': '🇯🇵'},
+      {
+        'name': product.country.name,
+        'flag': product.country.flagUrl,
+        'isoName': product.country.isoName,
+      }
     ];
 
     return Container(
@@ -91,12 +90,21 @@ class GiftCardCountryModal extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Center(
-                            child: Text(
-                              country['flag'] as String,
-                              style: const TextStyle(fontSize: 18),
-                            ),
-                          ),
+                          child: country['flag'].toString().startsWith('http')
+                              ? Image.network(
+                                  country['flag'] as String,
+                                  width: 32,
+                                  height: 24,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.flag, size: 18),
+                                )
+                              : Center(
+                                  child: Text(
+                                    country['flag'] as String,
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(

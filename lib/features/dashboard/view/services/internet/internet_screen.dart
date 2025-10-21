@@ -1,27 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/reuseable_appbar_text_button.dart';
 import 'saved_beneficiary_screen.dart';
+import 'package:valarpay/features/notifiers/internet_notifier.dart';
 import 'provider_payment_screen.dart';
 
-class InternetScreen extends StatefulWidget {
+class InternetScreen extends ConsumerStatefulWidget {
   const InternetScreen({super.key});
 
   @override
-  State<InternetScreen> createState() => _InternetScreenState();
+  ConsumerState<InternetScreen> createState() => _InternetScreenState();
 }
 
-class _InternetScreenState extends State<InternetScreen> {
+class _InternetScreenState extends ConsumerState<InternetScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // load internet plans
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(internetPlansNotifierProvider.notifier)
+          .getPlans(currency: 'NGN');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final internetProviders = [
-      'Spectranet',
-      'Smile Communications',
-      'Swift Networks',
-      'Broadline Broadband',
-      'Vodacom Business Nigeria',
-    ];
+    final plansState = ref.watch(internetPlansNotifierProvider);
+    final internetProviders =
+        plansState.data != null && plansState.data!.isNotEmpty
+            ? plansState.data!.map((e) => e.planName).toList()
+            : <String>[];
 
     return Scaffold(
       appBar: AppBar(
@@ -46,9 +57,9 @@ class _InternetScreenState extends State<InternetScreen> {
                   builder: (context) => const InternetSavedBeneficiaryScreen(),
                 ),
               );
-            }, 
-          text: 'Saved Beneficiary')
-         
+            },
+            text: 'Saved Beneficiary',
+          )
         ],
       ),
       body: Padding(
@@ -57,13 +68,15 @@ class _InternetScreenState extends State<InternetScreen> {
           children: [
             // Internet Providers List
             Expanded(
-              child: ListView.builder(
-                itemCount: internetProviders.length,
-                itemBuilder: (context, index) {
-                  final provider = internetProviders[index];
-                  return _buildProviderTile(provider, isDark);
-                },
-              ),
+              child: plansState.isInitialLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      itemCount: internetProviders.length,
+                      itemBuilder: (context, index) {
+                        final provider = internetProviders[index];
+                        return _buildProviderTile(provider, isDark);
+                      },
+                    ),
             ),
           ],
         ),
@@ -97,9 +110,8 @@ class _InternetScreenState extends State<InternetScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProviderPaymentScreen(
-                providerName: provider,
-              ),
+              builder: (context) =>
+                  InternetProviderPaymentScreen(providerName: provider),
             ),
           );
         },

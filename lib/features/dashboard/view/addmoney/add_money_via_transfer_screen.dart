@@ -1,140 +1,189 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class AddMoneyTransferScreen extends StatefulWidget {
+class AddMoneyTransferScreen extends ConsumerStatefulWidget {
   const AddMoneyTransferScreen({super.key});
 
   @override
-  State<AddMoneyTransferScreen> createState() => _AddMoneyTransferScreenState();
+  ConsumerState<AddMoneyTransferScreen> createState() =>
+      _AddMoneyTransferScreenState();
 }
 
-class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
+class _AddMoneyTransferScreenState
+    extends ConsumerState<AddMoneyTransferScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user profile when screen loads to get latest wallet data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userNotifierProvider.notifier).refreshUserProfile();
+    });
+  }
+
   void _copyToClipboard(String label, String value) {
-    // TODO: implement Clipboard.setData(ClipboardData(text: value));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("$label copied to clipboard")));
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("$label copied to clipboard"),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get user data from provider
+    final user = ref.watch(userProvider);
+
+    // Debug logging
+    print('🏦 [Add Money] User: ${user?.fullname}');
+    print('🏦 [Add Money] Wallets count: ${user?.wallets.length ?? 0}');
+    print('🏦 [Add Money] BVN verified: ${user?.isBvnVerified}');
+
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+
+    print(
+        '🏦 [Add Money] Wallet object: ${wallet != null ? "EXISTS" : "NULL"}');
+    if (wallet != null) {
+      print('🏦 [Add Money] Account Number: ${wallet.accountNumber}');
+    }
+
+    // Extract wallet data
+    final bankName = wallet?.bankName ?? 'ValarPay Bank';
+    final accountName =
+        wallet?.accountName ?? user?.fullname ?? 'Not Available';
+    final accountNumber = wallet?.accountNumber ?? 'Not Available';
+    final tierLevel = user?.tierLevel ?? 'notSet';
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon:
+              Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Bank Transfer",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
+          style:
+              Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
-      body: Padding(
-        padding: ResponsiveUtils.paddingAll16,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Account Card
-            Container(
+      body: wallet == null
+          ? _buildNoWalletView(context)
+          : Padding(
               padding: ResponsiveUtils.paddingAll16,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: ResponsiveUtils.borderRadius12,
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Tier 1",
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: appTheme.primaryColor,
+                  // Account Card
+                  Container(
+                    padding: ResponsiveUtils.paddingAll16,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: ResponsiveUtils.borderRadius12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Tier ${tierLevel == 'one' ? '1' : tierLevel.toUpperCase()}",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: appTheme.primaryColor,
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+
+                        // Bank Name
+                        _infoRow("Bank Name", bankName),
+
+                        SizedBox(height: 12.h),
+
+                        // Account Name
+                        _infoRow("Account Name", accountName),
+
+                        SizedBox(height: 12.h),
+
+                        // Account Number
+                        _infoRow("Account Number", accountNumber),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 12.h),
 
-                  // Bank Name
-                  _infoRow("Bank Name", "ValarPay"),
+                  SizedBox(height: 20.h),
 
-                  SizedBox(height: 12.h),
-
-                  // Account Name
-                  _infoRow("Account Name", "John Smith Emmy"),
-
-                  SizedBox(height: 12.h),
-
-                  // Account Number
-                  _infoRow("Account Number", "0000000000"),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 20.h),
-
-            // Share Details Button
-            SizedBox(
-              width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.r),
-                  ),
-                ),
-                onPressed: () {
-                  // handle share details
-                },
-                icon: Icon(Icons.share, color: Colors.white, size: 18.sp),
-                label: Text(
-                  "Share Details",
-                  style: TextStyle(fontSize: 16.sp, color: Colors.white),
-                ),
-              ),
-            ),
-
-            SizedBox(height: 24.h),
-
-            // Instructions Card
-            Container(
-              width: double.infinity,
-              padding: ResponsiveUtils.paddingAll16,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: ResponsiveUtils.borderRadius12,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Fund your ValarPay wallet easily in three quick steps",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
+                  // Share Details Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50.h,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: appTheme.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25.r),
                         ),
+                      ),
+                      onPressed: () {
+                        // handle share details
+                      },
+                      icon: Icon(Icons.share, color: Colors.white, size: 18.sp),
+                      label: Text(
+                        "Share Details",
+                        style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 12.h),
-                  Text(
-                    "Step 1: Copy your unique ValarPay account number from the app.\n"
-                    "Step 2: Open your mobile banking app and initiate a transfer.\n"
-                    "Step 3: Send the desired amount, and your ValarPay wallet will be credited instantly.",
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: 13.sp,
-                          height: 1.5,
+
+                  SizedBox(height: 24.h),
+
+                  // Instructions Card
+                  Container(
+                    width: double.infinity,
+                    padding: ResponsiveUtils.paddingAll16,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: ResponsiveUtils.borderRadius12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Fund your ValarPay wallet easily in three quick steps",
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
+                        SizedBox(height: 12.h),
+                        Text(
+                          "Step 1: Copy your unique ValarPay account number from the app.\n"
+                          "Step 2: Open your mobile banking app and initiate a transfer.\n"
+                          "Step 3: Send the desired amount, and your ValarPay wallet will be credited instantly.",
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontSize: 13.sp,
+                                    height: 1.5,
+                                  ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -149,7 +198,10 @@ class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontSize: 13.sp),
               ),
               SizedBox(height: 4.h),
               Text(
@@ -163,10 +215,70 @@ class _AddMoneyTransferScreenState extends State<AddMoneyTransferScreen> {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.copy, size: 18.sp, color: Theme.of(context).iconTheme.color),
+          icon: Icon(Icons.copy,
+              size: 18.sp, color: Theme.of(context).iconTheme.color),
           onPressed: () => _copyToClipboard(label, value),
         ),
       ],
+    );
+  }
+
+  // No wallet view - for users without wallet
+  Widget _buildNoWalletView(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: ResponsiveUtils.paddingAll24,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.account_balance_wallet_outlined,
+              size: 80.sp,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 24.h),
+            Text(
+              'Virtual Account Not Created',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Complete your BVN verification to create your virtual account and start receiving money',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 14.sp,
+                    color: Colors.grey[600],
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 32.h),
+            SizedBox(
+              width: double.infinity,
+              height: 50.h,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25.r),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Navigate to KYC setup
+                  // context.push('/kyc-setup');
+                },
+                child: Text(
+                  "Complete KYC",
+                  style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

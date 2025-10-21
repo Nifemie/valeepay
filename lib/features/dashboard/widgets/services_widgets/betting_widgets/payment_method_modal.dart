@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+// import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 
 class BettingPaymentMethodModal extends StatelessWidget {
   final Map<String, String> transactionData;
@@ -93,9 +93,7 @@ class BettingPaymentMethodModal extends StatelessWidget {
                 color: Color(0xFFF76301),
                 size: 20,
               ),
-              onTap: () async {
-               
-              },
+              onTap: () async {},
             );
           }).toList(),
 

@@ -50,7 +50,6 @@ class AppTheme {
         elevation: 0,
         surfaceTintColor: Colors.black,
       ),
-
       bottomAppBarTheme: const BottomAppBarTheme(color: Colors.black),
       cardColor: const Color(0xFF2B2725),
       textTheme: const TextTheme(
@@ -67,4 +66,3 @@ class AppTheme {
     );
   }
 }
-

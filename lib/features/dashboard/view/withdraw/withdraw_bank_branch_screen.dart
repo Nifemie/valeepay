@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:valarpay/core/utils/responsive_utils.dart';
+// import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class WithdrawBankBranchScreen extends StatefulWidget {
   const WithdrawBankBranchScreen({super.key});
@@ -20,12 +20,14 @@ class _WithdrawBankBranchScreenState extends State<WithdrawBankBranchScreen> {
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon:
+              Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Withdraw via Bank Branch",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
+          style:
+              Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: Padding(
