@@ -30,6 +30,13 @@ class ApiEndpoints {
   // User Profile
   static const String getUserProfile = '/api/v1/user/me';
 
+  // Wallet - Transfers & Transactions
+  static const String getBanks = '/api/v1/wallet/get-banks';
+  static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
+  static const String verifyAccount = '/api/v1/wallet/verify-account'; //post name 
+  static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external 
+  static const String getAllTransactions = '/api/v1/wallet/transaction';
+
   // Bill payment endpoints
   static const String getAirtimeNetworkProviders =
       '/api/v1/bill/airtime/network-providers';
@@ -69,5 +76,4 @@ class ApiEndpoints {
   static const String payElectricity = '/api/v1/bill/electricity/pay';
 
   // future endpoints can go here
-  
 }
