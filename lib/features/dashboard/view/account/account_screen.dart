@@ -1,34 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class AccountScreen extends StatefulWidget {
+class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
 
   @override
-  State<AccountScreen> createState() => _AccountScreenState();
+  ConsumerState<AccountScreen> createState() => _AccountScreenState();
 }
 
-class _AccountScreenState extends State<AccountScreen> {
+class _AccountScreenState extends ConsumerState<AccountScreen> {
   bool showNairaBalance = false;
   bool showDollarBalance = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Refresh user profile when screen loads to get latest wallet data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userNotifierProvider.notifier).refreshUserProfile();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Get user data from provider
+    final user = ref.watch(userProvider);
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+
+    // Extract wallet data
+    final formattedBalance = wallet?.formattedBalance ?? '₦0.00';
+    final bankName = wallet?.bankName ?? 'ValarPay Bank';
+    final accountName =
+        wallet?.accountName ?? user?.fullname ?? 'Not Available';
+    final accountNumber = wallet?.accountNumber ?? 'Not Available';
+    final tierLevel = user?.tierLevel ?? 'notSet';
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon:
+              Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Account",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
+          style:
+              Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: SingleChildScrollView(
@@ -38,18 +66,28 @@ class _AccountScreenState extends State<AccountScreen> {
             // Naira Account Card
             _accountCard(
               currency: "₦",
+              balance: formattedBalance,
+              bankName: bankName,
+              accountName: accountName,
+              accountNumber: accountNumber,
+              tierLevel: tierLevel,
               isVisible: showNairaBalance,
-              onToggle:
-                  () => setState(() => showNairaBalance = !showNairaBalance),
+              onToggle: () =>
+                  setState(() => showNairaBalance = !showNairaBalance),
             ),
             SizedBox(height: 16.h),
 
-            // Dollar Account Card
+            // Dollar Account Card (coming soon - no wallet yet)
             _accountCard(
               currency: "\$",
+              balance: '\$0.00',
+              bankName: 'ValarPay Bank',
+              accountName: 'Not Available',
+              accountNumber: 'Coming Soon',
+              tierLevel: tierLevel,
               isVisible: showDollarBalance,
-              onToggle:
-                  () => setState(() => showDollarBalance = !showDollarBalance),
+              onToggle: () =>
+                  setState(() => showDollarBalance = !showDollarBalance),
             ),
             SizedBox(height: 20.h),
 
@@ -83,6 +121,11 @@ class _AccountScreenState extends State<AccountScreen> {
   // Reusable Account Card
   Widget _accountCard({
     required String currency,
+    required String balance,
+    required String bankName,
+    required String accountName,
+    required String accountNumber,
+    required String tierLevel,
     required bool isVisible,
     required VoidCallback onToggle,
   }) {
@@ -103,7 +146,10 @@ class _AccountScreenState extends State<AccountScreen> {
                 children: [
                   Text(
                     "Your Balance",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontSize: 14.sp),
                   ),
                   IconButton(
                     icon: Icon(
@@ -116,7 +162,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ],
               ),
               Text(
-                "Tier 1",
+                "Tier ${tierLevel == 'one' ? '1' : tierLevel.toUpperCase()}",
                 style: TextStyle(
                   color: appTheme.primaryColor,
                   fontSize: 13.sp,
@@ -127,7 +173,7 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           SizedBox(height: 4.h),
           Text(
-            isVisible ? "$currency 150,000.00" : "$currency ***********",
+            isVisible ? balance : "$currency ***********",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
@@ -136,15 +182,15 @@ class _AccountScreenState extends State<AccountScreen> {
           SizedBox(height: 16.h),
 
           // Bank Name
-          _infoRow("Bank Name", "ValarPay"),
+          _infoRow("Bank Name", bankName),
           SizedBox(height: 12.h),
 
           // Account Name
-          _infoRow("Account Name", "John Smith Emmy"),
+          _infoRow("Account Name", accountName),
           SizedBox(height: 12.h),
 
           // Account Number
-          _infoRow("Account Number", "0000000000"),
+          _infoRow("Account Number", accountNumber),
         ],
       ),
     );
@@ -161,7 +207,10 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontSize: 13.sp),
               ),
               SizedBox(height: 4.h),
               Text(
@@ -175,10 +224,16 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.copy, size: 18.sp, color: Theme.of(context).iconTheme.color),
+          icon: Icon(Icons.copy,
+              size: 18.sp, color: Theme.of(context).iconTheme.color),
           onPressed: () {
+            Clipboard.setData(ClipboardData(text: value));
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("$label copied to clipboard")),
+              SnackBar(
+                content: Text("$label copied to clipboard"),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
             );
           },
         ),
@@ -210,13 +265,17 @@ class _AccountScreenState extends State<AccountScreen> {
         ),
         subtitle: Text(
           subtitle,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
+          style:
+              Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
         ),
         trailing: TextButton(
           onPressed: onTap,
           child: Text(
             "Setup",
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 14.sp),
+            style: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+                fontSize: 14.sp),
           ),
         ),
       ),

@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
+import 'package:valarpay/features/models/create_passcode_request.dart';
+import 'package:valarpay/features/models/create_passcode_response.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/models/verify_otp_request.dart';
@@ -47,6 +49,20 @@ class AuthRepository {
       return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Login failed');
+    }
+  }
+
+  Future<CreatePasscodeResponse> createPasscode(
+      CreatePasscodeRequest request) async {
+    try {
+      final response = await apiClient.post(
+        ApiEndpoints.createPasscode,
+        data: request.toJson(),
+      );
+      return CreatePasscodeResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to create passcode');
     }
   }
 }

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/features/models/electricity.dart';
 
 class DiscoSelectorModal extends StatelessWidget {
-  final String selectedDisco;
-  final Function(String) onDiscoSelected;
+  final List<ElectricityPlan> discos;
+  final ElectricityPlan? selectedDisco;
+  final Function(ElectricityPlan) onDiscoSelected;
 
   const DiscoSelectorModal({
     super.key,
+    required this.discos,
     required this.selectedDisco,
     required this.onDiscoSelected,
   });
@@ -13,16 +16,6 @@ class DiscoSelectorModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final discos = [
-      'Abuja Electricity',
-      'Eko Electricity',
-      'Benin Electricity',
-      'Enugu Electricity',
-      'Eko Electricity',
-      'Kaduna Electricity',
-      'Kano Electricity',
-    ];
 
     return Container(
       decoration: BoxDecoration(
@@ -75,7 +68,7 @@ class DiscoSelectorModal extends StatelessWidget {
               itemCount: discos.length,
               itemBuilder: (context, index) {
                 final disco = discos[index];
-                final isSelected = disco == selectedDisco;
+                final isSelected = disco.id == selectedDisco?.id;
 
                 return ListTile(
                   leading: Container(
@@ -98,10 +91,17 @@ class DiscoSelectorModal extends StatelessWidget {
                         : null,
                   ),
                   title: Text(
-                    disco,
+                    disco.planName,
                     style: TextStyle(
                       color: isDark ? Colors.white : Colors.black,
                       fontSize: 16,
+                    ),
+                  ),
+                  subtitle: Text(
+                    disco.shortName,
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
                     ),
                   ),
                   onTap: () {

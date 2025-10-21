@@ -2,6 +2,7 @@ class ApiEndpoints {
   //auth apis
   static const String login = '/api/v1/auth/login';
   static const String loginWithPasscode = '/api/v1/auth/passcode-login';
+  static const String createPasscode = '/api/v1/auth/create-passcode';
   static const String resend2fa = '/api/v1/auth/resend-2fa';
   static const String verify2fa = '/api/v1/auth/verify-2fa';
   //user api
@@ -30,4 +31,43 @@ class ApiEndpoints {
   static const String getUserProfile = '/api/v1/user/me';
 
   // future endpoints can go here
+  // Bill payment endpoints
+  static const String getAirtimeNetworkProviders =
+      '/api/v1/bill/airtime/network-providers';
+  static const String getAirtimePlan = '/api/v1/bill/airtime/get-plan';
+  static const String getAirtimeVariation =
+      '/api/v1/bill/airtime/get-variation';
+  static const String payAirtime = '/api/v1/bill/airtime/pay';
+  static const String getDataNetworkProviders =
+      '/api/v1/bill/data/network-providers';
+  static const String getDataPlan = '/api/v1/bill/data/get-plan';
+  static const String getDataVariation = '/api/v1/bill/data/get-variation';
+  static const String purchaseData = '/api/v1/bill/data/pay';
+
+  // International airtime endpoints
+  static const String getInternationalFxRate =
+      '/api/v1/bill/airtime/international/get-fx-rate';
+  static const String getInternationalPlan =
+      '/api/v1/bill/airtime/international/get-plan';
+  static const String payInternationalAirtime =
+      '/api/v1/bill/airtime/international/pay';
+
+  // Giftcard endpoints
+  static const String getGiftCardCategories =
+      '/api/v1/bill/giftcard/get-categories';
+  static const String getGiftCardProducts = '/api/v1/bill/giftcard/get-product';
+  static const String payGiftCard = '/api/v1/bill/giftcard/pay';
+  static const String getGiftCardRedeemCode =
+      '/api/v1/bill/giftcard/get-redeem-code';
+  static const String getGiftCardFxRate = '/api/v1/bill/giftcard/get-fx-rate';
+
+  // Electricity endpoints
+  static const String getElectricityPlan = '/api/v1/bill/electricity/get-plan';
+  static const String getElectricityBillInfo =
+      '/api/v1/bill/electricity/get-bill-info';
+  static const String verifyMeterNumber =
+      '/api/v1/bill/electricity/verify-meter-number';
+  static const String payElectricity = '/api/v1/bill/electricity/pay';
+
+// future endpoints can go here
 }

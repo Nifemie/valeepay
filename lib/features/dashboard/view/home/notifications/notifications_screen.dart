@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:go_router/go_router.dart';
 import '../../../widgets/home_widgets/notification_widgets.dart';
 
 class NotificationsScreen extends StatefulWidget {

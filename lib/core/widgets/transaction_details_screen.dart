@@ -33,11 +33,11 @@ class ReuseableTransactionDetailsScreen extends StatefulWidget {
   final List<Widget> topTransactionsDetailsList;
   final String topTitleText;
   bool hasBottom;
-   String? bottomTitleText;
-   final List<Widget>? bottomTransactionsDetailsList;
+  String? bottomTitleText;
+  final List<Widget>? bottomTransactionsDetailsList;
   final Function() onButtonPressed;
 
-   ReuseableTransactionDetailsScreen(
+  ReuseableTransactionDetailsScreen(
       {super.key,
       required this.topTransactionsDetailsList,
       this.bottomTransactionsDetailsList,
@@ -94,26 +94,28 @@ class _ReuseableTransactionDetailsScreenState
                   children: widget.topTransactionsDetailsList,
                 ),
               ),
-             if(widget.hasBottom) SizedBox(height: 24),
-             if(widget.hasBottom) Text(
-                widget.bottomTitleText ?? '',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+              if (widget.hasBottom) SizedBox(height: 24),
+              if (widget.hasBottom)
+                Text(
+                  widget.bottomTitleText ?? '',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-             if(widget.hasBottom) SizedBox(height: 16),
+              if (widget.hasBottom) SizedBox(height: 16),
 
-             if(widget.hasBottom) Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
+              if (widget.hasBottom)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: widget.bottomTransactionsDetailsList ?? [],
+                  ),
                 ),
-                child: Column(
-                  children: widget.bottomTransactionsDetailsList ?? [],
-                ),
-              ),
 
               const SizedBox(
                 height: 40,

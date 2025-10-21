@@ -3,7 +3,7 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import '../../../widgets/services_widgets/flight_widgets/destination_selector_modal.dart';
 import '../../../widgets/services_widgets/flight_widgets/class_selector_modal.dart';
-import 'saved_beneficiary_screen.dart';
+// import 'saved_beneficiary_screen.dart';
 import 'passenger_details_screen.dart';
 
 class FlightScreen extends StatefulWidget {
@@ -123,8 +123,10 @@ class _FlightScreenState extends State<FlightScreen> {
             const SizedBox(height: 60),
 
             // Continue Button
-            FullWidthButton(text: 'Continue', onPressed: () {
-                Navigator.push(
+            FullWidthButton(
+                text: 'Continue',
+                onPressed: () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PassengerDetailsScreen(
@@ -138,13 +140,13 @@ class _FlightScreenState extends State<FlightScreen> {
                           'infants': infants.toString(),
                           'email': emailController.text,
                           'phone': controller.text,
-                          'flightName' : widget.flightName
+                          'flightName': widget.flightName
                         },
                       ),
                     ),
                   );
-            })
-           ],
+                })
+          ],
         ),
       ),
     );
@@ -246,7 +248,7 @@ class _FlightScreenState extends State<FlightScreen> {
         isReadOnly: false,
         textInputType: TextInputType.number,
         showCountryLabel: true);
- }
+  }
 
   Widget _buildPassengerCounter(
       String title, int count, Function(int) onChanged, bool isDark) {

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/features/models/electricity.dart';
 
 class MeterTypeModal extends StatelessWidget {
-  final String selectedType;
-  final Function(String) onTypeSelected;
+  final List<ElectricityBillInfo> meterTypes;
+  final ElectricityBillInfo? selectedType;
+  final Function(ElectricityBillInfo) onTypeSelected;
 
   const MeterTypeModal({
     super.key,
+    required this.meterTypes,
     required this.selectedType,
     required this.onTypeSelected,
   });
@@ -13,8 +16,6 @@ class MeterTypeModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final meterTypes = ['Prepaid', 'Postpaid'];
 
     return Container(
       decoration: BoxDecoration(
@@ -61,41 +62,56 @@ class MeterTypeModal extends StatelessWidget {
           ),
 
           // Meter type list
-          ...meterTypes.map((type) {
-            final isSelected = type == selectedType;
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: meterTypes.length,
+              itemBuilder: (context, index) {
+                final type = meterTypes[index];
+                final isSelected = type.id == selectedType?.id;
 
-            return ListTile(
-              leading: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? const Color(0xFFF76301) : Colors.grey,
-                    width: 2,
+                return ListTile(
+                  leading: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color:
+                            isSelected ? const Color(0xFFF76301) : Colors.grey,
+                        width: 2,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.circle,
+                            color: Color(0xFFF76301),
+                            size: 12,
+                          )
+                        : null,
                   ),
-                ),
-                child: isSelected
-                    ? const Icon(
-                        Icons.circle,
-                        color: Color(0xFFF76301),
-                        size: 12,
-                      )
-                    : null,
-              ),
-              title: Text(
-                type,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                  fontSize: 16,
-                ),
-              ),
-              onTap: () {
-                onTypeSelected(type);
-                Navigator.pop(context);
+                  title: Text(
+                    type.name,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '₦${type.fee.toStringAsFixed(0)} fee',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  onTap: () {
+                    onTypeSelected(type);
+                    Navigator.pop(context);
+                  },
+                );
               },
-            );
-          }).toList(),
+            ),
+          ),
 
           const SizedBox(height: 20),
         ],

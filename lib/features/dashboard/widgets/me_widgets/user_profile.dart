@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-class ProfileHeaderCard extends StatelessWidget {
+class ProfileHeaderCard extends ConsumerStatefulWidget {
   final VoidCallback? onSecurityTipsTap;
   final VoidCallback? onRewardsTap;
 
@@ -13,13 +16,53 @@ class ProfileHeaderCard extends StatelessWidget {
       : super(key: key);
 
   @override
+  ConsumerState<ProfileHeaderCard> createState() => _ProfileHeaderCardState();
+}
+
+class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
+  bool isBalanceVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user profile when screen loads to get latest wallet data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userNotifierProvider.notifier).refreshUserProfile();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const String userName = "Timothy";
-    const String accountNumber = "0000000000";
-    const double balance = 7500.00;
-    const double rewardsAmount = 1200.00;
-    const String profileImagePath = "assets/images/gotv.png";
-    const bool isBalanceVisible = true;
+    // Get user data from provider
+    final user = ref.watch(userProvider);
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+
+    // Extract user data
+    String userName = "Guest";
+    if (user?.fullname != null && user!.fullname.isNotEmpty) {
+      userName = user.fullname.split(' ').first;
+    } else if (user?.username != null) {
+      userName = user!.username;
+    }
+    final accountNumber = wallet?.accountNumber ?? '0000000000';
+    final balance = wallet?.balance ?? 0.0;
+
+    // 🔍 Debug: Log wallet data
+    debugPrint('💰 [Profile Card] Balance: ₦$balance');
+    debugPrint('💰 [Profile Card] Account: $accountNumber');
+    debugPrint('💰 [Profile Card] Wallets count: ${user?.wallets.length ?? 0}');
+    if (wallet != null) {
+      debugPrint(
+          '💰 [Profile Card] Wallet balance from model: ${wallet.balance}');
+      debugPrint(
+          '💰 [Profile Card] Wallet formatted: ${wallet.formattedBalance}');
+    }
+    const double rewardsAmount =
+        0.00; // TODO: Get from rewards API when available
+    final profileImagePath = user?.profileImageUrl?.isNotEmpty == true
+        ? user!.profileImageUrl!
+        : 'https://i.pravatar.cc/150?img=3';
 
     return Container(
       width: double.infinity,
@@ -50,7 +93,23 @@ class ProfileHeaderCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
-                  child: Image.asset(profileImagePath, fit: BoxFit.cover),
+                  child: profileImagePath.startsWith('http')
+                      ? Image.network(
+                          profileImagePath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.person,
+                                color: Colors.white, size: 24);
+                          },
+                        )
+                      : Image.asset(
+                          profileImagePath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.person,
+                                color: Colors.white, size: 24);
+                          },
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -85,7 +144,7 @@ class ProfileHeaderCard extends StatelessWidget {
                         InkWell(
                           onTap: () {
                             Clipboard.setData(
-                              const ClipboardData(text: accountNumber),
+                              ClipboardData(text: accountNumber),
                             );
 
                             AppMessenger.show(context,
@@ -142,19 +201,28 @@ class ProfileHeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
-                        Text(
+                      children: [
+                        const Text(
                           "Your Balance",
                           style: TextStyle(
                             color: Color(0xFF6B7280),
                             fontSize: 12,
                           ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(
-                          Icons.visibility_off,
-                          size: 14,
-                          color: Color(0xFF9CA3AF),
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              isBalanceVisible = !isBalanceVisible;
+                            });
+                          },
+                          child: Icon(
+                            isBalanceVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            size: 14,
+                            color: const Color(0xFF9CA3AF),
+                          ),
                         ),
                       ],
                     ),
@@ -171,7 +239,7 @@ class ProfileHeaderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     InkWell(
-                      onTap: onRewardsTap,
+                      onTap: widget.onRewardsTap,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -203,7 +271,7 @@ class ProfileHeaderCard extends StatelessWidget {
 
               // Security button
               InkWell(
-                onTap: onSecurityTipsTap,
+                onTap: widget.onSecurityTipsTap,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,

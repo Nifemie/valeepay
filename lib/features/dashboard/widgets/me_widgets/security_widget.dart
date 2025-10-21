@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:valarpay/features/dashboard/view/me/security.dart';
-import 'package:valarpay/features/dashboard/view/me/about_us.dart';
+// unused imports removed
 
 class SecurityMenuWidget extends StatelessWidget {
   const SecurityMenuWidget({Key? key}) : super(key: key);

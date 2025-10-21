@@ -1,26 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'saved_beneficiary_screen.dart';
-import 'provider_payment_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_provider_selector_modal.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_plan_selector_modal.dart';
+import 'package:valarpay/features/notifiers/cable_notifier.dart';
+import 'package:valarpay/features/models/cable_models.dart';
 
-class CableTvScreen extends StatefulWidget {
+class CableTvScreen extends ConsumerStatefulWidget {
   const CableTvScreen({super.key});
 
   @override
-  State<CableTvScreen> createState() => _CableTvScreenState();
+  ConsumerState<CableTvScreen> createState() => _CableTvScreenState();
 }
 
-class _CableTvScreenState extends State<CableTvScreen> {
+class _CableTvScreenState extends ConsumerState<CableTvScreen> {
   String selectedProvider = 'DStv';
   final TextEditingController smartcardController = TextEditingController();
   String selectedPlan = 'Plan A';
   String planAmount = '6500'; // This will need to be dynamic later
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(cablePlansNotifierProvider.notifier).getPlans(currency: 'NGN');
+    });
+  }
 
   @override
   void dispose() {
@@ -32,11 +42,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final cableTvProviders = [
-      'DStv',
-      'GOtv',
-      'Startimes',
-    ];
+    // cable plans are read when needed (e.g. in modal builders)
 
     return Scaffold(
       appBar: AppBar(
@@ -173,7 +179,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.4),
+                color: Theme.of(context).cardColor.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: const Color(0xFFF76301),
@@ -197,62 +203,105 @@ class _CableTvScreenState extends State<CableTvScreen> {
             const SizedBox(height: 60),
 
             // Pay Cable TV Button
-            FullWidthButton(text: 'Pay Cable TV', onPressed: () {
-              if (smartcardController.text.isNotEmpty &&
-                      planAmount.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ReuseableTransactionDetailsScreen(
-                          hasBottom: false,
-                          topTitleText: 'Transaction',
-                          topTransactionsDetailsList: [
-                            buildDetailRow(
-                                'Provider', selectedProvider, isDark),
-                            buildDetailRow('Smartcard Number',
-                                smartcardController.text, isDark),
-                            buildDetailRow('Plan', selectedPlan, isDark),
-                            buildDetailRow('Amount', '₦${planAmount}', isDark),
-                            const Divider(),
-                            buildDetailRow(
-                                'Total Amount', '₦${planAmount}', isDark,
-                                isTotal: true)
-                          ],
-                          onButtonPressed: () async {
-                            final pin = await TransactionPinModal.show(context);
-                            if (pin != null && pin.length == 4 && mounted) {
-                              if (mounted) {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        TransactionReceiptWidget(
-                                      amount: planAmount,
-                                      topDetails: [
-                                        TransactionDetail(
-                                            label: 'Provider',
-                                            value: selectedProvider),
-                                        TransactionDetail(
-                                            label: 'Smartcard Number',
-                                            value: smartcardController.text),
-                                        TransactionDetail(
-                                            label: 'Plan', value: selectedPlan),
-                                      ],
-                                      onShareReceipt: () {
-                                        // TODO: Implement share receipt functionality
-                                      },
-                                    ),
+            FullWidthButton(
+                text: 'Pay Cable TV',
+                onPressed: () async {
+                  if (smartcardController.text.isEmpty || planAmount.isEmpty)
+                    return;
+
+                  // show details and ask for PIN
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReuseableTransactionDetailsScreen(
+                        hasBottom: false,
+                        topTitleText: 'Transaction',
+                        topTransactionsDetailsList: [
+                          buildDetailRow('Provider', selectedProvider, isDark),
+                          buildDetailRow('Smartcard Number',
+                              smartcardController.text, isDark),
+                          buildDetailRow('Plan', selectedPlan, isDark),
+                          buildDetailRow('Amount', '₦${planAmount}', isDark),
+                          const Divider(),
+                          buildDetailRow(
+                              'Total Amount', '₦${planAmount}', isDark,
+                              isTotal: true)
+                        ],
+                        onButtonPressed: () async {
+                          final pin = await TransactionPinModal.show(context);
+                          if (pin == null || pin.length != 4) return;
+
+                          // find selected variation
+                          final variations =
+                              ref.read(cableVariationNotifierProvider).data;
+                          if (variations == null || variations.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Selected plan not available')));
+                            return;
+                          }
+                          final selectedVar = variations.firstWhere(
+                              (v) => v.name == selectedPlan,
+                              orElse: () => variations.first);
+
+                          try {
+                            await ref
+                                .read(cablePaymentNotifierProvider.notifier)
+                                .verifyNumber(
+                                  VerifyCableRequest(
+                                    itemCode: selectedVar.itemCode,
+                                    billerCode: selectedVar.billerCode,
+                                    billerNumber: smartcardController.text,
                                   ),
                                 );
-                              }
+
+                            await ref
+                                .read(cablePaymentNotifierProvider.notifier)
+                                .payCable(
+                                  CablePayRequest(
+                                    itemCode: selectedVar.itemCode,
+                                    billerCode: selectedVar.billerCode,
+                                    currency: 'NGN',
+                                    billerNumber: smartcardController.text,
+                                    amount: selectedVar.payAmount ??
+                                        selectedVar.amount,
+                                  ),
+                                );
+
+                            if (mounted) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TransactionReceiptWidget(
+                                    amount: planAmount,
+                                    topDetails: [
+                                      TransactionDetail(
+                                          label: 'Provider',
+                                          value: selectedProvider),
+                                      TransactionDetail(
+                                          label: 'Smartcard Number',
+                                          value: smartcardController.text),
+                                      TransactionDetail(
+                                          label: 'Plan', value: selectedPlan),
+                                    ],
+                                    onShareReceipt: () {},
+                                  ),
+                                ),
+                              );
                             }
-                          },
-                        ),
+                          } catch (e) {
+                            if (mounted)
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())));
+                          }
+                        },
                       ),
-                    );
-                  }
-            })
-            ],
+                    ),
+                  );
+                })
+          ],
         ),
       ),
     );
@@ -262,34 +311,49 @@ class _CableTvScreenState extends State<CableTvScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => CableTvProviderSelectorModal(
-        selectedProvider: selectedProvider,
-        onProviderSelected: (provider) {
-          setState(() {
-            selectedProvider = provider;
-          });
-        },
-      ),
+      builder: (context) {
+        final plans = ref.read(cablePlansNotifierProvider).data;
+        final providers = plans != null && plans.isNotEmpty
+            ? plans.map((e) => e.planName).toSet().toList()
+            : ['DStv', 'GOtv', 'Startimes'];
+        return CableTvProviderSelectorModal(
+          selectedProvider: selectedProvider,
+          providers: providers,
+          onProviderSelected: (provider) {
+            setState(() {
+              selectedProvider = provider;
+            });
+            // fetch matching biller code and load variations
+            if (plans != null && plans.isNotEmpty) {
+              final match = plans.firstWhere((p) => p.planName == provider,
+                  orElse: () => plans.first);
+              ref
+                  .read(cableVariationNotifierProvider.notifier)
+                  .getVariations(billerCode: match.billerCode);
+            }
+          },
+        );
+      },
     );
   }
 
   void _showPlanSelector(BuildContext context) {
+    final variations = ref.read(cableVariationNotifierProvider).data;
+    final planNames = (variations ?? []).map((v) => v.name).toList();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => CableTvPlanSelectorModal(
         selectedPlan: selectedPlan,
+        plans: planNames,
         onPlanSelected: (plan) {
           setState(() {
             selectedPlan = plan;
-            // In a real app, you would update planAmount based on the selected plan
-            // For now, we'll keep it hardcoded or update based on a simple logic
-            if (plan == 'Plan A') {
-              planAmount = '6500';
-            } else if (plan == 'Plan B') {
-              planAmount = '8000';
-            } else {
-              planAmount = '5000';
+            if (variations != null && variations.isNotEmpty) {
+              final selectedVar = variations.firstWhere((v) => v.name == plan,
+                  orElse: () => variations.first);
+              planAmount = (selectedVar.payAmount ?? selectedVar.amount)
+                  .toStringAsFixed(0);
             }
           });
         },

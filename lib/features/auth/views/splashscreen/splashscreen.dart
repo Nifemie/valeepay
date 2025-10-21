@@ -83,7 +83,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (savedUsername != null) {
         context.push('/biometric-login');
       } else {
-        context.pushReplacement('/signin');
+        context.pushReplacement('/');
       }
     }
   }

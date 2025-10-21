@@ -25,6 +25,8 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) {
           print('[API REQUEST] => ${options.method} ${options.path}');
+          print('[API HEADERS] => ${options.headers}');
+          print('[API DATA] => ${options.data}');
           return handler.next(options);
         },
         onResponse: (response, handler) {

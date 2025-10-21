@@ -89,6 +89,29 @@ class _LoginSettingsScreenState extends State<LoginSettingsScreen> {
                     const SizedBox(height: 12),
                     InkWell(
                       onTap: () {
+                        context.push('/create-passcode');
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Create Passcode',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () {
                         context.push('/auto-logout-settings');
                       },
                       child: Row(

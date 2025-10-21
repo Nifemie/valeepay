@@ -5,6 +5,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
   String? countryCode;
   TextEditingController controller;
   Widget? suffixWidget;
+  void Function(String)? onChanged;
   bool isReadOnly;
   String hintText;
   bool showCountryLabel;
@@ -14,6 +15,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
       this.flagImagePath,
       required this.controller,
       required this.hintText,
+      this.onChanged,
       required this.isReadOnly,
       required this.textInputType,
       this.suffixWidget,
@@ -24,11 +26,94 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
+    return  
+    // Row(
+    //                   children: [
+    //                     // Country Code Selector
+    //                     Container(
+    //                       padding: const EdgeInsets.symmetric(
+    //                         horizontal: 12,
+    //                         vertical: 12,
+    //                       ),
+    //                       decoration: BoxDecoration(
+    //                         border: Border.all(color: Colors.grey.shade300),
+    //                         borderRadius: BorderRadius.circular(8),
+    //                       ),
+    //                       child: Row(
+    //                         mainAxisSize: MainAxisSize.min,
+    //                         children: [
+    //                           const Text(
+    //                             '🇳🇬',
+    //                             style: TextStyle(fontSize: 18),
+    //                           ),
+    //                           const SizedBox(width: 8),
+    //                           Text(
+    //                              '🇳🇬',
+    //                             style: const TextStyle(
+    //                               fontSize: 16,
+    //                               fontWeight: FontWeight.w500,
+    //                             ),
+    //                           ),
+    //                         ],
+    //                       ),
+    //                     ),
+    //                     const SizedBox(width: 12),
+
+    //                     // Phone Number Field (takes the rest of the space)
+    //                     Expanded(
+    //                       child: TextFormField(
+    //                         controller: _controller,
+    //                         keyboardType: TextInputType.phone,
+    //                         decoration: InputDecoration(
+    //                           hintText: '0000000000',
+    //                           hintStyle: TextStyle(
+    //                             color: Colors.grey.shade400,
+    //                             fontSize: 14,
+    //                           ),
+    //                           border: OutlineInputBorder(
+    //                             borderRadius: BorderRadius.circular(8),
+    //                             borderSide: BorderSide(
+    //                               color: Colors.grey.shade300,
+    //                             ),
+    //                           ),
+    //                           enabledBorder: OutlineInputBorder(
+    //                             borderRadius: BorderRadius.circular(8),
+    //                             borderSide: BorderSide(
+    //                               color: Colors.grey.shade300,
+    //                             ),
+    //                           ),
+    //                           focusedBorder: OutlineInputBorder(
+    //                             borderRadius: BorderRadius.circular(8),
+    //                             borderSide: const BorderSide(
+    //                               color: appTheme.primaryColor,
+    //                             ),
+    //                           ),
+    //                           contentPadding: const EdgeInsets.symmetric(
+    //                             horizontal: 16,
+    //                             vertical: 12,
+    //                           ),
+    //                         ),
+    //                         validator: (value) {
+    //                           if (value == null || value.isEmpty) {
+    //                             return 'Phone number is required';
+    //                           }
+    //                           if (value.length < 10) {
+    //                             return 'Please enter a valid phone number';
+    //                           }
+    //                           return null;
+    //                         },
+    //                       ),
+    //                     ),
+    //                   ],
+    //                 );
+                 
+    
+    
+    Row(
       children: [
         if (showCountryLabel)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
@@ -43,12 +128,12 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2),
                     ),
-                    child: Image.asset(flagImagePath!, fit: BoxFit.cover),
+                    child: Image.asset(flagImagePath ?? '', fit: BoxFit.cover),
                   ),
                 const SizedBox(width: 8),
                 if (countryCode != null)
                   Text(
-                    countryCode!,
+                    countryCode ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                     ),
@@ -59,7 +144,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
         if (showCountryLabel) const SizedBox(width: 12),
         Expanded(
           child: Container(
-             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
@@ -71,6 +156,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
                     controller: controller,
                     keyboardType: textInputType,
                     readOnly: isReadOnly,
+                    onChanged: onChanged,
                     style:
                         TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
@@ -93,7 +179,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
                 if (suffixWidget != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: suffixWidget!,
+                    child: suffixWidget,
                   ),
               ],
             ),
