@@ -191,9 +191,14 @@ class _HomeAppBar extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundImage: NetworkImage(profileImageUrl),
+          InkWell(
+            onTap: () {
+              context.push('/profile');
+            },
+            child: CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage(profileImageUrl),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

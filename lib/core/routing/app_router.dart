@@ -79,6 +79,12 @@ import '../../features/dashboard/view/settings/notification_settings_screen.dart
 import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
+import '../../features/dashboard/view/profile/profile.dart';
+import '../../features/dashboard/view/profile/personal_details_screen.dart'
+    as profile;
+import '../../features/dashboard/view/profile/contact_details_screen.dart';
+import '../../features/dashboard/view/profile/address_screen.dart';
+import '../../features/dashboard/view/profile/change_phone_number.dart';
 
 final router = GoRouter(
   initialLocation: '/splash', // Always show splash screen
@@ -281,6 +287,27 @@ final router = GoRouter(
     GoRoute(
       path: 'My Portfolio',
       builder: (context, state) => const MyPortfolioPage(),
+    ),
+    // Profile routes
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/personal-details-view',
+      builder: (context, state) => const profile.PersonalDetailsScreen(),
+    ),
+    GoRoute(
+      path: '/contact-details-view',
+      builder: (context, state) => const ContactDetailsScreen(),
+    ),
+    GoRoute(
+      path: '/address-view',
+      builder: (context, state) => const AddressScreen(),
+    ),
+    GoRoute(
+      path: '/change-phone-number',
+      builder: (context, state) => const ChangeMobileNumberScreen(),
     ),
     // Services routes
     GoRoute(

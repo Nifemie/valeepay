@@ -146,7 +146,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
               colorFilter: ColorFilter.mode(
                 isSelected
                     ? const Color(0xFFF76301)
-                    : Theme.of(context) == AppTheme.darkTheme
+                    : Theme.of(context).brightness == Brightness.dark
                         ? Colors.white70
                         : Colors.black87,
                 BlendMode.srcIn,
@@ -158,7 +158,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
               style: TextStyle(
                 color: isSelected
                     ? const Color(0xFFF76301)
-                    : Theme.of(context) == AppTheme.darkTheme
+                    : Theme.of(context).brightness == Brightness.dark
                         ? Colors.white70
                         : Colors.black87,
                 fontFamily: 'SF Pro',

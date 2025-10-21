@@ -30,7 +30,6 @@ class ApiEndpoints {
   // User Profile
   static const String getUserProfile = '/api/v1/user/me';
 
-  // future endpoints can go here
   // Bill payment endpoints
   static const String getAirtimeNetworkProviders =
       '/api/v1/bill/airtime/network-providers';
@@ -69,5 +68,6 @@ class ApiEndpoints {
       '/api/v1/bill/electricity/verify-meter-number';
   static const String payElectricity = '/api/v1/bill/electricity/pay';
 
-// future endpoints can go here
+  // future endpoints can go here
+  
 }

@@ -40,18 +40,15 @@ class SecurityCentrePage extends ConsumerWidget {
     final securityOptions = ref.watch(securityOptionsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Security Centre',
           style: TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -100,7 +97,7 @@ class SecurityCentrePage extends ConsumerWidget {
         height: 80,
         padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFBFC),
+          color: Theme.of(context).cardColor.withOpacity(0.3),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -123,7 +120,6 @@ class SecurityCentrePage extends ConsumerWidget {
               option.title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFF111827),
                 fontFamily: 'SF Pro',
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
