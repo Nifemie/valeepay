@@ -1,286 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/me_widgets/category.dart';
 import '../../widgets/me_widgets/status_selection.dart';
-// account_statement import removed (unused in this file)
 import '../../widgets/me_widgets/modal/date_picker_modal.dart';
-// duplicate import removed
+import '../../widgets/transaction_widgets/transaction_item_widget.dart';
+import '../../widgets/transaction_widgets/transaction_shimmer_loader.dart';
+import '../../widgets/transaction_widgets/empty_transactions_widget.dart';
+import '../../../notifiers/transaction_notifier.dart';
 
-// Transaction status enum
-enum TransactionStatus { successful, pending, failed }
+// State providers for UI state
+final selectedMonthProvider = StateProvider<String>((ref) => 'OCT 2025');
+final selectedStatusFilterProvider = StateProvider<String?>((ref) => null);
+final selectedCategoryFilterProvider = StateProvider<String?>((ref) => null);
 
-// Transaction model
-class Transaction {
-  final String title;
-  final String date;
-  final String amount;
-  final TransactionStatus status;
-
-  Transaction({
-    required this.title,
-    required this.date,
-    required this.amount,
-    required this.status,
-  });
-}
-
-// State providers
-final selectedMonthProvider = StateProvider<String>((ref) => 'AUG 2025');
-final totalInProvider = StateProvider<String>((ref) => '₦7,850');
-final totalOutProvider = StateProvider<String>((ref) => '₦23,400');
-
-final transactionsProvider = StateProvider<List<Transaction>>((ref) => [
-      Transaction(
-        title: 'Interbank Transfer',
-        date: 'September 10,2025 10:11 PM',
-        amount: '+₦7,850',
-        status: TransactionStatus.successful,
-      ),
-      Transaction(
-        title: 'Interbank Transfer',
-        date: 'September 10,2025 10:11 PM',
-        amount: '+₦7,850',
-        status: TransactionStatus.failed,
-      ),
-      Transaction(
-        title: 'Interbank Transfer',
-        date: 'September 10,2025 10:11 PM',
-        amount: '+₦7,850',
-        status: TransactionStatus.pending,
-      ),
-      Transaction(
-        title: 'Interbank Transfer',
-        date: 'September 10,2025 10:11 PM',
-        amount: '+₦7,850',
-        status: TransactionStatus.pending,
-      ),
-      Transaction(
-        title: 'Interbank Transfer',
-        date: 'September 10,2025 10:11 PM',
-        amount: '+₦7,850',
-        status: TransactionStatus.pending,
-      ),
-      Transaction(
-        title: 'Interbank Transfer',
-        date: 'September 10,2025 10:11 PM',
-        amount: '+₦7,850',
-        status: TransactionStatus.pending,
-      ),
-    ]);
-
-class TransactionHistoryPage extends ConsumerWidget {
+class TransactionHistoryPage extends ConsumerStatefulWidget {
   const TransactionHistoryPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedMonth = ref.watch(selectedMonthProvider);
-    final totalIn = ref.watch(totalInProvider);
-    final totalOut = ref.watch(totalOutProvider);
-    final transactions = ref.watch(transactionsProvider);
+  ConsumerState<TransactionHistoryPage> createState() =>
+      _TransactionHistoryPageState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Transaction History',
-          style: TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-            height: 1.43,
-            letterSpacing: 0.035,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  context.push('/account-statement');
-                },
-                child: const Text(
-                  'Statement',
-                  style: TextStyle(
-                    color: Color(0xFFF76301),
-                    fontFamily: 'SF Pro',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    height: 1.33,
-                    letterSpacing: 0.06,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search Bar
-              Container(
-                width: MediaQuery.of(context).size.width,
-                height: 40,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFB0B0B0).withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.search,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search...',
-                          hintStyle: TextStyle(
-                            color: Colors.grey[600],
-                            fontFamily: 'SF Pro',
-                            fontSize: 14,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Month Selector and Sort By
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Month Selector
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          DatePickerModal.show(
-                            context,
-                            currentMonth: selectedMonth,
-                            onDateSelected: (newDate) {
-                              ref.read(selectedMonthProvider.notifier).state =
-                                  newDate;
-                            },
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Text(
-                              selectedMonth,
-                              style: const TextStyle(
-                                fontFamily: 'SF Pro',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.keyboard_arrow_down,
-                              size: 16,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            'In $totalIn',
-                            style: const TextStyle(
-                              color: Color(0xFF9CA3AF),
-                              fontFamily: 'SF Pro',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Out $totalOut',
-                            style: const TextStyle(
-                              color: Color(0xFF9CA3AF),
-                              fontFamily: 'SF Pro',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  // Sort By Button
-                  GestureDetector(
-                    onTap: () {
-                      _showFilterBottomSheet(context, ref);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF76301),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(
-                            Icons.filter_list,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            'Sort by',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'SF Pro',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Transactions List
-              ...transactions.map((transaction) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildTransactionItem(context, transaction),
-                );
-              }).toList(),
-            ],
-          ),
-        ),
-      ),
-    );
+class _TransactionHistoryPageState
+    extends ConsumerState<TransactionHistoryPage> {
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch transactions on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchTransactions();
+    });
+
+    // Setup scroll listener for pagination
+    _scrollController.addListener(_onScroll);
   }
 
-  void _showFilterBottomSheet(BuildContext context, WidgetRef ref) {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Fetch transactions
+  void _fetchTransactions() {
+    ref.read(transactionNotifierProvider.notifier).fetchTransactions();
+  }
+
+  // Handle scroll for pagination
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      final notifier = ref.read(transactionNotifierProvider.notifier);
+      if (notifier.hasMore) {
+        notifier.loadMore();
+      }
+    }
+  }
+
+  // Handle refresh
+  Future<void> _handleRefresh() async {
+    await ref.read(transactionNotifierProvider.notifier).refresh();
+  }
+
+  // Handle status filter
+  void _handleStatusFilter(String? status) {
+    ref.read(selectedStatusFilterProvider.notifier).state = status;
+    ref.read(transactionNotifierProvider.notifier).filterByStatus(status);
+  }
+
+  // Handle clear filters
+  void _handleClearFilters() {
+    ref.read(selectedStatusFilterProvider.notifier).state = null;
+    ref.read(selectedCategoryFilterProvider.notifier).state = null;
+    ref.read(transactionNotifierProvider.notifier).clearFilters();
+  }
+
+  // Show filter bottom sheet
+  void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
@@ -298,13 +100,12 @@ class TransactionHistoryPage extends ConsumerWidget {
             children: [
               // All Categories Dropdown
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Close current sheet
-                  showCategorySelection(context); // Show category selection
-                },
+                onTap: _handleCategorySelection,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
@@ -334,13 +135,12 @@ class TransactionHistoryPage extends ConsumerWidget {
               const SizedBox(height: 16),
               // All Status Dropdown
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Close current sheet
-                  showStatusSelection(context); // Show status selection
-                },
+                onTap: _handleStatusSelection,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
@@ -375,130 +175,297 @@ class TransactionHistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTransactionItem(BuildContext context, Transaction transaction) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8, top: 8),
-      child: Row(
-        children: [
-          // Icon Container
-          Container(
-            width: 40,
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/images/convert.svg',
-                width: 36,
-                height: 34,
-                colorFilter: const ColorFilter.mode(
-                  Color(0xFFF76301),
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
+  // Handle category selection
+  void _handleCategorySelection() {
+    Navigator.pop(context); // Close current sheet
+    showCategorySelection(context); // Show category selection
+  }
+
+  // Handle status selection
+  void _handleStatusSelection() {
+    Navigator.pop(context); // Close current sheet
+    showStatusSelection(context); // Show status selection
+  }
+
+  // Handle date picker
+  void _handleDatePicker() {
+    final selectedMonth = ref.read(selectedMonthProvider);
+    DatePickerModal.show(
+      context,
+      currentMonth: selectedMonth,
+      onDateSelected: (newDate) {
+        ref.read(selectedMonthProvider.notifier).state = newDate;
+        // You can implement date filtering here if needed
+      },
+    );
+  }
+
+  // Navigate to statement
+  void _navigateToStatement() {
+    context.push('/account-statement');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedMonth = ref.watch(selectedMonthProvider);
+    final transactionState = ref.watch(transactionNotifierProvider);
+    final transactions = transactionState.data ?? [];
+
+    // Calculate totals
+    double totalIn = 0;
+    double totalOut = 0;
+    for (var transaction in transactions) {
+      if (transaction.isCredit) {
+        totalIn += transaction.amount;
+      } else {
+        totalOut += transaction.amount;
+      }
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Transaction History',
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+            height: 1.43,
+            letterSpacing: 0.035,
           ),
-          const SizedBox(width: 12),
-          // Transaction Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.title,
-                  style: const TextStyle(
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: GestureDetector(
+                onTap: _navigateToStatement,
+                child: const Text(
+                  'Statement',
+                  style: TextStyle(
+                    color: Color(0xFFF76301),
                     fontFamily: 'SF Pro',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    height: 1.43,
-                    letterSpacing: 0.035,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  transaction.date,
-                  style: const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontFamily: 'SF Pro',
-                    fontSize: 12,
+                    fontSize: 15,
                     fontWeight: FontWeight.w400,
                     height: 1.33,
                     letterSpacing: 0.06,
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-          const SizedBox(width: 12),
-          // Amount and Status
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                transaction.amount,
-                style: const TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  height: 1.43,
-                  letterSpacing: 0.035,
-                ),
-              ),
-              const SizedBox(height: 4),
-              _buildStatusBadge(transaction.status),
-            ],
-          ),
         ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: Column(
+          children: [
+            // Header section with search and filters
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Search Bar
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB0B0B0).withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.search, size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Search...',
+                              hintStyle: TextStyle(
+                                color: Colors.grey[600],
+                                fontFamily: 'SF Pro',
+                                fontSize: 14,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Month Selector and Sort By
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Month Selector
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: _handleDatePicker,
+                            child: Row(
+                              children: [
+                                Text(
+                                  selectedMonth,
+                                  style: const TextStyle(
+                                    fontFamily: 'SF Pro',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.keyboard_arrow_down, size: 16),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text(
+                                'In ₦${totalIn.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Out ₦${totalOut.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Sort By Button
+                      GestureDetector(
+                        onTap: _showFilterBottomSheet,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF76301),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(
+                                Icons.filter_list,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Sort by',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Transactions List
+            Expanded(child: _buildTransactionsList(transactionState)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatusBadge(TransactionStatus status) {
-    Color backgroundColor;
-    Color textColor;
-    String text;
-
-    switch (status) {
-      case TransactionStatus.successful:
-        backgroundColor = const Color(0xFF216EB2).withOpacity(0.15);
-        textColor = const Color(0xFF216EB2);
-        text = 'Successful';
-        break;
-      case TransactionStatus.pending:
-        backgroundColor = const Color(0xFFFFB020).withOpacity(0.15);
-        textColor = const Color(0xFFFFB020);
-        text = 'Pending';
-        break;
-      case TransactionStatus.failed:
-        backgroundColor = const Color(0xFFF11515).withOpacity(0.15);
-        textColor = const Color(0xFFF11515);
-        text = 'Failed';
-        break;
+  // Build transactions list based on state
+  Widget _buildTransactionsList(dynamic transactionState) {
+    // Loading state
+    if (transactionState.isInitialLoading) {
+      return const TransactionShimmerLoader();
     }
 
-    return Container(
-      height: 16,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: TextStyle(
-            color: textColor,
-            fontFamily: 'SF Pro',
-            fontSize: 10,
-            fontWeight: FontWeight.w400,
-            height: 1.4,
-            letterSpacing: 0.1,
-          ),
+    // Error state
+    if (!transactionState.isDataAvailable && transactionState.message != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 60, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              transactionState.message ?? 'Failed to load transactions',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchTransactions,
+              child: const Text('Retry'),
+            ),
+          ],
         ),
-      ),
+      );
+    }
+
+    // Empty state
+    if (transactionState.data == null || transactionState.data!.isEmpty) {
+      return EmptyTransactionsWidget(onRefresh: _fetchTransactions);
+    }
+
+    // Success state with data
+    final transactions = transactionState.data!;
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount:
+          transactions.length +
+          (ref.read(transactionNotifierProvider.notifier).hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        // Show loader at bottom if loading more
+        if (index == transactions.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final transaction = transactions[index];
+        return TransactionItemWidget(
+          transaction: transaction,
+          onTap: () {
+            // TODO: Navigate to transaction details
+          },
+        );
+      },
     );
   }
 }

@@ -63,7 +63,13 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
               message: 'Welcome ${loginResponse.user.fullname}',
               type: MessageType.success,
             );
-            context.pushReplacement('/');
+
+            // Navigate after the current frame to avoid duplicate key issues
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context.go('/');
+              }
+            });
           } else {
             AppMessenger.show(
               context,
@@ -78,7 +84,7 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
             message: 'Please login with your password first.',
             type: MessageType.warning,
           );
-          context.pushReplacement('/signin');
+          context.go('/signin');
         }
         setState(() => _isProcessing = false);
       }
@@ -100,7 +106,7 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          onPressed: () => context.push('/signin'),
+          onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
@@ -141,9 +147,10 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
-                    color: index < _passcode.length
-                        ? appTheme.primaryColor
-                        : Colors.grey.shade300,
+                    color:
+                        index < _passcode.length
+                            ? appTheme.primaryColor
+                            : Colors.grey.shade300,
                     shape: BoxShape.circle,
                   ),
                 );
@@ -163,7 +170,7 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
 
             const SizedBox(height: 16),
             TextButton(
-              onPressed: () => context.push('/forgot-password'),
+              onPressed: () => context.go('/forgot-password'),
               child: const Text(
                 'Forgot Passcode?',
                 style: TextStyle(

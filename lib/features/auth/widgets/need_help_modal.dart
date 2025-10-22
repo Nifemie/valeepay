@@ -31,10 +31,7 @@ class NeedHelpModal {
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
-                          child: Icon(
-                            Icons.arrow_back,
-                            size: 24,
-                          ),
+                          child: Icon(Icons.arrow_back, size: 24),
                         ),
                         SizedBox(width: 16),
                         Text(
@@ -67,7 +64,7 @@ class NeedHelpModal {
                       iconColor: Colors.blueGrey,
                       onTap: () {
                         Navigator.pop(context);
-                        _launchEmail();
+                        _launchEmail(context);
                       },
                     ),
                     Divider(),
@@ -78,7 +75,7 @@ class NeedHelpModal {
                       iconColor: Colors.green,
                       onTap: () {
                         Navigator.pop(context);
-                        _launchWhatsApp();
+                        _launchWhatsApp(context);
                       },
                     ),
                     Divider(),
@@ -89,7 +86,7 @@ class NeedHelpModal {
                       iconColor: appTheme.primaryColor,
                       onTap: () {
                         Navigator.pop(context);
-                        _launchPhoneCall();
+                        _launchPhoneCall(context);
                       },
                     ),
 
@@ -139,34 +136,95 @@ class NeedHelpModal {
     );
   }
 
-  static void _launchEmail() async {
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: 'support@valarpay.com',
-      query: 'subject=Need Help with valarpay',
-    );
+  static void _launchEmail(BuildContext context) async {
+    try {
+      final Uri emailUri = Uri(
+        scheme: 'mailto',
+        path: 'support@valarpay.com',
+        query: 'subject=Need Help with ValarPay',
+      );
 
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
+      final bool launched = await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message: 'Could not open email app',
+        );
+      }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'No email app found on your device',
+      );
     }
   }
 
-  static void _launchWhatsApp() async {
-    final Uri whatsappUri = Uri.parse('https://wa.me/2348000000000');
-    if (await canLaunchUrl(whatsappUri)) {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+  static void _launchWhatsApp(BuildContext context) async {
+    try {
+      // Try direct WhatsApp URL first
+      final Uri whatsappUri = Uri.parse('whatsapp://send?phone=447441428182');
+
+      final bool launched = await launchUrl(
+        whatsappUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        // Fallback to web WhatsApp
+        final Uri webWhatsApp = Uri.parse('https://wa.me/447441428182');
+        await launchUrl(webWhatsApp, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      // Try web WhatsApp as last resort
+      try {
+        final Uri webWhatsApp = Uri.parse('https://wa.me/447441428182');
+        await launchUrl(webWhatsApp, mode: LaunchMode.externalApplication);
+      } catch (e2) {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message: 'Could not open WhatsApp',
+        );
+      }
     }
   }
 
-  static void _launchPhoneCall() async {
-    final Uri phoneUri = Uri.parse('tel:+2348000000000');
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
+  static void _launchPhoneCall(BuildContext context) async {
+    try {
+      final Uri phoneUri = Uri.parse('tel:+2348234146906');
+
+      final bool launched = await launchUrl(
+        phoneUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message: 'Could not make phone call',
+        );
+      }
+    } catch (e) {
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Phone dialer not available',
+      );
     }
   }
 
   static void _showComingSoon(BuildContext context, String feature) {
-    AppMessenger.show(context,
-        type: MessageType.error, message: '$feature coming soon!');
+    AppMessenger.show(
+      context,
+      type: MessageType.error,
+      message: '$feature coming soon!',
+    );
   }
 }
