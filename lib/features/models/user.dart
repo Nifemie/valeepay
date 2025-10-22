@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:valarpay/features/models/wallet.dart';
 
 class UserModel {

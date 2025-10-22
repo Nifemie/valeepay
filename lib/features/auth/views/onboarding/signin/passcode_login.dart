@@ -247,11 +247,11 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
       onTap: _onDeletePressed,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).cardColor.withOpacity(0.5),
           shape: BoxShape.circle,
         ),
         child: const Center(
-          child: Icon(Icons.backspace_outlined, size: 24, color: Colors.grey),
+          child: Icon(Icons.backspace_outlined, size: 24),
         ),
       ),
     );

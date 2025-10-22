@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
-class UpdateUsernameScreen extends ConsumerStatefulWidget {
+class UpdateUserDetailsScreen extends ConsumerStatefulWidget {
   final String title;
   final String currentValue;
   final String fieldLabel;
 
-  const UpdateUsernameScreen({
+  const UpdateUserDetailsScreen({
     super.key,
     required this.title,
     required this.currentValue,
@@ -15,11 +15,11 @@ class UpdateUsernameScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<UpdateUsernameScreen> createState() =>
-      _UpdateUsernameScreenState();
+  ConsumerState<UpdateUserDetailsScreen> createState() =>
+      _UpdateUserDetailsScreenState();
 }
 
-class _UpdateUsernameScreenState extends ConsumerState<UpdateUsernameScreen> {
+class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScreen> {
   late TextEditingController _controller;
   bool _hasChanges = false;
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/features/dashboard/view/profile/update_username_screen.dart';
+import 'package:valarpay/features/dashboard/view/profile/update_details_screen.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/services_widgets/profile_widgets/profile_row_item.dart';
 
@@ -52,7 +52,7 @@ class PersonalDetailsScreen extends ConsumerWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UpdateUsernameScreen(
+                builder: (context) => UpdateUserDetailsScreen(
                   title: 'Update Username',
                   currentValue: userName,
                   fieldLabel: 'Username',

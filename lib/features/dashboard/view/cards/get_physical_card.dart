@@ -29,14 +29,11 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         title: const Text(
           "Get Physical Card",
           style: TextStyle(
-            color: Colors.black,
             fontSize: 17,
             fontWeight: FontWeight.w600,
           ),
@@ -58,7 +55,7 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).cardColor.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
@@ -68,13 +65,11 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
                     Text(
                       selectedPreference,
                       style: const TextStyle(
-                        color: Colors.black87,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: Colors.black54),
+                    const Icon(Icons.keyboard_arrow_down_rounded),
                   ],
                 ),
               ),
@@ -85,7 +80,7 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
             // Illustration
             Image.asset(
               'assets/images/card_branch.png', // change this to your illustration asset
-              height: 160,
+              height: 250,
               fit: BoxFit.contain,
             ),
 
@@ -95,7 +90,6 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
             const Text(
               "Get Your ATM Card",
               style: TextStyle(
-                color: Colors.black,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -107,7 +101,6 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
               "Order your ValarPay ATM card today and enjoy easy withdrawals and payments anywhere.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.black54,
                 fontSize: 13,
                 height: 1.4,
               ),
@@ -172,8 +165,8 @@ class _SelectPreferenceBottomSheetState
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -184,22 +177,20 @@ class _SelectPreferenceBottomSheetState
             height: 4,
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: Theme.of(context).cardColor.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 18, color: Colors.black87),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 4),
               const Text(
                 "Select Preference",
                 style: TextStyle(
-                  color: Colors.black,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
@@ -247,10 +238,7 @@ class _SelectPreferenceBottomSheetState
           children: [
             Text(
               value,
-              style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
             Container(
               width: 20,

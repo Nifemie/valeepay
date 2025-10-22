@@ -116,7 +116,10 @@ class FullWidthButton extends StatelessWidget {
           ),
         ),
         child: isLoading
-            ? CircularProgressIndicator()
+            ? SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator())
             : Text(
                 text,
                 style: TextStyle(

@@ -39,11 +39,8 @@ import 'package:valarpay/features/dashboard/view/home/notifications/notification
 import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/select_bank_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_amount_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transaction_details_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_success_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
@@ -403,24 +400,8 @@ final router = GoRouter(
       builder: (context, state) => const TransferToValarPayScreen(),
     ),
     GoRoute(
-      path: '/transfer-amount',
-      builder: (context, state) => const TransferAmountScreen(),
-    ),
-    GoRoute(
-      path: '/transaction-details',
-      builder: (context, state) => const TransactionDetailsScreen(),
-    ),
-    GoRoute(
-      path: '/transfer-success',
-      builder: (context, state) => const TransferSuccessScreen(),
-    ),
-    GoRoute(
       path: '/transfer-to-bank',
       builder: (context, state) => const TransferToBankScreen(),
-    ),
-    GoRoute(
-      path: '/select-bank',
-      builder: (context, state) => const SelectBankScreen(),
     ),
     GoRoute(
       path: '/withdraw',

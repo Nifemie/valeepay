@@ -517,7 +517,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                 TransactionDetail(
                   label: 'Date & Time',
                   value:
-                      '${DateTime.now().day} ${_getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                      '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 ),
               ],
               onShareReceipt: () {},
@@ -537,7 +537,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     }
   }
 
-  String _getMonthName(int month) {
+  String getMonthName(int month) {
     const months = [
       'Jan',
       'Feb',
@@ -555,3 +555,22 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     return months[month - 1];
   }
 }
+
+String getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month - 1];
+  }
+

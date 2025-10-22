@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 
 class CardsScreen extends StatefulWidget {
   const CardsScreen({super.key});
@@ -15,14 +16,11 @@ class _CardsScreenState extends State<CardsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         title: const Text(
           "Cards",
           style: TextStyle(
-            color: Colors.black,
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
@@ -40,7 +38,7 @@ class _CardsScreenState extends State<CardsScreen> {
             Container(
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: Theme.of(context).cardColor.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(
@@ -91,7 +89,6 @@ class _CardsScreenState extends State<CardsScreen> {
                 text:
                     "You currently do not have any ${isPhysicalCardSelected ? "physical" : "virtual"} card linked to this account. Click on ",
                 style: const TextStyle(
-                  color: Colors.black54,
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -118,7 +115,10 @@ class _CardsScreenState extends State<CardsScreen> {
               height: 52,
               child: ElevatedButton(
                 onPressed: () {
-                 context.push('/get-phisical-card');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => GetPhysicalCardScreen()));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: appTheme.primaryColor,
@@ -156,7 +156,9 @@ class _CardsScreenState extends State<CardsScreen> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.transparent,
+            color: isActive
+                ? appTheme.primaryColor.withValues(alpha: 0.3)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(24),
             boxShadow: isActive
                 ? [
@@ -172,7 +174,6 @@ class _CardsScreenState extends State<CardsScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: isActive ? Colors.black : Colors.black54,
               fontWeight: FontWeight.w500,
               fontSize: 13,
             ),

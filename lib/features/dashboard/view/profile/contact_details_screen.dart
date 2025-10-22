@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/features/dashboard/view/profile/update_details_screen.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/services_widgets/profile_widgets/profile_row_item.dart';
-import 'update_username_screen.dart';
 import 'change_phone_number.dart';
 
 class ContactDetailsScreen extends ConsumerWidget {
@@ -20,7 +20,6 @@ class ContactDetailsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -60,7 +59,7 @@ class ContactDetailsScreen extends ConsumerWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => UpdateUsernameScreen(
+                  builder: (context) => UpdateUserDetailsScreen(
                     title: 'Update Email Address',
                     currentValue: emailAddress,
                     fieldLabel: 'Email Address',

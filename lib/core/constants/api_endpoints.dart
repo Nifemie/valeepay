@@ -30,11 +30,11 @@ class ApiEndpoints {
   // User Profile
   static const String getUserProfile = '/api/v1/user/me';
 
-  // Wallet - Transfers & Transactions
-  static const String getBanks = '/api/v1/wallet/get-banks';
-  static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
-  static const String verifyAccount = '/api/v1/wallet/verify-account'; //post name inquery
-  static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external 
+  // // Wallet - Transfers & Transactions
+  // static const String getBanks = '/api/v1/wallet/get-banks';
+  // static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
+  // static const String verifyAccount = '/api/v1/wallet/verify-account'; //post name inquery
+  // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external 
   static const String getAllTransactions = '/api/v1/wallet/transaction';
 
   // Bill payment endpoints
@@ -74,6 +74,15 @@ class ApiEndpoints {
   static const String verifyMeterNumber =
       '/api/v1/bill/electricity/verify-meter-number';
   static const String payElectricity = '/api/v1/bill/electricity/pay';
+
+  // Transfer endpoints
+  static const String getBanks = '/api/v1/wallet/get-banks';
+  static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
+  static const String initiateTransfer = '/api/v1/wallet/initiate-transfer';
+  static const String verifyAccount = '/api/v1/wallet/verify-account';
+  static const String getTransactions = '/api/v1/wallet/transaction';
+  static const String generateQRCode = '/api/v1/wallet/generate-qrcode';
+  static const String decodeQRCode = '/api/v1/wallet/decode-qrcode';
 
   // future endpoints can go here
 }

@@ -27,7 +27,7 @@ class WalletRepository {
       if (dateTo != null && dateTo.isNotEmpty) queryParams['dateTo'] = dateTo;
 
       final response = await apiClient.get(
-        ApiEndpoints.getAllTransactions,
+        ApiEndpoints.getTransactions,
         query: queryParams.isNotEmpty ? queryParams : null,
       );
 
