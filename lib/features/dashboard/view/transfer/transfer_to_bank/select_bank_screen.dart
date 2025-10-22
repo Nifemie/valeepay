@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 
@@ -41,6 +42,10 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
     });
   }
 
+  void _retry() {
+    ref.read(banksNotifierProvider.notifier).fetchBanks(currency: 'NGN');
+  }
+
   @override
   Widget build(BuildContext context) {
     final banksState = ref.watch(banksNotifierProvider);
@@ -53,6 +58,9 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
         });
       }
     });
+
+    final sortedBanks = List.from(filteredBanks)
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return Scaffold(
       appBar: AppBar(
@@ -77,10 +85,10 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
             TextField(
               controller: searchController,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                prefixIcon: const Icon(Icons.search),
                 hintText: "Search for bank",
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).cardColor.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -113,14 +121,7 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  ref
-                                      .read(banksNotifierProvider.notifier)
-                                      .fetchBanks(currency: 'NGN');
-                                },
-                                child: const Text('Retry'),
-                              ),
+                              FullWidthButton(text: 'Retry', onPressed: _retry)
                             ],
                           ),
                         )
@@ -135,9 +136,9 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
                               ),
                             )
                           : ListView.builder(
-                              itemCount: filteredBanks.length,
+                              itemCount: sortedBanks.length,
                               itemBuilder: (context, index) {
-                                final bank = filteredBanks[index];
+                                final bank = sortedBanks[index];
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   child: ListTile(
@@ -145,7 +146,7 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
                                       backgroundColor: appTheme.primaryColor
                                           .withValues(alpha: 0.1),
                                       child: Text(
-                                        bank.name.substring(0, 1).toUpperCase(),
+                                        bank.name.substring(0, 2).toUpperCase(),
                                         style: TextStyle(
                                           color: appTheme.primaryColor,
                                           fontWeight: FontWeight.bold,
@@ -157,13 +158,6 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      bank.bankCode,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
                                       ),
                                     ),
                                     onTap: () {

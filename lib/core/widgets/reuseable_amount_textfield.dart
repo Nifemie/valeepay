@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ReuseableAmountTextfield extends StatelessWidget {
   TextEditingController amountController;
@@ -32,6 +33,7 @@ class ReuseableAmountTextfield extends StatelessWidget {
             child: TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: hintText,

@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
+import 'package:valarpay/features/models/transfer_models.dart';
+import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 
-class TransferToValarPayScreen extends StatefulWidget {
+class TransferToValarPayScreen extends ConsumerStatefulWidget {
   const TransferToValarPayScreen({super.key});
 
   @override
-  State<TransferToValarPayScreen> createState() =>
+  ConsumerState<TransferToValarPayScreen> createState() =>
       _TransferToValarPayScreenState();
 }
 
-class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
+class _TransferToValarPayScreenState
+    extends ConsumerState<TransferToValarPayScreen> {
   final TextEditingController _accountController = TextEditingController();
   bool isEmpty = true;
+  AccountDetails? verifiedAccount;
+  bool isRecentTab = true;
+  bool isVerifying = false;
 
   Future<void> pasteFromClipboard() async {
     final clipboardData = await Clipboard.getData('text/plain');
@@ -31,8 +40,56 @@ class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
     }
   }
 
+  void _verifyAccount() async {
+    if (_accountController.text.length != 10) return;
+
+    setState(() {
+      isVerifying = true;
+      verifiedAccount = null;
+    });
+
+    try {
+      await ref
+          .read(internalAccountVerificationNotifierProvider.notifier)
+          .verifyAccount(
+            accountNumber: _accountController.text,
+            bankCode: '000014',
+          );
+    } catch (e) {
+      // Error handling is done in the listener
+    } finally {
+      setState(() {
+        isVerifying = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final accountVerificationState =
+        ref.watch(internalAccountVerificationNotifierProvider);
+
+    // Listen to account verification state
+    ref.listen(internalAccountVerificationNotifierProvider, (previous, next) {
+      if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
+        setState(() {
+          verifiedAccount = next.data!.first;
+        });
+      } else if (next.isDataAvailable &&
+          (next.data == null || next.data!.isEmpty)) {
+        // API returned success but no data - account verification failed
+        setState(() {
+          verifiedAccount = null;
+        });
+      } else if (next.message != null && !next.isDataAvailable) {
+        AppMessenger.show(context,
+            message: next.message!, type: MessageType.error);
+
+        setState(() {
+          verifiedAccount = null;
+        });
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -90,23 +147,20 @@ class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
               TextField(
                 controller: _accountController,
                 onChanged: (value) {
-                  if (value.isEmpty) {
-                    setState(() {
-                      isEmpty = true;
-                    });
-                  } else {
-                    setState(() {
-                      isEmpty = false;
-                    });
+                  if (value.length == 10) {
+                    _verifyAccount();
                   }
                 },
+                keyboardType: TextInputType.number,
+                maxLength: 10,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   hintText: 'Enter ValarPay account name/number',
                   hintStyle: TextStyle(
                     color: Colors.grey[500],
                     fontSize: 14,
                   ),
-                  suffixIcon: isEmpty
+                  suffixIcon: _accountController.text.isEmpty
                       ? IconButton(
                           onPressed: () {
                             pasteFromClipboard();
@@ -117,7 +171,7 @@ class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
                           ))
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).cardColor.withValues(alpha: 0.5),
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 14.w,
                     vertical: 14.h,
@@ -131,117 +185,80 @@ class _TransferToValarPayScreenState extends State<TransferToValarPayScreen> {
               SizedBox(height: 20.h),
 
               // Selected Recipient
-              Row(
-                children: [
-                  Icon(Icons.check_circle, color: appTheme.primaryColor),
-                  SizedBox(width: 8.w),
-                  Text(
-                    'Emmy John Smith',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+              if (isVerifying)
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            appTheme.primaryColor),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 25),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "Verifying account...",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                )
+              else if (verifiedAccount != null)
+                Row(
+                  children: [
+                    Icon(Icons.check_circle, color: appTheme.primaryColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        verifiedAccount!.accountName,
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: appTheme.primaryColor),
+                      ),
+                    ),
+                  ],
+                )
+              else if (_accountController.text.length == 10 ||
+                  accountVerificationState.data == null)
+                Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "Account verification failed",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+
+              const SizedBox(height: 25),
 
               // Continue Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
+              FullWidthButton(
+                  text: 'Continue',
                   onPressed: () {
-                    context.push("/transfer-amount");
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => InternalTransferAmountScreen(
+                                accountDetails: verifiedAccount!)));
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appTheme.primaryColor,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  child: Text(
-                    'Continue',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
+                  isEnabled: verifiedAccount != null),
               SizedBox(height: 25),
-
-              // Tabs
-              DefaultTabController(
-                length: 2,
-                child: Expanded(
-                  child: Column(
-                    children: [
-                      TabBar(
-                        labelColor: appTheme.primaryColor,
-                        unselectedLabelColor: Colors.grey[600],
-                        indicatorColor: appTheme.primaryColor,
-                        labelStyle: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                        tabs: const [
-                          Tab(text: 'Recent'),
-                          Tab(text: 'Saved Beneficiary'),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _buildRecipientList(context),
-                            _buildRecipientList(context),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildRecipientList(BuildContext context) {
-    final recipients = [
-      {'name': 'John Smith', 'type': 'ValarPay'},
-      {'name': 'John Smith', 'type': 'ValarPay'},
-      {'name': 'John Smith', 'type': 'ValarPay'},
-    ];
-
-    return ListView.builder(
-      itemCount: recipients.length,
-      padding: EdgeInsets.only(top: 8),
-      itemBuilder: (context, index) {
-        final user = recipients[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.greenAccent,
-            child: const Icon(Icons.person, color: Colors.black87),
-          ),
-          title: Text(
-            user['name']!,
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            user['type']!,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
-          ),
-          trailing: Icon(
-            index == 1 ? Icons.bookmark : Icons.add,
-            color: index == 1 ? Colors.orangeAccent : Colors.grey[500],
-          ),
-        );
-      },
     );
   }
 }

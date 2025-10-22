@@ -13,9 +13,7 @@ class ThemesPage extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -26,7 +24,6 @@ class ThemesPage extends ConsumerWidget {
         title: Text(
           'Themes',
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -72,6 +69,7 @@ class ThemesPage extends ConsumerWidget {
                       showDivider: true,
                       isDark: isDark,
                     ),
+                    SizedBox(height: 12),
                     _buildThemeOption(
                       context,
                       ref,
@@ -81,6 +79,7 @@ class ThemesPage extends ConsumerWidget {
                       showDivider: true,
                       isDark: isDark,
                     ),
+                    SizedBox(height: 12),
                     _buildThemeOption(
                       context,
                       ref,

@@ -30,7 +30,23 @@ class ApiClient {
           return handler.next(options);
         },
         onResponse: (response, handler) {
+          if (response.statusCode == 200) {
+            final data = response.data;
+
+            if (data is Map &&
+                (data['data'] == null || data['data'].toString() == '{}')) {
+              // Throw a Dio error so it can be caught as an API failure
+              return handler.reject(
+                DioException(
+                  requestOptions: response.requestOptions,
+                  error: "Invalid response returned server.",
+                  type: DioExceptionType.badResponse,
+                ),
+              );
+            }
+          }
           print('[API RESPONSE] => ${response.statusCode} ${response.data}');
+
           return handler.next(response);
         },
         onError: (DioException e, handler) {

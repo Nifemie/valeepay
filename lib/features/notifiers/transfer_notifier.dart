@@ -275,6 +275,11 @@ final accountVerificationNotifierProvider = StateNotifierProvider<
   (ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)),
 );
 
+final internalAccountVerificationNotifierProvider = StateNotifierProvider<
+    AccountVerificationNotifier, DataState<AccountDetails>>(
+  (ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)),
+);
+
 final transferNotifierProvider =
     StateNotifierProvider<TransferNotifier, DataState<TransferResponse>>(
   (ref) => TransferNotifier(ref.read(transferRepositoryProvider)),

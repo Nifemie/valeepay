@@ -81,8 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       String? savedUsername = await SessionService.getUsername();
       if (savedUsername != null) {
-        context.push('/');
-        // context.push('/biometric-login');
+        context.push('/biometric-login');
       } else {
         context.pushReplacement('/intro');
       }

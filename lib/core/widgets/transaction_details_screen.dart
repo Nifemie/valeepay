@@ -19,7 +19,6 @@ Widget buildDetailRow(String label, String value, bool isDark,
         Text(
           value,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 14,
             fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
           ),
@@ -212,9 +211,6 @@ class _ReuseableTransactionDetailsScreenState
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          border: isSelected
-              ? Border.all(color: const Color(0xFFF76301), width: 2)
-              : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
         ),
         child: Row(
           children: [
