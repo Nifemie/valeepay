@@ -15,15 +15,14 @@ class _CardsScreenState extends State<CardsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         title: const Text(
           "Cards",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
         ),
         centerTitle: false,
       ),
@@ -38,7 +37,10 @@ class _CardsScreenState extends State<CardsScreen> {
             Container(
               height: 42,
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withValues(alpha: 0.5),
+                color:
+                    isDark
+                        ? Colors.grey.shade800
+                        : Theme.of(context).cardColor.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(
@@ -57,9 +59,10 @@ class _CardsScreenState extends State<CardsScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: appTheme.primaryColor,
-                    width: 1.2,
-                    style: BorderStyle.solid),
+                  color: appTheme.primaryColor,
+                  width: 1.2,
+                  style: BorderStyle.solid,
+                ),
               ),
               child: Icon(
                 Icons.credit_card,
@@ -88,9 +91,10 @@ class _CardsScreenState extends State<CardsScreen> {
               text: TextSpan(
                 text:
                     "You currently do not have any ${isPhysicalCardSelected ? "physical" : "virtual"} card linked to this account. Click on ",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
+                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
                 ),
                 children: [
                   TextSpan(
@@ -100,9 +104,7 @@ class _CardsScreenState extends State<CardsScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const TextSpan(
-                    text: " to apply for a new card.",
-                  ),
+                  const TextSpan(text: " to apply for a new card."),
                 ],
               ),
             ),
@@ -116,9 +118,9 @@ class _CardsScreenState extends State<CardsScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => GetPhysicalCardScreen()));
+                    context,
+                    MaterialPageRoute(builder: (_) => GetPhysicalCardScreen()),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: appTheme.primaryColor,
@@ -156,27 +158,32 @@ class _CardsScreenState extends State<CardsScreen> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: isActive
-                ? appTheme.primaryColor.withValues(alpha: 0.3)
-                : Colors.transparent,
+            color:
+                isActive
+                    ? appTheme.primaryColor.withValues(alpha: 0.3)
+                    : Colors.transparent,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    )
-                  ]
-                : [],
+            boxShadow:
+                isActive
+                    ? [
+                      BoxShadow(
+                        color:
+                            isActive
+                                ? (Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white12
+                                    : Colors.black12)
+                                : Colors.transparent,
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                    : [],
           ),
           alignment: Alignment.center,
           child: Text(
             label,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
           ),
         ),
       ),

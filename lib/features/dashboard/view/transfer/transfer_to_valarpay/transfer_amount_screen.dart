@@ -6,15 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
-import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
-import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
-import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 
 class InternalTransferAmountScreen extends ConsumerStatefulWidget {
   final AccountDetails accountDetails;
@@ -62,77 +59,48 @@ class _InternalTransferAmountScreenState
     });
   }
 
-  _shareTransactionReceipt() {
-    final user = ref.read(userProvider);
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => ReceiptShareScreen(
-                  date:
-                      '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                  transactionDetailList: [
-                    ShareableTransactionReceiptDetail(
-                        label: 'Amount',
-                        value: currencyFormatter(amountController.text)),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Currency', value: 'NGN'),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Transaction Type',
-                        value: 'Intra-bank Transfer'),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Sender Name', value: user?.fullname ?? ''),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Beneficiary Details',
-                        value:
-                            '${widget.accountDetails.accountName} \n${widget.accountDetails.accountNumber}'),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Beneficiary Bank', value: 'ValarPay'),
-                    if (narrationController.text.isNotEmpty)
-                      ShareableTransactionReceiptDetail(
-                          label: 'Narration', value: narrationController.text),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Transaction ID',
-                        value: widget.accountDetails.sessionId),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Status',
-                        value: 'Successful',
-                        isSuccessful: true)
-                  ],
-                )));
-  }
+  void _initiateTransfer(String pin, double amount) async {
+    Navigator.pop(context); // Close pin modal
 
-  _showTransactionReceipt() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TransactionReceiptWidget(
-          amount: amountController.text,
-          topDetails: [
-            TransactionDetail(
-                label: 'Transaction ID',
-                value: widget.accountDetails.sessionId,
-                showCopyIcon: true),
-            TransactionDetail(
-              label: 'Beneficiary Details',
-              value:
-                  '${widget.accountDetails.accountName} | \n${widget.accountDetails.accountNumber} | ValarPay',
-            ),
-            TransactionDetail(
-              label: 'Payment Source',
-              value: 'ValarPay Account',
-            ),
-            TransactionDetail(
-              label: 'Date & Time',
-              value:
-                  '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-            ),
-          ],
-          onShareReceipt: () {
-            _shareTransactionReceipt();
-          },
-        ),
-      ),
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      print('🔐 Initiating ValarPay transfer with PIN...');
+      print(
+        '📤 Transfer details - Account: ${widget.accountDetails.accountNumber}, Amount: $amount',
+      );
+
+      // Proceed with internal transfer (backend will validate PIN)
+      // For ValarPay to ValarPay, bankCode should be empty or null
+      await ref
+          .read(transferNotifierProvider.notifier)
+          .initiateTransfer(
+            bankCode: '', // Internal transfer doesn't need bank code
+            accountNumber: widget.accountDetails.accountNumber,
+            amount: amount,
+            currency: 'NGN',
+            description: narrationController.text.trim(),
+            pin: pin,
+          );
+
+      Navigator.pop(context); // Close loading
+
+      print('✅ ValarPay transfer completed successfully');
+    } catch (e) {
+      Navigator.pop(context); // Close loading
+      print('❌ ValarPay transfer error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Transfer failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   _handleOnPressed() {
@@ -140,30 +108,107 @@ class _InternalTransferAmountScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ReuseableTransactionDetailsScreen(
-          hasBottom: false,
-          topTitleText: 'Transaction',
-          topTransactionsDetailsList: [
-            buildDetailRow('Name', widget.accountDetails.accountName, isDark),
-            buildDetailRow(
-                'Account Number', widget.accountDetails.accountNumber, isDark),
-            buildDetailRow('Bank', 'ValarPay', isDark),
-            buildDetailRow(
-                'Amount', currencyFormatter(amountController.text), isDark),
-          ],
-          onButtonPressed: () async {
-            final pin = await TransactionPinModal.show(context);
-            if (pin != null && pin.length == 4 && mounted) {
-              _showTransactionReceipt();
-            }
-          },
-        ),
+        builder:
+            (context) => ReuseableTransactionDetailsScreen(
+              hasBottom: false,
+              topTitleText: 'Transaction',
+              topTransactionsDetailsList: [
+                buildDetailRow(
+                  'Name',
+                  widget.accountDetails.accountName,
+                  isDark,
+                ),
+                buildDetailRow(
+                  'Account Number',
+                  widget.accountDetails.accountNumber,
+                  isDark,
+                ),
+                buildDetailRow('Bank', 'ValarPay', isDark),
+                buildDetailRow(
+                  'Amount',
+                  currencyFormatter(amountController.text),
+                  isDark,
+                ),
+              ],
+              onButtonPressed: () async {
+                final amount =
+                    double.tryParse(
+                      amountController.text.replaceAll(',', ''),
+                    ) ??
+                    0;
+                print('🔘 ValarPay transfer button pressed, amount: $amount');
+                final pin = await TransactionPinModal.show(context);
+                print(
+                  '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
+                );
+                if (pin != null && pin.length == 4 && mounted) {
+                  print('✅ PIN valid, calling _initiateTransfer');
+                  _initiateTransfer(pin, amount);
+                } else {
+                  print('❌ PIN invalid or cancelled');
+                }
+              },
+            ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen to transfer state
+    ref.listen(transferNotifierProvider, (previous, next) {
+      print(
+        '🎧 ValarPay transfer listener triggered - isDataAvailable: ${next.isDataAvailable}, data: ${next.data}, message: ${next.message}',
+      );
+
+      if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
+        print('✅ ValarPay transfer successful, navigating to receipt');
+        // Transfer successful - navigate to receipt
+        final transferAmount =
+            double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => TransactionReceiptWidget(
+                  amount: currencyFormatter(transferAmount.toString()),
+                  topDetails: [
+                    TransactionDetail(
+                      label: 'Transaction ID',
+                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                      showCopyIcon: true,
+                    ),
+                    TransactionDetail(
+                      label: 'Recipient Name',
+                      value: widget.accountDetails.accountName,
+                    ),
+                    TransactionDetail(
+                      label: 'Recipient Account',
+                      value: widget.accountDetails.accountNumber,
+                    ),
+                    TransactionDetail(label: 'Bank', value: 'ValarPay'),
+                    TransactionDetail(
+                      label: 'Amount',
+                      value: currencyFormatter(transferAmount.toString()),
+                    ),
+                    if (narrationController.text.trim().isNotEmpty)
+                      TransactionDetail(
+                        label: 'Narration',
+                        value: narrationController.text.trim(),
+                      ),
+                  ],
+                  onShareReceipt: () {},
+                ),
+          ),
+        );
+      } else if (next.message != null && !next.isDataAvailable) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.message!), backgroundColor: Colors.red),
+        );
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -173,10 +218,7 @@ class _InternalTransferAmountScreenState
         ),
         title: Text(
           'Transfer to ValarPay Account',
-          style: TextStyle(
-            fontSize: 17.sp,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
       ),
@@ -191,8 +233,9 @@ class _InternalTransferAmountScreenState
                 children: [
                   CircleAvatar(
                     radius: 24.r,
-                    backgroundImage:
-                        AssetImage('assets/images/account_image.jpg'),
+                    backgroundImage: AssetImage(
+                      'assets/images/account_image.jpg',
+                    ),
                   ),
                   SizedBox(width: 10.w),
                   Column(
@@ -230,13 +273,16 @@ class _InternalTransferAmountScreenState
               ),
               SizedBox(height: 8.h),
               ReuseableAmountTextfield(
-                  amountController: amountController,
-                  prefixText: '₦',
-                  hintText: 'Enter Amount'),
+                amountController: amountController,
+                prefixText: '₦',
+                hintText: 'Enter Amount',
+              ),
               if (isNotMinimumAmount) SizedBox(height: 5),
               if (isNotMinimumAmount)
-                Text('Minimum transfer amount is ₦50',
-                    style: TextStyle(color: Colors.red, fontSize: 13)),
+                Text(
+                  'Minimum transfer amount is ₦50',
+                  style: TextStyle(color: Colors.red, fontSize: 13),
+                ),
 
               SizedBox(height: 25.h),
 
@@ -281,13 +327,14 @@ class _InternalTransferAmountScreenState
 
               // Continue Button
               FullWidthButton(
-                  text: 'Continue',
-                  isEnabled: amountController.text.isNotEmpty &&
-                      int.parse(amountController.text.replaceAll(',', '')) >=
-                          50,
-                  onPressed: () {
-                    _handleOnPressed();
-                  }),
+                text: 'Continue',
+                isEnabled:
+                    amountController.text.isNotEmpty &&
+                    int.parse(amountController.text.replaceAll(',', '')) >= 50,
+                onPressed: () {
+                  _handleOnPressed();
+                },
+              ),
             ],
           ),
         ),

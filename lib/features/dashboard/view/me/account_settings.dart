@@ -3,13 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/me_widgets/delete_confirmation_dialog.dart';
-
-// State providers
-final accountNameProvider = StateProvider<String>((ref) => 'John Smith Emmy');
-final accountNumberProvider = StateProvider<String>((ref) => '0000000000');
-final dailyLimitProvider = StateProvider<String>((ref) => '₦200,000');
-final maxBalanceProvider = StateProvider<String>((ref) => '₦500,000');
 
 // Linked accounts model
 class LinkedAccount {
@@ -26,25 +22,27 @@ class LinkedAccount {
   });
 }
 
-final linkedAccountsProvider = StateProvider<List<LinkedAccount>>((ref) => [
-      LinkedAccount(
-        name: 'Valarpay Bank',
-        number: '0000000000',
-        iconPath: 'assets/images/logo.png',
-      ),
-      LinkedAccount(
-        name: 'First Bank of Nigeria',
-        number: '00000000',
-        iconPath: 'assets/images/firstbank.png',
-        isAccount: true,
-      ),
-      LinkedAccount(
-        name: 'Wema Bank',
-        number: '00000000',
-        iconPath: 'assets/images/wema.png',
-        isAccount: true,
-      ),
-    ]);
+final linkedAccountsProvider = StateProvider<List<LinkedAccount>>(
+  (ref) => [
+    LinkedAccount(
+      name: 'Valarpay Bank',
+      number: '0000000000',
+      iconPath: 'assets/images/logo.png',
+    ),
+    LinkedAccount(
+      name: 'First Bank of Nigeria',
+      number: '00000000',
+      iconPath: 'assets/images/firstbank.png',
+      isAccount: true,
+    ),
+    LinkedAccount(
+      name: 'Wema Bank',
+      number: '00000000',
+      iconPath: 'assets/images/wema.png',
+      isAccount: true,
+    ),
+  ],
+);
 
 class AccountSettingsPage extends ConsumerWidget {
   const AccountSettingsPage({Key? key}) : super(key: key);
@@ -52,6 +50,23 @@ class AccountSettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final linkedAccounts = ref.watch(linkedAccountsProvider);
+    final user = ref.watch(userProvider);
+    final hasWallet = user?.wallets.isNotEmpty ?? false;
+    final wallet = hasWallet ? user!.wallets.first : null;
+
+    // Get user data
+    final accountName = user?.fullname ?? 'N/A';
+    final accountNumber = wallet?.accountNumber ?? '0000000000';
+    final dailyLimit =
+        user?.dailyCummulativeTransactionLimit != null
+            ? currencyFormatter(
+              user!.dailyCummulativeTransactionLimit.toString(),
+            )
+            : '₦0';
+    final maxBalance =
+        user?.cummulativeBalanceLimit != null
+            ? currencyFormatter(user!.cummulativeBalanceLimit.toString())
+            : '₦0';
 
     return Scaffold(
       appBar: AppBar(
@@ -103,7 +118,7 @@ class AccountSettingsPage extends ConsumerWidget {
                       context,
                       ref,
                       'Account Name',
-                      ref.watch(accountNameProvider),
+                      accountName,
                       showCopy: true,
                     ),
                     const SizedBox(height: 16),
@@ -111,7 +126,7 @@ class AccountSettingsPage extends ConsumerWidget {
                       context,
                       ref,
                       'Account Number',
-                      ref.watch(accountNumberProvider),
+                      accountNumber,
                       showCopy: true,
                     ),
                     const SizedBox(height: 16),
@@ -119,15 +134,10 @@ class AccountSettingsPage extends ConsumerWidget {
                       context,
                       ref,
                       'Daily Transaction Limit',
-                      ref.watch(dailyLimitProvider),
+                      dailyLimit,
                     ),
                     const SizedBox(height: 16),
-                    _buildInfoRow(
-                      context,
-                      ref,
-                      'Maximum Balance',
-                      ref.watch(maxBalanceProvider),
-                    ),
+                    _buildInfoRow(context, ref, 'Maximum Balance', maxBalance),
                   ],
                 ),
               ),
@@ -190,12 +200,24 @@ class AccountSettingsPage extends ConsumerWidget {
                       final index = entry.key;
                       final account = entry.value;
                       final isLast = index == linkedAccounts.length - 1;
+
+                      // Update ValarPay account with user's actual account number
+                      final displayAccount =
+                          account.name == 'Valarpay Bank'
+                              ? LinkedAccount(
+                                name: account.name,
+                                number: accountNumber,
+                                iconPath: account.iconPath,
+                                isAccount: account.isAccount,
+                              )
+                              : account;
+
                       return Column(
                         children: [
                           _buildLinkedAccountRow(
                             context,
                             ref,
-                            account,
+                            displayAccount,
                             index,
                           ),
                           if (!isLast)
@@ -203,9 +225,9 @@ class AccountSettingsPage extends ConsumerWidget {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               child: Container(
                                 height: 2,
-                                color: Theme.of(context)
-                                    .cardColor
-                                    .withOpacity(0.2),
+                                color: Theme.of(
+                                  context,
+                                ).cardColor.withOpacity(0.2),
                               ),
                             ),
                         ],
@@ -259,8 +281,11 @@ class AccountSettingsPage extends ConsumerWidget {
               GestureDetector(
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: value));
-                  AppMessenger.show(context,
-                      type: MessageType.success, message: 'Copied to clipboard');
+                  AppMessenger.show(
+                    context,
+                    type: MessageType.success,
+                    message: 'Copied to clipboard',
+                  );
                 },
                 child: const Icon(
                   Icons.copy,

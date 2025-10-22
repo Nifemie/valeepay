@@ -30,8 +30,10 @@ class UserRepository {
 
   Future<LoginResponse> register(SignUpRequest request) async {
     try {
-      final response =
-          await apiClient.post(ApiEndpoints.register, data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.register,
+        data: request.toJson(),
+      );
       return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Sign up failed');
@@ -40,86 +42,110 @@ class UserRepository {
 
   Future<LoginResponse> registerBusiness(SignUpRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.registerBusiness,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.registerBusiness,
+        data: request.toJson(),
+      );
       return LoginResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Business registration failed');
+        e.response?.data['message'] ?? 'Business registration failed',
+      );
     }
   }
 
   Future<ApiResponse> checkUserExistance(
-      UserAvailabilityRequest request) async {
+    UserAvailabilityRequest request,
+  ) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.existanceCheck,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.existanceCheck,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'User existance check failed');
+        e.response?.data['message'] ?? 'User existance check failed',
+      );
     }
   }
 
   Future<ApiResponse> validateEmail(EmailRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.validateEmail,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.validateEmail,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to resend verification code');
+        e.response?.data['message'] ?? 'Failed to resend verification code',
+      );
     }
   }
 
   Future<ApiResponse> verifyEmail(VerifyEmailRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.verifyEmail,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.verifyEmail,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Email verification failed');
+        e.response?.data['message'] ?? 'Email verification failed',
+      );
     }
   }
 
   Future<ApiResponse> validatePhone(PhoneNumberRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.validatePhone,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.validatePhone,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to resend verification code');
+        e.response?.data['message'] ?? 'Failed to resend verification code',
+      );
     }
   }
 
   Future<ApiResponse> verifyPhone(VerifyPhoneOtpRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.verifyPhone,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.verifyPhone,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Phone verification failed');
+        e.response?.data['message'] ?? 'Phone verification failed',
+      );
     }
   }
 
   Future<ApiResponse> forgotPassword(ForgotPasswordRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.forgotPassword,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.forgotPassword,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to send reset link');
+        e.response?.data['message'] ?? 'Failed to send reset link',
+      );
     }
   }
 
   Future<ApiResponse> verifyForgotPassword(VerifyOtpRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.verifyForgotPassword,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.verifyForgotPassword,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Failed to verify OTP');
@@ -128,31 +154,40 @@ class UserRepository {
 
   Future<ApiResponse> resetPassword(ResetPasswordRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.resetPassword,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.resetPassword,
+        data: request.toJson(),
+      );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to reset password');
+        e.response?.data['message'] ?? 'Failed to reset password',
+      );
     }
   }
 
   Future<BvnInitializeResponse> initializeBvn(
-      BvnInitializeRequest request) async {
+    BvnInitializeRequest request,
+  ) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.initializeBvn,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.initializeBvn,
+        data: request.toJson(),
+      );
       return BvnInitializeResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to initialize BVN');
+        e.response?.data['message'] ?? 'Failed to initialize BVN',
+      );
     }
   }
 
   Future<BvnValidateResponse> validateBvn(BvnValidateRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.validateBvn,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.validateBvn,
+        data: request.toJson(),
+      );
       return BvnValidateResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Failed to validate BVN');
@@ -161,12 +196,15 @@ class UserRepository {
 
   Future<SetWalletPinResponse> setWalletPin(SetWalletPinRequest request) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.setWalletPin,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.setWalletPin,
+        data: request.toJson(),
+      );
       return SetWalletPinResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to set wallet PIN');
+        e.response?.data['message'] ?? 'Failed to set wallet PIN',
+      );
     }
   }
 
@@ -175,30 +213,50 @@ class UserRepository {
       log('[UserRepository] Calling GET ${ApiEndpoints.getUserProfile}');
       final response = await apiClient.get(ApiEndpoints.getUserProfile);
       log('[UserRepository] Response status: ${response.statusCode}');
-      log('[UserRepository] Response data: ${response.data}');
+      log(
+        '[UserRepository] 🔍 Has wallet field: ${response.data['wallet'] != null}',
+      );
+      if (response.data['wallet'] != null) {
+        log(
+          '[UserRepository] 🔍 Wallet type: ${response.data['wallet'].runtimeType}',
+        );
+        log('[UserRepository] 🔍 Wallet content: ${response.data['wallet']}');
+      } else {
+        log('[UserRepository] ⚠️ WARNING: wallet field is NULL in response!');
+      }
 
       final user = UserModel.fromJson(response.data);
-      log('[UserRepository] Parsed user - isPasscodeSet: ${user.isPasscodeSet}');
+      log(
+        '[UserRepository] Parsed user - isPasscodeSet: ${user.isPasscodeSet}',
+      );
+      log(
+        '[UserRepository] Parsed user - wallets count: ${user.wallets.length}',
+      );
       return user;
     } on DioException catch (e) {
       log('[UserRepository] Error fetching profile: ${e.response?.data}');
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to fetch user profile');
+        e.response?.data['message'] ?? 'Failed to fetch user profile',
+      );
     }
   }
 
   Future<VerifyWalletPinResponse> verifyWalletPin(
-      VerifyWalletPinRequest request) async {
+    VerifyWalletPinRequest request,
+  ) async {
     try {
       log('[UserRepository] Verifying wallet PIN...');
-      final response = await apiClient.post(ApiEndpoints.verifyWalletPin,
-          data: request.toJson());
+      final response = await apiClient.post(
+        ApiEndpoints.verifyWalletPin,
+        data: request.toJson(),
+      );
       log('[UserRepository] PIN verification response: ${response.statusCode}');
       return VerifyWalletPinResponse.fromJson(response.data);
     } on DioException catch (e) {
       log('[UserRepository] PIN verification failed: ${e.response?.data}');
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to verify wallet PIN');
+        e.response?.data['message'] ?? 'Failed to verify wallet PIN',
+      );
     }
   }
 }

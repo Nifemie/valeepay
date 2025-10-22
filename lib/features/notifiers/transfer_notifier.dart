@@ -21,16 +21,18 @@ class BanksNotifier extends StateNotifier<DataState<Bank>> {
     try {
       final res = await _repository.getBanks(currency: currency);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: res.banks,
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: res.banks,
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[BanksNotifier fetchBanks] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load banks: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load banks: ${e.toString()}',
+      );
     }
   }
 
@@ -42,7 +44,7 @@ class TransferFeeNotifier extends StateNotifier<DataState<TransferFee>> {
   final TransferRepository _repository;
 
   TransferFeeNotifier(this._repository)
-      : super(DataState<TransferFee>.initial());
+    : super(DataState<TransferFee>.initial());
 
   Future<void> getTransferFee({
     required String currency,
@@ -55,16 +57,18 @@ class TransferFeeNotifier extends StateNotifier<DataState<TransferFee>> {
         amount: amount,
       );
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.data],
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: [res.data],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[TransferFeeNotifier getTransferFee] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to get transfer fee: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to get transfer fee: ${e.toString()}',
+      );
     }
   }
 
@@ -77,7 +81,7 @@ class AccountVerificationNotifier
   final TransferRepository _repository;
 
   AccountVerificationNotifier(this._repository)
-      : super(DataState<AccountDetails>.initial());
+    : super(DataState<AccountDetails>.initial());
 
   Future<void> verifyAccount({
     required String accountNumber,
@@ -91,16 +95,18 @@ class AccountVerificationNotifier
       );
       final res = await _repository.verifyAccount(request);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.data],
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: [res.data],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[AccountVerificationNotifier verifyAccount] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to verify account: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to verify account: ${e.toString()}',
+      );
     }
   }
 
@@ -112,7 +118,7 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
   final TransferRepository _repository;
 
   TransferNotifier(this._repository)
-      : super(DataState<TransferResponse>.initial());
+    : super(DataState<TransferResponse>.initial());
 
   Future<void> initiateTransfer({
     required String bankCode,
@@ -120,7 +126,13 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
     required double amount,
     required String currency,
     required String description,
+    required String pin,
   }) async {
+    print('💰 TransferNotifier.initiateTransfer called');
+    print(
+      '   Bank: $bankCode, Account: $accountNumber, Amount: $amount, PIN length: ${pin.length}',
+    );
+
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final request = InitiateTransferRequest(
@@ -129,19 +141,30 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
         amount: amount,
         currency: currency,
         description: description,
+        pin: pin,
       );
+
+      print('📤 Calling repository.initiateTransfer...');
       final res = await _repository.initiateTransfer(request);
+
+      print(
+        '✅ Transfer API response: ${res.message}, statusCode: ${res.statusCode}',
+      );
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res],
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: [res],
+        isDataAvailable: true,
+        message: res.message,
+      );
+      print('✅ State updated successfully');
     } catch (e, stack) {
       log('[TransferNotifier initiateTransfer] $e\n$stack');
+      print('❌ Transfer error in notifier: $e');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Transfer failed: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Transfer failed: ${e.toString()}',
+      );
     }
   }
 
@@ -153,7 +176,7 @@ class TransactionsNotifier extends StateNotifier<DataState<Transaction>> {
   final TransferRepository _repository;
 
   TransactionsNotifier(this._repository)
-      : super(DataState<Transaction>.initial());
+    : super(DataState<Transaction>.initial());
 
   Future<void> fetchTransactions({
     int? page,
@@ -170,16 +193,18 @@ class TransactionsNotifier extends StateNotifier<DataState<Transaction>> {
         category: category,
       );
       state = state.copyWith(
-          isInitialLoading: false,
-          data: res.transactions,
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: res.transactions,
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[TransactionsNotifier fetchTransactions] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load transactions: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load transactions: ${e.toString()}',
+      );
     }
   }
 
@@ -197,16 +222,18 @@ class QRCodeNotifier extends StateNotifier<DataState<QRCodeResponse>> {
     try {
       final res = await _repository.generateQRCode(amount: amount);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res],
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: [res],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[QRCodeNotifier generateQRCode] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to generate QR code: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to generate QR code: ${e.toString()}',
+      );
     }
   }
 
@@ -218,13 +245,17 @@ class QRCodeNotifier extends StateNotifier<DataState<QRCodeResponse>> {
       // Store decoded data in a different way since it's QRCodeData, not QRCodeResponse
       // You might want to create a separate notifier for decoded QR data
       state = state.copyWith(
-          isInitialLoading: false, isDataAvailable: true, message: res.message);
+        isInitialLoading: false,
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[QRCodeNotifier decodeQRCode] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to decode QR code: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to decode QR code: ${e.toString()}',
+      );
     }
   }
 
@@ -243,16 +274,18 @@ class QRCodeDataNotifier extends StateNotifier<DataState<QRCodeData>> {
       final request = DecodeQRCodeRequest(qrCode: qrCode);
       final res = await _repository.decodeQRCode(request);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.data],
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: [res.data],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[QRCodeDataNotifier decodeQRCode] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to decode QR code: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to decode QR code: ${e.toString()}',
+      );
     }
   }
 
@@ -262,40 +295,40 @@ class QRCodeDataNotifier extends StateNotifier<DataState<QRCodeData>> {
 // Riverpod providers
 final banksNotifierProvider =
     StateNotifierProvider<BanksNotifier, DataState<Bank>>(
-  (ref) => BanksNotifier(ref.read(transferRepositoryProvider)),
-);
+      (ref) => BanksNotifier(ref.read(transferRepositoryProvider)),
+    );
 
 final transferFeeNotifierProvider =
     StateNotifierProvider<TransferFeeNotifier, DataState<TransferFee>>(
-  (ref) => TransferFeeNotifier(ref.read(transferRepositoryProvider)),
-);
+      (ref) => TransferFeeNotifier(ref.read(transferRepositoryProvider)),
+    );
 
 final accountVerificationNotifierProvider = StateNotifierProvider<
-    AccountVerificationNotifier, DataState<AccountDetails>>(
-  (ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)),
-);
+  AccountVerificationNotifier,
+  DataState<AccountDetails>
+>((ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)));
 
 final internalAccountVerificationNotifierProvider = StateNotifierProvider<
-    AccountVerificationNotifier, DataState<AccountDetails>>(
-  (ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)),
-);
+  AccountVerificationNotifier,
+  DataState<AccountDetails>
+>((ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)));
 
 final transferNotifierProvider =
     StateNotifierProvider<TransferNotifier, DataState<TransferResponse>>(
-  (ref) => TransferNotifier(ref.read(transferRepositoryProvider)),
-);
+      (ref) => TransferNotifier(ref.read(transferRepositoryProvider)),
+    );
 
 final transactionsNotifierProvider =
     StateNotifierProvider<TransactionsNotifier, DataState<Transaction>>(
-  (ref) => TransactionsNotifier(ref.read(transferRepositoryProvider)),
-);
+      (ref) => TransactionsNotifier(ref.read(transferRepositoryProvider)),
+    );
 
 final qrCodeNotifierProvider =
     StateNotifierProvider<QRCodeNotifier, DataState<QRCodeResponse>>(
-  (ref) => QRCodeNotifier(ref.read(transferRepositoryProvider)),
-);
+      (ref) => QRCodeNotifier(ref.read(transferRepositoryProvider)),
+    );
 
 final qrCodeDataNotifierProvider =
     StateNotifierProvider<QRCodeDataNotifier, DataState<QRCodeData>>(
-  (ref) => QRCodeDataNotifier(ref.read(transferRepositoryProvider)),
-);
+      (ref) => QRCodeDataNotifier(ref.read(transferRepositoryProvider)),
+    );

@@ -26,20 +26,19 @@ class TransferRepository {
     try {
       final response = await apiClient.get(
         ApiEndpoints.getTransferFee,
-        query: {
-          'currency': currency,
-          'amount': amount,
-        },
+        query: {'currency': currency, 'amount': amount},
       );
       return TransferFeeResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to get transfer fee');
+        e.response?.data['message'] ?? 'Failed to get transfer fee',
+      );
     }
   }
 
   Future<AccountVerificationResponse> verifyAccount(
-      VerifyAccountRequest request) async {
+    VerifyAccountRequest request,
+  ) async {
     try {
       final response = await apiClient.post(
         ApiEndpoints.verifyAccount,
@@ -48,12 +47,14 @@ class TransferRepository {
       return AccountVerificationResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to verify account');
+        e.response?.data['message'] ?? 'Failed to verify account',
+      );
     }
   }
 
   Future<TransferResponse> initiateTransfer(
-      InitiateTransferRequest request) async {
+    InitiateTransferRequest request,
+  ) async {
     try {
       final response = await apiClient.post(
         ApiEndpoints.initiateTransfer,
@@ -61,7 +62,17 @@ class TransferRepository {
       );
       return TransferResponse.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Transfer failed');
+      // Try to extract more detailed error message
+      final message =
+          e.response?.data['message'] ??
+          e.response?.data['error'] ??
+          e.response?.data['errors']?.toString() ??
+          'Transfer processing failed';
+      print(
+        '❌ Transfer repository error: Status ${e.response?.statusCode}, Message: $message',
+      );
+      print('❌ Full error response: ${e.response?.data}');
+      throw Exception(message);
     }
   }
 
@@ -85,7 +96,8 @@ class TransferRepository {
       return TransactionsResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to get transactions');
+        e.response?.data['message'] ?? 'Failed to get transactions',
+      );
     }
   }
 
@@ -98,7 +110,8 @@ class TransferRepository {
       return QRCodeResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to generate QR code');
+        e.response?.data['message'] ?? 'Failed to generate QR code',
+      );
     }
   }
 
@@ -111,7 +124,8 @@ class TransferRepository {
       return DecodeQRCodeResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-          e.response?.data['message'] ?? 'Failed to decode QR code');
+        e.response?.data['message'] ?? 'Failed to decode QR code',
+      );
     }
   }
 }

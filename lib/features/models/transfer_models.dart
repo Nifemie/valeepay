@@ -19,24 +19,24 @@ class Bank {
   });
 
   factory Bank.fromJson(Map<String, dynamic> json) => Bank(
-        name: json['name'] ?? '',
-        alias: List<String>.from(json['alias'] ?? []),
-        routingKey: json['routingKey'] ?? '',
-        logoImage: json['logoImage'],
-        bankCode: json['bankCode'] ?? '',
-        categoryId: json['categoryId'] ?? '',
-        nubanCode: json['nubanCode'],
-      );
+    name: json['name'] ?? '',
+    alias: List<String>.from(json['alias'] ?? []),
+    routingKey: json['routingKey'] ?? '',
+    logoImage: json['logoImage'],
+    bankCode: json['bankCode'] ?? '',
+    categoryId: json['categoryId'] ?? '',
+    nubanCode: json['nubanCode'],
+  );
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'alias': alias,
-        'routingKey': routingKey,
-        if (logoImage != null) 'logoImage': logoImage,
-        'bankCode': bankCode,
-        'categoryId': categoryId,
-        if (nubanCode != null) 'nubanCode': nubanCode,
-      };
+    'name': name,
+    'alias': alias,
+    'routingKey': routingKey,
+    if (logoImage != null) 'logoImage': logoImage,
+    'bankCode': bankCode,
+    'categoryId': categoryId,
+    if (nubanCode != null) 'nubanCode': nubanCode,
+  };
 
   // Helper getter for display name
   String get displayName => name;
@@ -54,26 +54,24 @@ class BanksResponse {
   });
 
   factory BanksResponse.fromJson(Map<String, dynamic> json) => BanksResponse(
-        banks: (json['data'] as List<dynamic>?)
-                ?.map((bank) => Bank.fromJson(bank))
-                .toList() ??
-            [],
-        message: json['message'] ?? 'Success',
-        statusCode: json['statusCode'] ?? 200,
-      );
+    banks:
+        (json['data'] as List<dynamic>?)
+            ?.map((bank) => Bank.fromJson(bank))
+            .toList() ??
+        [],
+    message: json['message'] ?? 'Success',
+    statusCode: json['statusCode'] ?? 200,
+  );
 }
 
 // Transfer Fee Models
 class TransferFee {
   final double fee;
 
-  TransferFee({
-    required this.fee,
-  });
+  TransferFee({required this.fee});
 
-  factory TransferFee.fromJson(Map<String, dynamic> json) => TransferFee(
-        fee: (json['fee'] ?? 0).toDouble(),
-      );
+  factory TransferFee.fromJson(Map<String, dynamic> json) =>
+      TransferFee(fee: (json['fee'] ?? 0).toDouble());
 }
 
 class TransferFeeResponse {
@@ -118,15 +116,15 @@ class AccountDetails {
   });
 
   factory AccountDetails.fromJson(Map<String, dynamic> json) => AccountDetails(
-        responseCode: json['responseCode'] ?? '',
-        responseMessage: json['responseMessage'] ?? '',
-        sessionId: json['sessionId'] ?? '',
-        bankCode: json['bankCode'] ?? '',
-        accountNumber: json['accountNumber'] ?? '',
-        accountName: json['accountName'] ?? '',
-        kycLevel: json['kycLevel'] ?? '',
-        bvn: json['bvn'] ?? '',
-      );
+    responseCode: json['responseCode'] ?? '',
+    responseMessage: json['responseMessage'] ?? '',
+    sessionId: json['sessionId'] ?? '',
+    bankCode: json['bankCode'] ?? '',
+    accountNumber: json['accountNumber'] ?? '',
+    accountName: json['accountName'] ?? '',
+    kycLevel: json['kycLevel'] ?? '',
+    bvn: json['bvn'] ?? '',
+  );
 }
 
 class AccountVerificationResponse {
@@ -155,6 +153,7 @@ class InitiateTransferRequest {
   final double amount;
   final String currency;
   final String description;
+  final String pin;
 
   InitiateTransferRequest({
     required this.bankCode,
@@ -162,30 +161,29 @@ class InitiateTransferRequest {
     required this.amount,
     required this.currency,
     required this.description,
+    required this.pin,
   });
 
   Map<String, dynamic> toJson() => {
-        'bankCode': bankCode,
-        'accountNumber': accountNumber,
-        'amount': amount,
-        'currency': currency,
-        'description': description,
-      };
+    'bankCode': bankCode,
+    'accountNumber': accountNumber,
+    'amount': amount,
+    'currency': currency,
+    'description': description,
+    'walletPin': pin, // Backend expects 'walletPin', not 'pin'
+  };
 }
 
 class VerifyAccountRequest {
   final String accountNumber;
   final String bankCode;
 
-  VerifyAccountRequest({
-    required this.accountNumber,
-    required this.bankCode,
-  });
+  VerifyAccountRequest({required this.accountNumber, required this.bankCode});
 
   Map<String, dynamic> toJson() => {
-        'accountNumber': accountNumber,
-        'bankCode': bankCode,
-      };
+    'accountNumber': accountNumber,
+    'bankCode': bankCode,
+  };
 }
 
 // Transfer Response Models
@@ -193,10 +191,7 @@ class TransferResponse {
   final String message;
   final int statusCode;
 
-  TransferResponse({
-    required this.message,
-    required this.statusCode,
-  });
+  TransferResponse({required this.message, required this.statusCode});
 
   factory TransferResponse.fromJson(Map<String, dynamic> json) =>
       TransferResponse(
@@ -228,15 +223,15 @@ class DepositDetails {
   });
 
   factory DepositDetails.fromJson(Map<String, dynamic> json) => DepositDetails(
-        amount: json['amount']?.toDouble(),
-        amountPaid: (json['amountPaid'] ?? 0).toDouble(),
-        senderName: json['senderName'] ?? '',
-        senderBankName: json['senderBankName'] ?? '',
-        beneficiaryName: json['beneficiaryName'] ?? '',
-        beneficiaryBankName: json['beneficiaryBankName'] ?? '',
-        senderAccountNumber: json['senderAccountNumber'] ?? '',
-        beneficiaryAccountNumber: json['beneficiaryAccountNumber'] ?? '',
-      );
+    amount: json['amount']?.toDouble(),
+    amountPaid: (json['amountPaid'] ?? 0).toDouble(),
+    senderName: json['senderName'] ?? '',
+    senderBankName: json['senderBankName'] ?? '',
+    beneficiaryName: json['beneficiaryName'] ?? '',
+    beneficiaryBankName: json['beneficiaryBankName'] ?? '',
+    senderAccountNumber: json['senderAccountNumber'] ?? '',
+    beneficiaryAccountNumber: json['beneficiaryAccountNumber'] ?? '',
+  );
 }
 
 class Transaction {
@@ -277,27 +272,30 @@ class Transaction {
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
-        id: json['id'] ?? '',
-        walletId: json['walletId'] ?? '',
-        transactionRef: json['transactionRef'],
-        type: json['type'] ?? '',
-        category: json['category'] ?? '',
-        currency: json['currency'] ?? '',
-        status: json['status'] ?? '',
-        description: json['description'] ?? '',
-        previousBalance: (json['previousBalance'] ?? 0).toDouble(),
-        currentBalance: (json['currentBalance'] ?? 0).toDouble(),
-        reference: json['reference'],
-        billDetails: json['billDetails'],
-        transferDetails: json['transferDetails'],
-        depositDetails: json['depositDetails'] != null
+    id: json['id'] ?? '',
+    walletId: json['walletId'] ?? '',
+    transactionRef: json['transactionRef'],
+    type: json['type'] ?? '',
+    category: json['category'] ?? '',
+    currency: json['currency'] ?? '',
+    status: json['status'] ?? '',
+    description: json['description'] ?? '',
+    previousBalance: (json['previousBalance'] ?? 0).toDouble(),
+    currentBalance: (json['currentBalance'] ?? 0).toDouble(),
+    reference: json['reference'],
+    billDetails: json['billDetails'],
+    transferDetails: json['transferDetails'],
+    depositDetails:
+        json['depositDetails'] != null
             ? DepositDetails.fromJson(json['depositDetails'])
             : null,
-        createdAt: DateTime.parse(
-            json['createdAt'] ?? DateTime.now().toIso8601String()),
-        updatedAt: DateTime.parse(
-            json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      );
+    createdAt: DateTime.parse(
+      json['createdAt'] ?? DateTime.now().toIso8601String(),
+    ),
+    updatedAt: DateTime.parse(
+      json['updatedAt'] ?? DateTime.now().toIso8601String(),
+    ),
+  );
 }
 
 class TransactionsResponse {
@@ -317,7 +315,8 @@ class TransactionsResponse {
 
   factory TransactionsResponse.fromJson(Map<String, dynamic> json) =>
       TransactionsResponse(
-        transactions: (json['transactions'] as List<dynamic>?)
+        transactions:
+            (json['transactions'] as List<dynamic>?)
                 ?.map((transaction) => Transaction.fromJson(transaction))
                 .toList() ??
             [],
@@ -347,13 +346,13 @@ class QRCodeData {
   });
 
   factory QRCodeData.fromJson(Map<String, dynamic> json) => QRCodeData(
-        bankCode: json['bankCode'] ?? '',
-        accountNumber: json['accountNumber'] ?? '',
-        currency: json['currency'] ?? '',
-        fee: (json['fee'] ?? 0).toDouble(),
-        amount: json['amount'] ?? '',
-        sessionId: json['sessionId'] ?? '',
-      );
+    bankCode: json['bankCode'] ?? '',
+    accountNumber: json['accountNumber'] ?? '',
+    currency: json['currency'] ?? '',
+    fee: (json['fee'] ?? 0).toDouble(),
+    amount: json['amount'] ?? '',
+    sessionId: json['sessionId'] ?? '',
+  );
 }
 
 class QRCodeResponse {
@@ -368,22 +367,18 @@ class QRCodeResponse {
   });
 
   factory QRCodeResponse.fromJson(Map<String, dynamic> json) => QRCodeResponse(
-        data: json['data'] ?? '',
-        message: json['message'] ?? 'Success',
-        statusCode: json['statusCode'] ?? 200,
-      );
+    data: json['data'] ?? '',
+    message: json['message'] ?? 'Success',
+    statusCode: json['statusCode'] ?? 200,
+  );
 }
 
 class DecodeQRCodeRequest {
   final String qrCode;
 
-  DecodeQRCodeRequest({
-    required this.qrCode,
-  });
+  DecodeQRCodeRequest({required this.qrCode});
 
-  Map<String, dynamic> toJson() => {
-        'qrCode': qrCode,
-      };
+  Map<String, dynamic> toJson() => {'qrCode': qrCode};
 }
 
 class DecodeQRCodeResponse {

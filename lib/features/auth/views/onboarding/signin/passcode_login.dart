@@ -6,6 +6,7 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -55,8 +56,38 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
             // Save session with access token
             await SessionService.saveSession(loginResponse!);
 
-            // Update user provider
-            ref.read(userProvider.notifier).setUser(loginResponse.user);
+            // 🔥 FIX: Fetch fresh user data with wallet from /me endpoint
+            print('🔥 [PasscodeLogin] About to call refreshUserProfile...');
+            final freshUser =
+                await ref
+                    .read(userNotifierProvider.notifier)
+                    .refreshUserProfile();
+            print(
+              '🔥 [PasscodeLogin] refreshUserProfile returned: ${freshUser != null}',
+            );
+            if (freshUser != null) {
+              print(
+                '🔥 [PasscodeLogin] Fresh user has ${freshUser.wallets.length} wallets',
+              );
+            }
+
+            if (freshUser != null) {
+              // Update user provider with fresh data including wallet
+              ref.read(userProvider.notifier).setUser(freshUser);
+
+              // Update cached session with complete user data
+              await SessionService.saveSession(
+                LoginResponse(
+                  message: loginResponse.message,
+                  statusCode: loginResponse.statusCode,
+                  user: freshUser,
+                  accessToken: loginResponse.accessToken,
+                ),
+              );
+            } else {
+              // Fallback to login response user if refresh fails
+              ref.read(userProvider.notifier).setUser(loginResponse.user);
+            }
 
             AppMessenger.show(
               context,
@@ -250,9 +281,7 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
           color: Theme.of(context).cardColor.withOpacity(0.5),
           shape: BoxShape.circle,
         ),
-        child: const Center(
-          child: Icon(Icons.backspace_outlined, size: 24),
-        ),
+        child: const Center(child: Icon(Icons.backspace_outlined, size: 24)),
       ),
     );
   }

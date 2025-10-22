@@ -87,10 +87,7 @@ final router = GoRouter(
   initialLocation: '/splash', // Always show splash screen
 
   routes: [
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => SplashScreen(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => SplashScreen()),
     GoRoute(path: '/intro', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(
@@ -151,8 +148,8 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/signin',
-      pageBuilder: (context, state) =>
-          const NoTransitionPage(child: SignInScreen()),
+      pageBuilder:
+          (context, state) => const NoTransitionPage(child: SignInScreen()),
     ),
     GoRoute(
       path: '/biometric-login',
@@ -185,10 +182,7 @@ final router = GoRouter(
     ShellRoute(
       builder: (context, state, child) => DashboardWrapper(child: child),
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const Homescreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const Homescreen()),
         GoRoute(
           path: '/finance',
           builder: (context, state) => const SavingsComingSoonScreen(),
@@ -205,10 +199,7 @@ final router = GoRouter(
           path: '/get-phisical-card',
           builder: (context, state) => const GetPhysicalCardScreen(),
         ),
-        GoRoute(
-          path: '/me',
-          builder: (context, state) => const MeScreen(),
-        ),
+        GoRoute(path: '/me', builder: (context, state) => const MeScreen()),
       ],
     ),
 
@@ -229,10 +220,7 @@ final router = GoRouter(
       path: '/customer-service',
       builder: (context, state) => const CustomerServiceScreen(),
     ),
-    GoRoute(
-      path: '/faq',
-      builder: (context, state) => const FAQScreen(),
-    ),
+    GoRoute(path: '/faq', builder: (context, state) => const FAQScreen()),
     GoRoute(
       path: '/visit-office',
       builder: (context, state) => const VisitOfficeScreen(),
@@ -282,7 +270,7 @@ final router = GoRouter(
       builder: (context, state) => const MyRewardsPage(),
     ),
     GoRoute(
-      path: 'My Portfolio',
+      path: '/my-portfolio',
       builder: (context, state) => const MyPortfolioPage(),
     ),
     // Profile routes
@@ -311,10 +299,7 @@ final router = GoRouter(
       path: '/airtime',
       builder: (context, state) => const AirtimeScreen(),
     ),
-    GoRoute(
-      path: '/data',
-      builder: (context, state) => const DataScreen(),
-    ),
+    GoRoute(path: '/data', builder: (context, state) => const DataScreen()),
     GoRoute(
       path: '/schedule-topup',
       builder: (context, state) => const ScheduleTopupScreen(),
@@ -337,16 +322,14 @@ final router = GoRouter(
       path: '/account-statement',
       builder: (context, state) => const AccountStatementPage(),
     ),
-    GoRoute(
-      path: '/themes',
-      builder: (context, state) => const ThemesPage(),
-    ),
+    GoRoute(path: '/themes', builder: (context, state) => const ThemesPage()),
 
     // Notification routes
     GoRoute(
       path: '/notification-view',
       builder: (context, state) {
-        final Map<String, String> data = state.extra as Map<String, String>? ??
+        final Map<String, String> data =
+            state.extra as Map<String, String>? ??
             {'title': 'Notification', 'content': 'No content'};
         return NotificationViewScreen(
           title: data['title']!,
@@ -359,7 +342,8 @@ final router = GoRouter(
     GoRoute(
       path: '/faq-detail',
       builder: (context, state) {
-        final Map<String, String> data = state.extra as Map<String, String>? ??
+        final Map<String, String> data =
+            state.extra as Map<String, String>? ??
             {'question': 'FAQ', 'answer': 'No answer available'};
         return FAQDetailScreen(
           question: data['question']!,
