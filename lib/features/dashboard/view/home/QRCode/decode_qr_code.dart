@@ -147,9 +147,8 @@ class _DecodeQrCodeScreenState extends ConsumerState<DecodeQrCodeScreen> {
                   child: _hasPermission
                       ? MobileScanner(
                           controller: _scannerController,
-                          allowDuplicates: false,
-                          onDetect: (Barcode barcode,
-                              MobileScannerArguments? args) async {
+                          onDetect: (BarcodeCapture capture) async {
+                            final barcode = capture.barcodes.first;
                             if (_isProcessing) return;
                             final raw = barcode.rawValue;
                             if (raw == null || raw.isEmpty) return;
