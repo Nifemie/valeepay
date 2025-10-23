@@ -88,7 +88,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -259,8 +258,8 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                           child: Image.asset(
                             'assets/images/logo.png',
                             fit: BoxFit.cover,
-                            width: 40.rw,
-                            height: 40.rh,
+                            width: 50.rw,
+                            height: 50.rh,
                           ),
                         ),
                       ),
@@ -384,7 +383,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20.h),
                 ],
               ),
             ),

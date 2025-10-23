@@ -80,7 +80,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 // Share Receipt Button
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  height: 40,
+                  height: 50,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF76301),
                     borderRadius: BorderRadius.circular(24),
@@ -119,7 +119,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 // Done Button
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  height: 40,
+                  height: 50,
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAFBFC),
                     borderRadius: BorderRadius.circular(24),
@@ -219,7 +219,8 @@ class TransactionReceiptWidget extends StatelessWidget {
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: detail.value));
                   AppMessenger.show(context,
-                      type: MessageType.error, message: 'Copied to clipboard');
+                      type: MessageType.success,
+                      message: 'Copied to clipboard');
                 },
                 child: const Icon(
                   Icons.copy,

@@ -41,64 +41,77 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Withdraw",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
       body: Padding(
         padding: ResponsiveUtils.paddingAll16,
         child: Column(
-          children: withdrawOptions.map((option) {
-            return Container(
-              margin: EdgeInsets.only(bottom: 12.h),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: ResponsiveUtils.borderRadius12,
-              ),
-              child: ListTile(
-                contentPadding: ResponsiveUtils.paddingAll12,
-                leading: CircleAvatar(
-                  radius: 20.r,
-                  backgroundColor: appTheme.primaryColor,
-                  child: Icon(
-                    option["icon"],
-                    color: Colors.white,
-                    size: 20.sp,
+          children:
+              withdrawOptions.map((option) {
+                return Container(
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: ResponsiveUtils.borderRadius12,
                   ),
-                ),
-                title: Text(
-                  option["title"],
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  child: ListTile(
+                    contentPadding: ResponsiveUtils.paddingAll12,
+                    leading: CircleAvatar(
+                      radius: 20.r,
+                      backgroundColor: appTheme.primaryColor,
+                      child: Icon(
+                        option["icon"],
+                        color: Colors.white,
+                        size: 20.sp,
+                      ),
+                    ),
+                    title: Text(
+                      option["title"],
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 14.sp,
                       ),
-                ),
-                subtitle: Text(
-                  option["subtitle"],
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 13.sp,
-                      ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: Theme.of(context).iconTheme.color,
-                ),
-                onTap: () {
-                  if (option['id'] == 1) {
-                    context.push('/withdraw-via-bank');
-                  } else if (option['id'] == 2) {
-                  } else if (option['id'] == 3) {
-                    context.push('/withdraw-via-marchant');
-                  }
-                  // Handle navigation for each withdraw option
-                },
-              ),
-            );
-          }).toList(),
+                    ),
+                    subtitle: Text(
+                      option["subtitle"],
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontSize: 13.sp),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
+                    onTap: () {
+                      if (option['id'] == 1) {
+                        context.push('/withdraw-via-bank');
+                      } else if (option['id'] == 2) {
+                        context.push(
+                          '/coming-soon',
+                          extra: 'Withdraw via ValarPay ATM',
+                        );
+                      } else if (option['id'] == 3) {
+                        context.push(
+                          '/coming-soon',
+                          extra: 'Withdraw via Merchant',
+                        );
+                      }
+                      // Handle navigation for each withdraw option
+                    },
+                  ),
+                );
+              }).toList(),
         ),
       ),
     );

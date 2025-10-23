@@ -1,0 +1,148 @@
+import 'dart:developer';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/network/data_state.dart';
+import 'package:valarpay/features/models/transaction_model.dart';
+import 'package:valarpay/features/models/transactions_response.dart';
+import 'package:valarpay/features/repositories/wallet_repository.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+
+/// Repository provider
+final walletRepositoryProvider = Provider<WalletRepository>((ref) {
+  return WalletRepository(ref.read(apiClientProvider));
+});
+
+/// Transaction Notifier for managing transaction history state
+class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
+  final WalletRepository _repository;
+
+  TransactionNotifier(this._repository)
+    : super(DataState<TransactionModel>.initial());
+
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _hasMore = true;
+  List<TransactionModel> _allTransactions = [];
+
+  // Filters
+  String? _statusFilter;
+  String? _dateFromFilter;
+  String? _dateToFilter;
+
+  // Getters for pagination info
+  bool get hasMore => _hasMore;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
+
+  /// Fetch transactions with optional filters
+  Future<void> fetchTransactions({
+    bool refresh = false,
+    String? status,
+    String? dateFrom,
+    String? dateTo,
+  }) async {
+    // Reset on refresh or filter change
+    if (refresh ||
+        status != _statusFilter ||
+        dateFrom != _dateFromFilter ||
+        dateTo != _dateToFilter) {
+      _currentPage = 1;
+      _allTransactions = [];
+      _hasMore = true;
+      _statusFilter = status;
+      _dateFromFilter = dateFrom;
+      _dateToFilter = dateTo;
+    }
+
+    // Don't fetch if no more data
+    if (!_hasMore && !refresh) return;
+
+    state = state.copyWith(isInitialLoading: _currentPage == 1, message: null);
+
+    try {
+      final response = await _repository.getAllTransactions(
+        page: _currentPage,
+        limit: 20,
+        status: _statusFilter,
+        dateFrom: _dateFromFilter,
+        dateTo: _dateToFilter,
+      );
+
+      _totalPages = response.totalPages;
+      _hasMore = _currentPage < _totalPages;
+
+      // Add new transactions to the list
+      if (refresh || _currentPage == 1) {
+        _allTransactions = response.transactions;
+      } else {
+        _allTransactions.addAll(response.transactions);
+      }
+
+      state = state.copyWith(
+        isInitialLoading: false,
+        data: _allTransactions,
+        isDataAvailable: _allTransactions.isNotEmpty,
+        message: response.message,
+      );
+    } catch (e, stack) {
+      log('[TransactionNotifier fetchTransactions] $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load transactions: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Load more transactions (pagination)
+  Future<void> loadMore() async {
+    if (!_hasMore || state.isInitialLoading) return;
+
+    _currentPage++;
+    await fetchTransactions();
+  }
+
+  /// Refresh transactions (pull to refresh)
+  Future<void> refresh() async {
+    await fetchTransactions(refresh: true);
+  }
+
+  /// Filter by status
+  Future<void> filterByStatus(String? status) async {
+    await fetchTransactions(refresh: true, status: status);
+  }
+
+  /// Filter by date range
+  Future<void> filterByDateRange(String? dateFrom, String? dateTo) async {
+    await fetchTransactions(refresh: true, dateFrom: dateFrom, dateTo: dateTo);
+  }
+
+  /// Clear all filters
+  Future<void> clearFilters() async {
+    await fetchTransactions(
+      refresh: true,
+      status: null,
+      dateFrom: null,
+      dateTo: null,
+    );
+  }
+
+  /// Reset state
+  void reset() {
+    _currentPage = 1;
+    _totalPages = 1;
+    _hasMore = true;
+    _allTransactions = [];
+    _statusFilter = null;
+    _dateFromFilter = null;
+    _dateToFilter = null;
+    state = DataState<TransactionModel>.initial();
+  }
+}
+
+/// Transaction Notifier Provider
+final transactionNotifierProvider =
+    StateNotifierProvider<TransactionNotifier, DataState<TransactionModel>>((
+      ref,
+    ) {
+      return TransactionNotifier(ref.read(walletRepositoryProvider));
+    });

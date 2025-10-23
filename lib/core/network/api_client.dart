@@ -30,7 +30,47 @@ class ApiClient {
           return handler.next(options);
         },
         onResponse: (response, handler) {
+          if (response.statusCode == 200) {
+            final data = response.data;
+
+            // Skip validation for endpoints that return data directly (not wrapped in 'data' field)
+            final skipValidation =
+                response.requestOptions.path.contains('/me') ||
+                response.requestOptions.path.contains('/transaction') ||
+                response.requestOptions.path.contains('/airtime') ||
+                response.requestOptions.path.contains('/data') ||
+                response.requestOptions.path.contains('/electricity');
+
+            if (!skipValidation) {
+              if (data is Map &&
+                  (data['data'] == null || data['data'].toString() == '{}')) {
+                // Throw a Dio error so it can be caught as an API failure
+                return handler.reject(
+                  DioException(
+                    requestOptions: response.requestOptions,
+                    error: "Invalid response returned server.",
+                    type: DioExceptionType.badResponse,
+                  ),
+                );
+              }
+            }
+          }
+          if (response.requestOptions.path.contains('/me')) {
+            print('[API /me RESPONSE] => Status: ${response.statusCode}');
+            print(
+              '[API /me RESPONSE] => Has wallet: ${response.data['wallet'] != null}',
+            );
+            if (response.data['wallet'] != null) {
+              print(
+                '[API /me RESPONSE] => Wallet type: ${response.data['wallet'].runtimeType}',
+              );
+              print(
+                '[API /me RESPONSE] => Wallet content: ${response.data['wallet']}',
+              );
+            }
+          }
           print('[API RESPONSE] => ${response.statusCode} ${response.data}');
+
           return handler.next(response);
         },
         onError: (DioException e, handler) {

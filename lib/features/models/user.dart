@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:valarpay/features/models/wallet.dart';
 
 class UserModel {
@@ -83,95 +84,115 @@ class UserModel {
     this.wallets = const [],
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-        id: json['id'],
-        email: json['email'],
-        username: json['username'],
-        fullname: json['fullname'],
-        role: json['role'] ?? 'USER',
-        status: json['status'] ?? 'ACTIVE',
-        isEmailVerified: json['isEmailVerified'] ?? false,
-        isPhoneVerified: json['isPhoneVerified'] ?? false,
-        phoneNumber: json['phoneNumber'],
-        gender: json['gender'],
-        country: json['country'],
-        businessName: json['businessName'],
-        companyRegistrationNumber: json['companyRegistrationNumber'],
-        nin: json['nin'],
-        address: json['address'],
-        state: json['state'],
-        city: json['city'],
-        selfieBase64Image: json['selfieBase64Image'],
-        accountType: json['accountType'],
-        profileImageFilename: json['profileImageFilename'],
-        profileImageUrl: json['profileImageUrl'],
-        referralCode: json['referralCode'],
-        dateOfBirth: json['dateOfBirth'],
-        currency: json['currency'],
-        tierLevel: json['tierLevel'],
-        createdAt: json['createdAt'] != null
-            ? DateTime.tryParse(json['createdAt'])
-            : null,
-        updatedAt: json['updatedAt'] != null
-            ? DateTime.tryParse(json['updatedAt'])
-            : null,
-        isBvnVerified: json['isBvnVerified'] ?? false,
-        isNinVerified: json['isNinVerified'] ?? false,
-        isAddressVerified: json['isAddressVerified'] ?? false,
-        isWalletPinSet: json['isWalletPinSet'] ?? false,
-        isBusiness: json['isBusiness'] ?? false,
-        isBusinessRegistered: json['isBusinessRegistered'] ?? false,
-        enabledTwoFa: json['enabledTwoFa'] ?? false,
-        isPasscodeSet: json['isPasscodeSet'] ?? false,
-        tokenVersion: json['tokenVersion'] ?? 0,
-        dailyCummulativeTransactionLimit:
-            json['dailyCummulativeTransactionLimit'] ?? 0,
-        cummulativeBalanceLimit: json['cummulativeBalanceLimit'] ?? 0,
-        wallets: (json['wallet'] as List?)
-                ?.map((wallet) => WalletModel.fromJson(wallet))
-                .toList() ??
-            [],
-      );
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    log('🔍 [UserModel.fromJson] Parsing user data...');
+    log('🔍 [UserModel.fromJson] isBvnVerified: ${json['isBvnVerified']}');
+    log(
+      '🔍 [UserModel.fromJson] wallet field type: ${json['wallet']?.runtimeType}',
+    );
+    log('🔍 [UserModel.fromJson] wallet content: ${json['wallet']}');
+
+    final walletList =
+        (json['wallet'] as List?)
+            ?.map((wallet) => WalletModel.fromJson(wallet))
+            .toList() ??
+        [];
+
+    log('🔍 [UserModel.fromJson] Parsed ${walletList.length} wallet(s)');
+    if (walletList.isNotEmpty) {
+      log('💰 [UserModel.fromJson] Balance: ${walletList.first.balance}');
+      log('🔢 [UserModel.fromJson] Account: ${walletList.first.accountNumber}');
+    }
+
+    return UserModel(
+      id: json['id'],
+      email: json['email'],
+      username: json['username'],
+      fullname: json['fullname'],
+      role: json['role'] ?? 'USER',
+      status: json['status'] ?? 'ACTIVE',
+      isEmailVerified: json['isEmailVerified'] ?? false,
+      isPhoneVerified: json['isPhoneVerified'] ?? false,
+      phoneNumber: json['phoneNumber'],
+      gender: json['gender'],
+      country: json['country'],
+      businessName: json['businessName'],
+      companyRegistrationNumber: json['companyRegistrationNumber'],
+      nin: json['nin'],
+      address: json['address'],
+      state: json['state'],
+      city: json['city'],
+      selfieBase64Image: json['selfieBase64Image'],
+      accountType: json['accountType'],
+      profileImageFilename: json['profileImageFilename'],
+      profileImageUrl: json['profileImageUrl'],
+      referralCode: json['referralCode'],
+      dateOfBirth: json['dateOfBirth'],
+      currency: json['currency'],
+      tierLevel: json['tierLevel'],
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'])
+              : null,
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'])
+              : null,
+      isBvnVerified: json['isBvnVerified'] ?? false,
+      isNinVerified: json['isNinVerified'] ?? false,
+      isAddressVerified: json['isAddressVerified'] ?? false,
+      isWalletPinSet: json['isWalletPinSet'] ?? false,
+      isBusiness: json['isBusiness'] ?? false,
+      isBusinessRegistered: json['isBusinessRegistered'] ?? false,
+      enabledTwoFa: json['enabledTwoFa'] ?? false,
+      isPasscodeSet: json['isPasscodeSet'] ?? false,
+      tokenVersion: json['tokenVersion'] ?? 0,
+      dailyCummulativeTransactionLimit:
+          json['dailyCummulativeTransactionLimit'] ?? 0,
+      cummulativeBalanceLimit: json['cummulativeBalanceLimit'] ?? 0,
+      wallets: walletList,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'email': email,
-        'username': username,
-        'fullname': fullname,
-        'role': role,
-        'status': status,
-        'isEmailVerified': isEmailVerified,
-        'isPhoneVerified': isPhoneVerified,
-        'phoneNumber': phoneNumber,
-        'gender': gender,
-        'country': country,
-        'businessName': businessName,
-        'companyRegistrationNumber': companyRegistrationNumber,
-        'nin': nin,
-        'address': address,
-        'state': state,
-        'city': city,
-        'selfieBase64Image': selfieBase64Image,
-        'accountType': accountType,
-        'profileImageFilename': profileImageFilename,
-        'profileImageUrl': profileImageUrl,
-        'referralCode': referralCode,
-        'dateOfBirth': dateOfBirth,
-        'currency': currency,
-        'tierLevel': tierLevel,
-        'createdAt': createdAt?.toIso8601String(),
-        'updatedAt': updatedAt?.toIso8601String(),
-        'isBvnVerified': isBvnVerified,
-        'isNinVerified': isNinVerified,
-        'isAddressVerified': isAddressVerified,
-        'isWalletPinSet': isWalletPinSet,
-        'isBusiness': isBusiness,
-        'isBusinessRegistered': isBusinessRegistered,
-        'enabledTwoFa': enabledTwoFa,
-        'isPasscodeSet': isPasscodeSet,
-        'tokenVersion': tokenVersion,
-        'dailyCummulativeTransactionLimit': dailyCummulativeTransactionLimit,
-        'cummulativeBalanceLimit': cummulativeBalanceLimit,
-        'wallet': wallets.map((w) => w.toJson()).toList(),
-      };
+    'id': id,
+    'email': email,
+    'username': username,
+    'fullname': fullname,
+    'role': role,
+    'status': status,
+    'isEmailVerified': isEmailVerified,
+    'isPhoneVerified': isPhoneVerified,
+    'phoneNumber': phoneNumber,
+    'gender': gender,
+    'country': country,
+    'businessName': businessName,
+    'companyRegistrationNumber': companyRegistrationNumber,
+    'nin': nin,
+    'address': address,
+    'state': state,
+    'city': city,
+    'selfieBase64Image': selfieBase64Image,
+    'accountType': accountType,
+    'profileImageFilename': profileImageFilename,
+    'profileImageUrl': profileImageUrl,
+    'referralCode': referralCode,
+    'dateOfBirth': dateOfBirth,
+    'currency': currency,
+    'tierLevel': tierLevel,
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
+    'isBvnVerified': isBvnVerified,
+    'isNinVerified': isNinVerified,
+    'isAddressVerified': isAddressVerified,
+    'isWalletPinSet': isWalletPinSet,
+    'isBusiness': isBusiness,
+    'isBusinessRegistered': isBusinessRegistered,
+    'enabledTwoFa': enabledTwoFa,
+    'isPasscodeSet': isPasscodeSet,
+    'tokenVersion': tokenVersion,
+    'dailyCummulativeTransactionLimit': dailyCummulativeTransactionLimit,
+    'cummulativeBalanceLimit': cummulativeBalanceLimit,
+    'wallet': wallets.map((w) => w.toJson()).toList(),
+  };
 }

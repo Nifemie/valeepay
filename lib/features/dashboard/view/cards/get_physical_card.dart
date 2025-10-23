@@ -16,9 +16,8 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _SelectPreferenceBottomSheet(
-        currentValue: selectedPreference,
-      ),
+      builder:
+          (_) => _SelectPreferenceBottomSheet(currentValue: selectedPreference),
     );
 
     if (newSelection != null && newSelection.isNotEmpty) {
@@ -28,18 +27,14 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         title: const Text(
           "Get Physical Card",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
       ),
@@ -55,12 +50,19 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
               borderRadius: BorderRadius.circular(12),
               onTap: _openPreferenceSelector,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color:
+                      isDark
+                          ? Colors.grey.shade800
+                          : Theme.of(context).cardColor.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,13 +70,11 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
                     Text(
                       selectedPreference,
                       style: const TextStyle(
-                        color: Colors.black87,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: Colors.black54),
+                    const Icon(Icons.keyboard_arrow_down_rounded),
                   ],
                 ),
               ),
@@ -85,7 +85,7 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
             // Illustration
             Image.asset(
               'assets/images/card_branch.png', // change this to your illustration asset
-              height: 160,
+              height: 250,
               fit: BoxFit.contain,
             ),
 
@@ -94,22 +94,18 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
             // Title
             const Text(
               "Get Your ATM Card",
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
             const SizedBox(height: 10),
 
             // Subtitle
-            const Text(
+            Text(
               "Order your ValarPay ATM card today and enjoy easy withdrawals and payments anywhere.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.black54,
                 fontSize: 13,
                 height: 1.4,
+                color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
               ),
             ),
 
@@ -170,10 +166,12 @@ class _SelectPreferenceBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Theme.of(context).cardColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -184,25 +182,20 @@ class _SelectPreferenceBottomSheetState
             height: 4,
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 18, color: Colors.black87),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 4),
               const Text(
                 "Select Preference",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
             ],
           ),
@@ -219,14 +212,16 @@ class _SelectPreferenceBottomSheetState
               style: ElevatedButton.styleFrom(
                 backgroundColor: appTheme.primaryColor,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28)),
+                  borderRadius: BorderRadius.circular(28),
+                ),
               ),
               child: const Text(
                 "Continue",
                 style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),
@@ -237,6 +232,8 @@ class _SelectPreferenceBottomSheetState
 
   Widget _buildOption(String value) {
     final bool isSelected = selectedValue == value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: () => setState(() => selectedValue = value),
       borderRadius: BorderRadius.circular(8),
@@ -247,10 +244,7 @@ class _SelectPreferenceBottomSheetState
           children: [
             Text(
               value,
-              style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
             Container(
               width: 20,
@@ -258,22 +252,26 @@ class _SelectPreferenceBottomSheetState
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? appTheme.primaryColor : Colors.grey,
+                  color:
+                      isSelected
+                          ? appTheme.primaryColor
+                          : (isDark ? Colors.grey.shade600 : Colors.grey),
                   width: 1.4,
                 ),
               ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: appTheme.primaryColor,
-                          shape: BoxShape.circle,
+              child:
+                  isSelected
+                      ? Center(
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: appTheme.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
           ],
         ),

@@ -224,7 +224,8 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
   }
 
   Future<BvnInitializeResponse?> initializeBvn(
-      BvnInitializeRequest request) async {
+    BvnInitializeRequest request,
+  ) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.initializeBvn(request);
@@ -267,7 +268,8 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
   }
 
   Future<SetWalletPinResponse?> setWalletPin(
-      SetWalletPinRequest request) async {
+    SetWalletPinRequest request,
+  ) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.setWalletPin(request);
@@ -291,26 +293,31 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
   Future<UserModel?> refreshUserProfile() async {
     try {
       log('[UserNotifier] Fetching user profile...');
+      print('🔍 [UserNotifier] About to call getUserProfile...');
       final user = await _repository.getUserProfile();
+      print('🔍 [UserNotifier] getUserProfile completed successfully');
       log('[UserNotifier] User profile fetched successfully');
       log('[UserNotifier] isPasscodeSet: ${user.isPasscodeSet}');
       log('[UserNotifier] isBvnVerified: ${user.isBvnVerified}');
       log('[UserNotifier] 🏦 Wallet Count: ${user.wallets.length}');
       if (user.wallets.isNotEmpty) {
-        log('[UserNotifier] 💰 Balance: ${user.wallets.first.formattedBalance}');
-        log('[UserNotifier] 🔢 Account Number: ${user.wallets.first.accountNumber}');
+        log(
+          '[UserNotifier] 💰 Balance: ${user.wallets.first.formattedBalance}',
+        );
+        log(
+          '[UserNotifier] 🔢 Account Number: ${user.wallets.first.accountNumber}',
+        );
       } else {
         log('[UserNotifier] ⚠️ No wallet found for user!');
       }
       log('[UserNotifier] Full user data: ${user.toJson()}');
 
       // Update state with fresh user data
-      state = state.copyWith(
-        data: [user],
-        isDataAvailable: true,
-      );
+      state = state.copyWith(data: [user], isDataAvailable: true);
       return user;
     } catch (e, stack) {
+      print('❌ [UserNotifier] ERROR in refreshUserProfile: $e');
+      print('❌ [UserNotifier] Stack trace: $stack');
       log('[UserNotifier Refresh Profile Error] $e\n$stack');
       return null;
     }
@@ -341,5 +348,5 @@ final userRepositoryProvider = Provider(
 
 final userNotifierProvider =
     StateNotifierProvider<UserNotifier, DataState<UserModel>>(
-  (ref) => UserNotifier(ref.read(userRepositoryProvider)),
-);
+      (ref) => UserNotifier(ref.read(userRepositoryProvider)),
+    );

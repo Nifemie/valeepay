@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 // State providers
-final balanceProvider = StateProvider<String>((ref) => '₦7,500.00');
-final rewardsProvider = StateProvider<String>((ref) => '₦7,500');
 final isBalanceVisibleProvider = StateProvider<bool>((ref) => true);
 
 // Finance items model
@@ -14,41 +14,47 @@ class FinanceItem {
   FinanceItem({required this.name, required this.amount});
 }
 
-final financeItemsProvider = StateProvider<List<FinanceItem>>((ref) => [
-  FinanceItem(name: 'Fixed Savings', amount: '₦200,000'),
-  FinanceItem(name: 'Target Savings', amount: '₦500,000'),
-  FinanceItem(name: 'Easylife', amount: '₦500,000'),
-  FinanceItem(name: 'Fixed Deposit', amount: '₦500,000'),
-]);
+final financeItemsProvider = StateProvider<List<FinanceItem>>(
+  (ref) => [
+    FinanceItem(name: 'Fixed Savings', amount: '₦200,000'),
+    FinanceItem(name: 'Target Savings', amount: '₦500,000'),
+    FinanceItem(name: 'Easylife', amount: '₦500,000'),
+    FinanceItem(name: 'Fixed Deposit', amount: '₦500,000'),
+  ],
+);
 
-final investItemsProvider = StateProvider<List<FinanceItem>>((ref) => [
-  FinanceItem(name: 'Investment', amount: '₦200,000'),
-]);
+final investItemsProvider = StateProvider<List<FinanceItem>>(
+  (ref) => [FinanceItem(name: 'Investment', amount: '₦200,000')],
+);
 
 class MyPortfolioPage extends ConsumerWidget {
   const MyPortfolioPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final balance = ref.watch(balanceProvider);
-    final rewards = ref.watch(rewardsProvider);
+    final user = ref.watch(userProvider);
     final isBalanceVisible = ref.watch(isBalanceVisibleProvider);
     final financeItems = ref.watch(financeItemsProvider);
     final investItems = ref.watch(investItemsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Get real wallet balance
+    final hasWallet = user?.wallets.isNotEmpty ?? false;
+    final wallet = hasWallet ? user!.wallets.first : null;
+    final balance = wallet?.balance ?? 0.0;
+    final balanceText = currencyFormatter(balance.toString());
+    final rewards = '₦7,500'; // TODO: Replace with real rewards when available
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'My Portfolio',
           style: TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -69,38 +75,41 @@ class MyPortfolioPage extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'Your Balance',
                         style: TextStyle(
-                          color: Color(0xFF6B7280),
                           fontFamily: 'SF Pro',
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
                           height: 1.33,
                           letterSpacing: 0.06,
+                          color: isDark ? Colors.grey.shade400 : null,
                         ),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
                           ref.read(isBalanceVisibleProvider.notifier).state =
-                          !isBalanceVisible;
+                              !isBalanceVisible;
                         },
                         child: Icon(
                           isBalanceVisible
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
                           size: 16,
-                          color: const Color(0xFF6B7280),
+                          color:
+                              isDark
+                                  ? Colors.grey.shade400
+                                  : const Color(0xFF6B7280),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isBalanceVisible ? balance : '₦****',
-                    style: const TextStyle(
-                      color: Color(0xFF111827),
+                    isBalanceVisible ? balanceText : '₦****',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF111827),
                       fontFamily: 'SF Pro',
                       fontSize: 32,
                       fontWeight: FontWeight.w600,
@@ -183,44 +192,53 @@ class MyPortfolioPage extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               // Finance Section
-              _buildSectionTitle('Finance'),
+              _buildSectionTitle('Finance', isDark),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color:
+                      isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
-                  children: financeItems.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    final isLast = index == financeItems.length - 1;
-                    return Column(
-                      children: [
-                        _buildListItem(item),
-                        if (!isLast)
-                          Container(
-                            height: 2,
-                            color: const Color(0xFFF1F4FB),
-                          ),
-                      ],
-                    );
-                  }).toList(),
+                  children:
+                      financeItems.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        final isLast = index == financeItems.length - 1;
+                        return Column(
+                          children: [
+                            _buildListItem(item, isDark),
+                            if (!isLast)
+                              Container(
+                                height: 2,
+                                color:
+                                    isDark
+                                        ? Colors.grey.shade700
+                                        : const Color(0xFFF1F4FB),
+                              ),
+                          ],
+                        );
+                      }).toList(),
                 ),
               ),
               const SizedBox(height: 32),
               // Invest Section
-              _buildSectionTitle('Invest'),
+              _buildSectionTitle('Invest', isDark),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color:
+                      isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
-                  children: investItems.map((item) => _buildListItem(item)).toList(),
+                  children:
+                      investItems
+                          .map((item) => _buildListItem(item, isDark))
+                          .toList(),
                 ),
               ),
             ],
@@ -230,23 +248,23 @@ class MyPortfolioPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, bool isDark) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
         title,
-        style: const TextStyle(
-          color: Color(0xFF111827),
+        style: TextStyle(
           fontFamily: 'SF Pro',
           fontSize: 16,
           fontWeight: FontWeight.w600,
           height: 1.5,
+          color: isDark ? Colors.white : null,
         ),
       ),
     );
   }
 
-  Widget _buildListItem(FinanceItem item) {
+  Widget _buildListItem(FinanceItem item, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -254,8 +272,8 @@ class MyPortfolioPage extends ConsumerWidget {
         children: [
           Text(
             item.name,
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
+            style: TextStyle(
+              color: isDark ? Colors.grey.shade400 : const Color(0xFF9CA3AF),
               fontFamily: 'SF Pro',
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -265,13 +283,13 @@ class MyPortfolioPage extends ConsumerWidget {
           ),
           Text(
             item.amount,
-            style: const TextStyle(
-              color: Color(0xFF111827),
+            style: TextStyle(
               fontFamily: 'SF Pro',
               fontSize: 14,
               fontWeight: FontWeight.w400,
               height: 1.43,
               letterSpacing: 0.035,
+              color: isDark ? Colors.white : null,
             ),
           ),
         ],

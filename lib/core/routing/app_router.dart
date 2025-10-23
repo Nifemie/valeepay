@@ -39,11 +39,8 @@ import 'package:valarpay/features/dashboard/view/home/notifications/notification
 import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/select_bank_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_amount_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transaction_details_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_success_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
@@ -79,15 +76,18 @@ import '../../features/dashboard/view/settings/notification_settings_screen.dart
 import '../../features/dashboard/view/settings/finance_settings_screen.dart';
 import '../../features/dashboard/view/settings/change_pin_screen.dart';
 import '../../features/dashboard/view/settings/auto_logout_settings_screen.dart';
+import '../../features/dashboard/view/profile/profile.dart';
+import '../../features/dashboard/view/profile/personal_details_screen.dart'
+    as profile;
+import '../../features/dashboard/view/profile/contact_details_screen.dart';
+import '../../features/dashboard/view/profile/address_screen.dart';
+import '../../features/dashboard/view/profile/change_phone_number.dart';
 
 final router = GoRouter(
   initialLocation: '/splash', // Always show splash screen
 
   routes: [
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => SplashScreen(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => SplashScreen()),
     GoRoute(path: '/intro', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(
@@ -148,8 +148,8 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/signin',
-      pageBuilder: (context, state) =>
-          const NoTransitionPage(child: SignInScreen()),
+      pageBuilder:
+          (context, state) => const NoTransitionPage(child: SignInScreen()),
     ),
     GoRoute(
       path: '/biometric-login',
@@ -182,10 +182,7 @@ final router = GoRouter(
     ShellRoute(
       builder: (context, state, child) => DashboardWrapper(child: child),
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const Homescreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const Homescreen()),
         GoRoute(
           path: '/finance',
           builder: (context, state) => const SavingsComingSoonScreen(),
@@ -202,10 +199,7 @@ final router = GoRouter(
           path: '/get-phisical-card',
           builder: (context, state) => const GetPhysicalCardScreen(),
         ),
-        GoRoute(
-          path: '/me',
-          builder: (context, state) => const MeScreen(),
-        ),
+        GoRoute(path: '/me', builder: (context, state) => const MeScreen()),
       ],
     ),
 
@@ -226,10 +220,7 @@ final router = GoRouter(
       path: '/customer-service',
       builder: (context, state) => const CustomerServiceScreen(),
     ),
-    GoRoute(
-      path: '/faq',
-      builder: (context, state) => const FAQScreen(),
-    ),
+    GoRoute(path: '/faq', builder: (context, state) => const FAQScreen()),
     GoRoute(
       path: '/visit-office',
       builder: (context, state) => const VisitOfficeScreen(),
@@ -279,18 +270,36 @@ final router = GoRouter(
       builder: (context, state) => const MyRewardsPage(),
     ),
     GoRoute(
-      path: 'My Portfolio',
+      path: '/my-portfolio',
       builder: (context, state) => const MyPortfolioPage(),
+    ),
+    // Profile routes
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/personal-details-view',
+      builder: (context, state) => const profile.PersonalDetailsScreen(),
+    ),
+    GoRoute(
+      path: '/contact-details-view',
+      builder: (context, state) => const ContactDetailsScreen(),
+    ),
+    GoRoute(
+      path: '/address-view',
+      builder: (context, state) => const AddressScreen(),
+    ),
+    GoRoute(
+      path: '/change-phone-number',
+      builder: (context, state) => const ChangeMobileNumberScreen(),
     ),
     // Services routes
     GoRoute(
       path: '/airtime',
       builder: (context, state) => const AirtimeScreen(),
     ),
-    GoRoute(
-      path: '/data',
-      builder: (context, state) => const DataScreen(),
-    ),
+    GoRoute(path: '/data', builder: (context, state) => const DataScreen()),
     GoRoute(
       path: '/schedule-topup',
       builder: (context, state) => const ScheduleTopupScreen(),
@@ -313,16 +322,14 @@ final router = GoRouter(
       path: '/account-statement',
       builder: (context, state) => const AccountStatementPage(),
     ),
-    GoRoute(
-      path: '/themes',
-      builder: (context, state) => const ThemesPage(),
-    ),
+    GoRoute(path: '/themes', builder: (context, state) => const ThemesPage()),
 
     // Notification routes
     GoRoute(
       path: '/notification-view',
       builder: (context, state) {
-        final Map<String, String> data = state.extra as Map<String, String>? ??
+        final Map<String, String> data =
+            state.extra as Map<String, String>? ??
             {'title': 'Notification', 'content': 'No content'};
         return NotificationViewScreen(
           title: data['title']!,
@@ -335,7 +342,8 @@ final router = GoRouter(
     GoRoute(
       path: '/faq-detail',
       builder: (context, state) {
-        final Map<String, String> data = state.extra as Map<String, String>? ??
+        final Map<String, String> data =
+            state.extra as Map<String, String>? ??
             {'question': 'FAQ', 'answer': 'No answer available'};
         return FAQDetailScreen(
           question: data['question']!,
@@ -376,24 +384,8 @@ final router = GoRouter(
       builder: (context, state) => const TransferToValarPayScreen(),
     ),
     GoRoute(
-      path: '/transfer-amount',
-      builder: (context, state) => const TransferAmountScreen(),
-    ),
-    GoRoute(
-      path: '/transaction-details',
-      builder: (context, state) => const TransactionDetailsScreen(),
-    ),
-    GoRoute(
-      path: '/transfer-success',
-      builder: (context, state) => const TransferSuccessScreen(),
-    ),
-    GoRoute(
       path: '/transfer-to-bank',
       builder: (context, state) => const TransferToBankScreen(),
-    ),
-    GoRoute(
-      path: '/select-bank',
-      builder: (context, state) => const SelectBankScreen(),
     ),
     GoRoute(
       path: '/withdraw',

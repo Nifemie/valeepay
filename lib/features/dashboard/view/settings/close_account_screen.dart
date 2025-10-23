@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 
 class CloseAccountScreen extends StatefulWidget {
   const CloseAccountScreen({super.key});
@@ -72,9 +74,7 @@ class _CloseAccountScreenState extends State<CloseAccountScreen> {
       case 2:
         return 'Help Us Improve';
       case 3:
-        return 'Help Us Improve';
-      case 4:
-        return 'Help Us Improve';
+        return '';
       default:
         return 'Close Account';
     }
@@ -87,8 +87,6 @@ class _CloseAccountScreenState extends State<CloseAccountScreen> {
       case 2:
         return _buildHelpUsImproveStep();
       case 3:
-        return _buildPinEntryStep();
-      case 4:
         return _buildSuccessStep();
       default:
         return _buildWarningStep();
@@ -254,99 +252,20 @@ class _CloseAccountScreenState extends State<CloseAccountScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: selectedReason != null
-                  ? () {
-                      setState(() {
-                        currentStep = 3;
-                      });
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: selectedReason != null
-                    ? appTheme.primaryColor
-                    : Colors.grey,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Continue',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
+          FullWidthButton(
+              text: 'Continue',
+              isEnabled: selectedReason != null,
+              onPressed: () async {
+                final pin = await TransactionPinModal.show(context);
+                if (pin == null || pin.length != 4) return;
+                if (!mounted) return;
+
+                Navigator.pop(context);
+                setState(() {
+                  currentStep = 3;
+                });
+              }),
           const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPinEntryStep() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        children: [
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(pinLength, (index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    index < pin.length ? '•' : '',
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 48),
-          Flexible(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                double buttonSize = (constraints.maxWidth - 60) / 3;
-                buttonSize = buttonSize > 80 ? 80 : buttonSize;
-
-                return Container(
-                  constraints: BoxConstraints(
-                    maxHeight: buttonSize * 4 + 30,
-                  ),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 1.0,
-                    children: [
-                      ...List.generate(9, (index) {
-                        return _buildNumberButton('${index + 1}', buttonSize);
-                      }),
-                      const SizedBox.shrink(),
-                      _buildNumberButton('0', buttonSize),
-                      _buildNumberButton('⌫', buttonSize, isDelete: true),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 32),
         ],
       ),
     );

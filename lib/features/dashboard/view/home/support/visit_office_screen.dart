@@ -52,9 +52,9 @@ class VisitOfficeScreen extends StatelessWidget {
 
             Text(
               'Visit Our Office Branch',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
 
@@ -63,9 +63,9 @@ class VisitOfficeScreen extends StatelessWidget {
             Text(
               'Get in-person help for your account and financial services when you visit',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                    height: 1.5,
-                  ),
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
               textAlign: TextAlign.center,
             ),
 
@@ -88,10 +88,7 @@ class VisitOfficeScreen extends StatelessWidget {
                 ),
                 child: const Text(
                   'Locate Nearest Branch',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -148,8 +145,8 @@ class BranchLocationsBottomSheet extends StatelessWidget {
                 Text(
                   'Branch Locations',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -166,10 +163,11 @@ class BranchLocationsBottomSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 BranchTile(
-                  name: 'ValarPay Lagos Branch',
-                  address: '123 Victoria Island, Lagos State',
+                  name: 'Head Office - Onitsha',
+                  address:
+                      'C3&C4 Suite 2nd Floor Ejison Plaza, 9a New Market Road, Main Market, Onitsha, Anambra State',
                   hours: 'Mon - Fri: 9:00 AM - 5:00 PM',
-                  phone: '+234 801 234 5678',
+                  phone: '+234 823 414 6906',
                   onDirections: () {
                     // Open maps
                   },
@@ -178,22 +176,11 @@ class BranchLocationsBottomSheet extends StatelessWidget {
                   },
                 ),
                 BranchTile(
-                  name: 'ValarPay Abuja Branch',
-                  address: '456 Central Business District, Abuja',
+                  name: 'UK Branch Office - Sheffield',
+                  address:
+                      'Unit F, Winston Business Park, Churchill Way #34369, Sheffield, South Yorkshire, S35 2PS, United Kingdom',
                   hours: 'Mon - Fri: 9:00 AM - 5:00 PM',
-                  phone: '+234 802 345 6789',
-                  onDirections: () {
-                    // Open maps
-                  },
-                  onCall: () {
-                    // Make phone call
-                  },
-                ),
-                BranchTile(
-                  name: 'ValarPay Port Harcourt Branch',
-                  address: '789 GRA Phase 1, Port Harcourt',
-                  hours: 'Mon - Fri: 9:00 AM - 5:00 PM',
-                  phone: '+234 803 456 7890',
+                  phone: '+44 744 142 8182',
                   onDirections: () {
                     // Open maps
                   },
@@ -236,18 +223,16 @@ class BranchTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             name,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Row(
@@ -257,9 +242,9 @@ class BranchTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   address,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
               ),
             ],
@@ -271,9 +256,9 @@ class BranchTile extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 hours,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
               ),
             ],
           ),
@@ -284,9 +269,9 @@ class BranchTile extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 phone,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
               ),
             ],
           ),

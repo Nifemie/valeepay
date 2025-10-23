@@ -1,43 +1,136 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/models/transfer_models.dart';
+import 'package:valarpay/features/notifiers/transfer_notifier.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/select_bank_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_amount_screen.dart';
 
-class TransferToBankScreen extends StatefulWidget {
+class TransferToBankScreen extends ConsumerStatefulWidget {
   const TransferToBankScreen({super.key});
 
   @override
-  State<TransferToBankScreen> createState() => _TransferToBankScreenState();
+  ConsumerState<TransferToBankScreen> createState() =>
+      _TransferToBankScreenState();
 }
 
-class _TransferToBankScreenState extends State<TransferToBankScreen> {
+class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
   final TextEditingController accountController = TextEditingController();
-  String selectedBank = "First Bank";
-  String selectedBeneficiary = "Emmy John Smith";
-  bool isRecentTab = true;
+  Bank? selectedBank;
+  AccountDetails? verifiedAccount;
+  bool isVerifying = false;
 
-  final List<Map<String, String>> recentBeneficiaries = [
-    {
-      "name": "John Smith",
-      "account": "0000000000",
-      "bank": "Fidelity Bank",
-      "logo": "assets/images/bank.png",
-    },
-    {
-      "name": "John Smith",
-      "account": "0000000000",
-      "bank": "Keystone Bank",
-      "logo": "assets/images/bank.png",
-    },
-    {
-      "name": "John Smith",
-      "account": "0000000000",
-      "bank": "Parallax Bank",
-      "logo": "assets/images/bank.png",
-    },
-  ];
+  
+  @override
+  void initState() {
+    super.initState();
+    accountController.addListener(_onAccountNumberChanged);
+  }
+
+  @override
+  void dispose() {
+    accountController.dispose();
+    super.dispose();
+  }
+
+  void _onAccountNumberChanged() {
+    if (accountController.text.length == 10 && selectedBank != null) {
+      _verifyAccount();
+    } else {
+      setState(() {
+        verifiedAccount = null;
+      });
+    }
+  }
+
+  void _verifyAccount() async {
+    if (selectedBank == null || accountController.text.length != 10) return;
+
+    setState(() {
+      isVerifying = true;
+      verifiedAccount = null;
+    });
+
+    try {
+      await ref
+          .read(accountVerificationNotifierProvider.notifier)
+          .verifyAccount(
+            accountNumber: accountController.text,
+            bankCode: selectedBank!.bankCode,
+          );
+    } catch (e) {
+      // Error handling is done in the listener
+    } finally {
+      setState(() {
+        isVerifying = false;
+      });
+    }
+  }
+
+  void _selectBank() async {
+    final result = await Navigator.push<Bank>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SelectBankScreen(),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedBank = result;
+        verifiedAccount = null;
+      });
+      if (accountController.text.length == 10) {
+        _verifyAccount();
+      }
+    }
+  }
+
+  Future<void> pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData != null && clipboardData.text != null) {
+      setState(() {
+        accountController.text = clipboardData.text!;
+      });
+      AppMessenger.show(context,
+          type: MessageType.success, message: 'ValarPay pasted from clipboard');
+    } else {
+      AppMessenger.show(context,
+          type: MessageType.error, message: 'Clipboard is empty');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final accountVerificationState =
+        ref.watch(accountVerificationNotifierProvider);
+
+    // Listen to account verification state
+    ref.listen(accountVerificationNotifierProvider, (previous, next) {
+      if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
+        setState(() {
+          verifiedAccount = next.data!.first;
+        });
+      } else if (next.isDataAvailable &&
+          (next.data == null || next.data!.isEmpty)) {
+        // API returned success but no data - account verification failed
+        setState(() {
+          verifiedAccount = null;
+        });
+      } else if (next.message != null && !next.isDataAvailable) {
+        AppMessenger.show(context,
+            message: next.message!, type: MessageType.error);
+        setState(() {
+          verifiedAccount = null;
+        });
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -66,19 +159,40 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: accountController,
+              onChanged: (value) {
+                if (value.isEmpty) {}
+              },
               keyboardType: TextInputType.number,
               maxLength: 10,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                hintText: "Account number of beneficiary",
+                hintText: 'Enter ValarPay account name/number',
+                hintStyle: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                ),
+                suffixIcon: accountController.text.isEmpty
+                    ? IconButton(
+                        onPressed: () {
+                          pasteFromClipboard();
+                        },
+                        icon: Icon(
+                          Icons.content_paste,
+                          color: Colors.grey[500],
+                        ))
+                    : null,
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).cardColor.withValues(alpha: 0.5),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 14.w,
+                  vertical: 14.h,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(10.r),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
 
             // Select Bank
@@ -89,203 +203,130 @@ class _TransferToBankScreenState extends State<TransferToBankScreen> {
             const SizedBox(height: 8),
 
             GestureDetector(
-                onTap: () => context.push('/select-bank'),
+                onTap: _selectBank,
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Theme.of(context).cardColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 16,
-                        backgroundColor: Colors.black,
-                        child: Icon(Icons.apple, color: Colors.white, size: 18),
+                        backgroundColor: selectedBank != null
+                            ? appTheme.primaryColor.withValues(alpha: 0.1)
+                            : Colors.black,
+                        child: selectedBank != null
+                            ? Text(
+                                selectedBank!.name
+                                    .substring(0, 1)
+                                    .toUpperCase(),
+                                style: TextStyle(
+                                  color: appTheme.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              )
+                            : const Icon(Icons.account_balance,
+                                color: Colors.white, size: 18),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          selectedBank,
-                          style: const TextStyle(
+                          selectedBank?.name ?? "Select Bank",
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: Colors.black54),
+                      const Icon(Icons.chevron_right),
                     ],
                   ),
                 )),
 
             const SizedBox(height: 20),
 
-            // Selected Beneficiary
-            Row(
-              children: [
-                Icon(Icons.check_circle, color: appTheme.primaryColor),
-                const SizedBox(width: 8),
-                Text(
-                  selectedBeneficiary,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: appTheme.primaryColor,
+            // Account Verification Status
+            if (isVerifying)
+              Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(appTheme.primaryColor),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Verifying account...",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
+              )
+            else if (verifiedAccount != null)
+              Row(
+                children: [
+                  Icon(Icons.check_circle, color: appTheme.primaryColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      verifiedAccount!.accountName,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: appTheme.primaryColor),
+                    ),
+                  ),
+                ],
+              )
+            else if (accountController.text.length == 10 &&
+                    selectedBank != null ||
+                accountVerificationState.data == null)
+              Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Account verification failed",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 20),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-                onPressed: () {},
-                child: const Text(
-                  "Continue",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Tabs (Recent & Saved)
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () => setState(() => isRecentTab = true),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Recent",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isRecentTab ? appTheme.primaryColor : null,
-                        ),
-                      ),
-                      if (isRecentTab)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 3,
-                          width: 40,
-                          color: appTheme.primaryColor,
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () => setState(() => isRecentTab = false),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Saved Beneficiary",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: !isRecentTab ? appTheme.primaryColor : null,
-                        ),
-                      ),
-                      if (!isRecentTab)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 3,
-                          width: 40,
-                          color: appTheme.primaryColor,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Search Field
-            TextField(
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.black54),
-                hintText: "Search",
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Beneficiaries List
-            Expanded(
-              child: ListView.builder(
-                itemCount: recentBeneficiaries.length,
-                itemBuilder: (context, index) {
-                  final b = recentBeneficiaries[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundImage: AssetImage(b["logo"]!),
-                          radius: 18,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                b["name"]!,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "${b["account"]}   ${b["bank"]}",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
+            FullWidthButton(
+              text: 'Continue', 
+              onPressed: () {
+                  Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransferAmountScreen(
+                              selectedBank: selectedBank!,
+                              accountDetails: verifiedAccount!,
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.bookmark_add_outlined,
-                            size: 20,
-                            color: Colors.black54,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+                        );
+              }, 
+              isEnabled:  verifiedAccount != null && selectedBank != null),
+             const SizedBox(height: 24),
+
+           ],
         ),
       ),
     );

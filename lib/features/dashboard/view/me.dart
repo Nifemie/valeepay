@@ -12,80 +12,46 @@ import '../widgets/me_widgets/security_widget.dart';
 class MeScreen extends ConsumerWidget {
   const MeScreen({Key? key}) : super(key: key);
 
-  /// Pull-to-refresh handler
-  Future<void> _refreshData(WidgetRef ref, BuildContext context) async {
-    try {
-      print('🔄 [Me Screen] Refreshing user profile...');
-
-      // Refresh user profile from backend
-      final updatedUser =
-          await ref.read(userNotifierProvider.notifier).refreshUserProfile();
-
-      // Update user provider with fresh data
-      if (updatedUser != null) {
-        ref.read(userProvider.notifier).setUser(updatedUser);
-        print('✅ [Me Screen] Profile refreshed successfully');
-        print(
-            '💰 [Me Screen] Updated balance: ${updatedUser.wallets.isNotEmpty ? updatedUser.wallets.first.formattedBalance : "No wallet"}');
-      }
-    } catch (e) {
-      print('❌ [Me Screen] Refresh failed: $e');
-      // Handle errors silently or show a snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to refresh data'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         toolbarHeight: 0, // keep it hidden
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: theme.brightness == Brightness.dark
-              ? Brightness.light
-              : Brightness.dark,
+          statusBarIconBrightness:
+              theme.brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
         ),
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => _refreshData(ref, context),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              children: [
-                // Profile Header Card
-                ProfileHeaderCard(
-                  onSecurityTipsTap: () {
-                    debugPrint('Security Tips tapped');
-                  },
-                  onRewardsTap: () {
-                    context.push('/my-rewards');
-                  },
-                ),
-                const SizedBox(height: 16),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            children: [
+              // Profile Header Card
+              ProfileHeaderCard(
+                onSecurityTipsTap: () {
+                  context.push('/coming-soon', extra: 'Security Tips');
+                },
+                onRewardsTap: () {
+                  context.push('/my-rewards');
+                },
+              ),
+              const SizedBox(height: 16),
 
-                // Account Menu Widget
-                const AccountMenuWidget(),
-                const SizedBox(height: 16),
+              // Account Menu Widget
+              const AccountMenuWidget(),
+              const SizedBox(height: 16),
 
-                // Security Menu Widget
-                const SecurityMenuWidget(),
-              ],
-            ),
+              // Security Menu Widget
+              const SecurityMenuWidget(),
+            ],
           ),
         ),
       ),
