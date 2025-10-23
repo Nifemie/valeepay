@@ -19,7 +19,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
   int step = 1; // 1: current pin, 2: new pin, 3: confirm pin
   final int pinLength = 4;
     String _passcode = '';
-  final int _pinLength = 6;
+  final int _pinLength = 4;
   bool _isProcessing = false;
 
   @override
@@ -28,7 +28,6 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(_getTitle()),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -55,7 +54,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_pinLength, (index) {
                 return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
@@ -83,7 +82,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
             const SizedBox(height: 16),
             TextButton(
               onPressed: () => context.go('/forgot-password'),
-              child: const Text(
+              child: Text(
                 'Forgot Passcode?',
                 style: TextStyle(
                   color: appTheme.primaryColor,

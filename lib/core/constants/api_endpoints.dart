@@ -39,6 +39,8 @@ class ApiEndpoints {
 
   // Support endpoints
   static const String reportScam = '/api/v1/user/report-scam';
+  static const String changePasscode = '/api/v1/user/change-passcode';
+  static const String changePassword = '/api/v1/user/change-password';
 
   // Bill payment endpoints
   static const String getAirtimeNetworkProviders =

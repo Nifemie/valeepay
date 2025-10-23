@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qr_code_tools/qr_code_tools.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/generate_qr_screen.dart';
 import 'package:valarpay/features/notifiers/decode_qr_notifier.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/decode_qr_result.dart';
@@ -53,16 +54,30 @@ class _DecodeQrCodeScreenState extends ConsumerState<DecodeQrCodeScreen> {
     setState(() => _isProcessing = true);
     try {
       if (qrString != null && qrString.isNotEmpty) {
-        // If scanner provides raw QR string, try sending it directly.
+        // If scanner provides raw QR string, send it directly
         await ref
             .read(decodeQrNotifierProvider.notifier)
-            .decodeFromBase64(qrString);
+            .decodeFromRawString(qrString);
       } else if (file != null) {
-        final bytes = await file.readAsBytes();
-        final base64Data = base64Encode(bytes);
-        await ref
-            .read(decodeQrNotifierProvider.notifier)
-            .decodeFromBase64(base64Data);
+        // If uploading an image file, decode QR code locally first
+        try {
+          final qrCode = await QrCodeToolsPlugin.decodeFrom(file.path);
+          if (qrCode != null && qrCode.isNotEmpty) {
+            // Send the decoded QR string to the API
+            await ref
+                .read(decodeQrNotifierProvider.notifier)
+                .decodeFromRawString(qrCode);
+          } else {
+            throw Exception('No QR code found in the image');
+          }
+        } catch (e) {
+          // If local decoding fails, fallback to sending base64 to backend
+          final bytes = await file.readAsBytes();
+          final base64Data = base64Encode(bytes);
+          await ref
+              .read(decodeQrNotifierProvider.notifier)
+              .decodeFromBase64(base64Data);
+        }
       }
 
       final state = ref.read(decodeQrNotifierProvider);

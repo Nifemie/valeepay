@@ -34,11 +34,10 @@ class ApiClient {
             final data = response.data;
 
             // Skip validation for endpoints that return data directly (not wrapped in 'data' field)
-            final skipValidation =
-                response.requestOptions.path.contains('/me') ||
-                    response.requestOptions.path.contains('/transaction');
+            final procedWithValidation =
+                response.requestOptions.path.contains('/verify-account');
 
-            if (!skipValidation) {
+            if (procedWithValidation) {
               if (data is Map &&
                   (data['data'] == null || data['data'].toString() == '{}')) {
                 // Throw a Dio error so it can be caught as an API failure

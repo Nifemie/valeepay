@@ -22,4 +22,17 @@ class LocalStorageService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
+
+  /// Save a boolean value
+  static Future<void> saveBool(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
+  /// Read a boolean value. Returns null if key not present.
+  static Future<bool?> getBool(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey(key)) return null;
+    return prefs.getBool(key);
+  }
 }

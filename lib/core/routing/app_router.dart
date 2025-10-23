@@ -9,6 +9,8 @@ import 'package:valarpay/features/dashboard/view/services/education/education.da
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
+import 'package:valarpay/features/dashboard/view/settings/change_passcode_screen.dart';
+import 'package:valarpay/features/dashboard/view/settings/change_password_screen.dart';
 import 'package:valarpay/features/dashboard/view/settings/create_passcode.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
 import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
@@ -41,7 +43,6 @@ import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/report_scam_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/decode_qr_code.dart';
-import 'package:valarpay/features/dashboard/view/home/QRCode/generate_qr_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
@@ -230,10 +231,6 @@ final router = GoRouter(
       path: '/decode-qrcode',
       builder: (context, state) => const DecodeQrCodeScreen(),
     ),
-    GoRoute(
-      path: '/generate-qrcode',
-      builder: (context, state) => const GenerateQrScreen(),
-    ),
     GoRoute(path: '/faq', builder: (context, state) => const FAQScreen()),
     GoRoute(
       path: '/visit-office',
@@ -272,12 +269,20 @@ final router = GoRouter(
       builder: (context, state) => const ChangePinScreen(),
     ),
     GoRoute(
+      path: '/change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
       path: '/auto-logout-settings',
       builder: (context, state) => const AutoLogoutSettingsScreen(),
     ),
     GoRoute(
       path: '/create-passcode',
       builder: (context, state) => const CreatePasscodeScreen(),
+    ),
+    GoRoute(
+      path: '/change-passcode',
+      builder: (context, state) => const ChangePassCodeScreen(),
     ),
     GoRoute(
       path: '/my-rewards',

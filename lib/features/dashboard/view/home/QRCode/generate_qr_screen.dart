@@ -25,7 +25,6 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _amountController.addListener(() {
       final text = _amountController.text.replaceAll(',', '');
@@ -115,9 +114,9 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    SizedBox(height: 24),
                     const Text('Enter amount to generate a payment QR code',
                         style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 12),
@@ -130,11 +129,7 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    FullWidthButton(
-                        isEnabled: _amountController.text.isNotEmpty,
-                        isLoading: isLoading,
-                        text: 'Generate',
-                        onPressed: _onGenerate),
+                    Spacer(),
                     const SizedBox(height: 24),
                     if (_generatedDataUri != null) ...[
                       Center(
@@ -164,6 +159,12 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
                       Text(state.message!,
                           style: const TextStyle(color: Colors.red)),
                     ],
+                    FullWidthButton(
+                        isEnabled: _amountController.text.isNotEmpty,
+                        isLoading: isLoading,
+                        text: 'Generate',
+                        onPressed: _onGenerate),
+                    SizedBox(height: 24)
                   ],
                 ),
               ),

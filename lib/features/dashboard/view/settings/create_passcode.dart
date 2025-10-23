@@ -236,7 +236,7 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
                   ),
                 ),
               ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 50),
           ],
         ),
       ),
@@ -303,11 +303,11 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
       onTap: _onDeletePressed,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).cardColor.withOpacity(0.5),
           shape: BoxShape.circle,
         ),
         child: const Center(
-          child: Icon(Icons.backspace_outlined, size: 24, color: Colors.grey),
+          child: Icon(Icons.backspace_outlined, size: 24),
         ),
       ),
     );
