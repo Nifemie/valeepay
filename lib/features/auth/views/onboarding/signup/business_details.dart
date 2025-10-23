@@ -6,15 +6,11 @@ import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/models/signup_request.dart';
-import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class BusinessDetailsScreen extends ConsumerStatefulWidget {
   final SignUpRequest request;
-  const BusinessDetailsScreen({
-    required this.request,
-    super.key,
-  });
+  const BusinessDetailsScreen({required this.request, super.key});
 
   @override
   ConsumerState<BusinessDetailsScreen> createState() =>
@@ -34,16 +30,19 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
   Future<void> _checkUserAvailablity() async {
     try {
       if (_formKey.currentState!.validate()) {
-        await ref.read(userNotifierProvider.notifier).checkUserExistance(
-            UserAvailabilityRequest(username: widget.request.username));
-        final userState = ref.read(userNotifierProvider);
-        if (!userState.isDataAvailable && mounted) {
-          AppMessenger.show(
-            context,
-            type: MessageType.success,
-            message: userState.message ?? ' User already exist',
-          );
-        } else {
+        // await ref
+        //     .read(userNotifierProvider.notifier)
+        //     .checkUserExistance(
+        //       UserAvailabilityRequest(username: _usernameController.text),
+        //     );
+        // final userState = ref.read(userNotifierProvider);
+        // if (!userState.isDataAvailable && mounted) {
+        //   AppMessenger.show(
+        //     context,
+        //     type: MessageType.success,
+        //     message: userState.message ?? ' User already exist',
+        //   );
+        // } else {
           final updatedRequest = widget.request.copyWith(
             fullname: _businessNameController.text,
             username: _usernameController.text,
@@ -51,7 +50,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
             referralCode: _referralController.text,
           );
           context.push('/security-details', extra: updatedRequest);
-        }
+        // }
       }
     } catch (e) {
       AppMessenger.show(
@@ -67,136 +66,140 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
     final userState = ref.watch(userNotifierProvider);
 
     return Scaffold(
+      backgroundColor: appTheme.whiteColor,
+      appBar: AppBar(
         backgroundColor: appTheme.whiteColor,
-        appBar: AppBar(
-          backgroundColor: appTheme.whiteColor,
-          elevation: 0,
-          leading: IconButton(
-            onPressed: () => GoRouter.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
-          ),
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => GoRouter.of(context).pop(),
+          icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
         ),
-        body: SafeArea(
-            child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Expanded(
-                  child: SingleChildScrollView(
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Business Details',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Your company information for account creation',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-
-                          // Business Name
-                          _buildTextField(
-                            controller: _businessNameController,
-                            label: 'Business Name',
-                            hint: 'Enter your business name',
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Username
-                          _buildTextField(
-                            controller: _usernameController,
-                            label: 'Username',
-                            hint: 'Enter username',
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Date Of Birth
-                          _buildDateField(
-                            controller: _dateOfBirthController,
-                            label: 'Establishment Date',
-                            hint: 'DD-MM-YYYY',
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Is Your Business Registered?
-                          const Text(
-                            'Is your Business Registered?',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Radio<bool>(
-                                value: true,
-                                groupValue: _isRegistered,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isRegistered = value!;
-                                  });
-                                },
-                                activeColor: appTheme.primaryColor,
-                              ),
-                              const Text('Yes'),
-                              const SizedBox(width: 24),
-                              Radio<bool>(
-                                value: false,
-                                groupValue: _isRegistered,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isRegistered = value!;
-                                  });
-                                },
-                                activeColor: appTheme.primaryColor,
-                              ),
-                              const Text('No'),
-                            ],
-                          ),
-
-                          if (_isRegistered) ...[
-                            const SizedBox(height: 16),
-                            _buildTextField(
-                              controller: _registrationNumberController,
-                              label: 'Business Registration Number',
-                              hint: 'Enter registration number',
-                              obscureText: true,
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          // Referral Code
-                          _buildTextField(
-                            controller: _referralController,
-                            label: 'Referral Code (Optional)',
-                            hint: 'Enter referral code',
-                            isRequired: false,
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Bottom button and terms
-                          const SizedBox(height: 24),
-                          FullWidthButton(
-                              text: 'Continue',
-                              isLoading: userState.isInitialLoading,
-                              onPressed: _checkUserAvailablity),
-                          const SizedBox(height: 16),
-                          TermsAndConditionsWidget(),
-                        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Expanded(
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Business Details',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ))));
+                    const SizedBox(height: 8),
+                    Text(
+                      'Your company information for account creation',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Business Name
+                    _buildTextField(
+                      controller: _businessNameController,
+                      label: 'Business Name',
+                      hint: 'Enter your business name',
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Username
+                    _buildTextField(
+                      controller: _usernameController,
+                      label: 'Username',
+                      hint: 'Enter username',
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Date Of Birth
+                    _buildDateField(
+                      controller: _dateOfBirthController,
+                      label: 'Establishment Date',
+                      hint: 'DD-MM-YYYY',
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Is Your Business Registered?
+                    const Text(
+                      'Is your Business Registered?',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Radio<bool>(
+                          value: true,
+                          groupValue: _isRegistered,
+                          onChanged: (value) {
+                            setState(() {
+                              _isRegistered = value!;
+                            });
+                          },
+                          activeColor: appTheme.primaryColor,
+                        ),
+                        const Text('Yes'),
+                        const SizedBox(width: 24),
+                        Radio<bool>(
+                          value: false,
+                          groupValue: _isRegistered,
+                          onChanged: (value) {
+                            setState(() {
+                              _isRegistered = value!;
+                            });
+                          },
+                          activeColor: appTheme.primaryColor,
+                        ),
+                        const Text('No'),
+                      ],
+                    ),
+
+                    if (_isRegistered) ...[
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _registrationNumberController,
+                        label: 'Business Registration Number',
+                        hint: 'Enter registration number',
+                        obscureText: true,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    // Referral Code
+                    _buildTextField(
+                      controller: _referralController,
+                      label: 'Referral Code (Optional)',
+                      hint: 'Enter referral code',
+                      isRequired: false,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Bottom button and terms
+                    const SizedBox(height: 24),
+                    FullWidthButton(
+                      text: 'Continue',
+                      isLoading: userState.isInitialLoading,
+                      onPressed: _checkUserAvailablity,
+                    ),
+                    const SizedBox(height: 16),
+                    TermsAndConditionsWidget(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildTextField({
@@ -281,8 +284,10 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             filled: true,
             fillColor: Colors.grey.shade50,
-            suffixIcon:
-                Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
+            suffixIcon: Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.grey.shade600,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade200),

@@ -8,7 +8,6 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 import 'package:valarpay/features/models/signup_request.dart';
-import 'package:valarpay/features/models/user_availablity_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class PersonalDetailsScreen extends ConsumerStatefulWidget {
@@ -34,16 +33,16 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
   Future<void> _checkUserAvailablity() async {
     try {
       if (_formKey.currentState!.validate()) {
-        await ref.read(userNotifierProvider.notifier).checkUserExistance(
-            UserAvailabilityRequest(username: widget.request.username));
-        final userState = ref.read(userNotifierProvider);
-        if (!userState.isDataAvailable && mounted) {
-          AppMessenger.show(
-            context,
-            type: MessageType.success,
-            message: userState.message ?? ' User already exist',
-          );
-        } else {
+        // await ref.read(userNotifierProvider.notifier).checkUserExistance(
+        //     UserAvailabilityRequest(username: _usernameController.text));
+        // final userState = ref.read(userNotifierProvider);
+        // if (!userState.isDataAvailable && mounted) {
+        //   AppMessenger.show(
+        //     context,
+        //     type: MessageType.error,
+        //     message: userState.message ?? ' User already exist',
+        //   );
+        // } else {
           final updatedRequest = widget.request.copyWith(
             fullname:
                 '${_firstNameController.text} ${_lastNameController.text}',
@@ -53,7 +52,7 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
           );
           context.push('/security-details', extra: updatedRequest);
         }
-      }
+      // }
     } catch (e) {
       AppMessenger.show(
         context,

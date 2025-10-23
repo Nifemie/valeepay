@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/dashboard/view/KYC/identity_verification.dart';
+import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
-import '../../view/KYC/KYCSetupPage.dart';
 
 class KYCWidget extends StatelessWidget {
   const KYCWidget({Key? key, this.onSetup}) : super(key: key);
@@ -55,17 +55,17 @@ class KYCWidget extends StatelessWidget {
                 Text(
                   'Complete Your KYC',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Verify your identity to unlock access',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
                 ),
               ],
             ),
@@ -75,15 +75,14 @@ class KYCWidget extends StatelessWidget {
 
           // Button
           ElevatedButton(
-            onPressed: onSetup ??
+            onPressed:
+                onSetup ??
                 () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            const IdentityVerificationPage(
-                              request: KycAddressRequest(bvn: ""),
-                            )),
+                      builder: (context) => const ResidentialAddressPage(),
+                    ),
                   );
                 },
             style: ElevatedButton.styleFrom(

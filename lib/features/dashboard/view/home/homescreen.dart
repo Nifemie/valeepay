@@ -94,9 +94,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
     // Fallbacks for safety
     final firstName = (user?.fullname ?? 'Guest').split(' ').first;
-    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
-        ? user!.profileImageUrl!
-        : 'https://i.pravatar.cc/150?img=3';
+    final profileImageUrl =
+        user?.profileImageUrl?.isNotEmpty == true
+            ? user!.profileImageUrl!
+            : 'https://i.pravatar.cc/150?img=3';
 
     // Get wallet data
     final wallet =
@@ -124,8 +125,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                   balance: balance,
                   accountNumber: accountNumber,
                   isBalanceVisible: _isBalanceVisible,
-                  onToggleVisibility: () =>
-                      setState(() => _isBalanceVisible = !_isBalanceVisible),
+                  onToggleVisibility:
+                      () => setState(
+                        () => _isBalanceVisible = !_isBalanceVisible,
+                      ),
                 ),
                 const SizedBox(height: 16),
                 const PaymentWidget(),
@@ -150,6 +153,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                     return const KYCWidget();
                   },
                 ),
+                KYCWidget(),
                 const SizedBox(height: 16),
                 Container(
                   width: MediaQuery.of(context).size.width,
@@ -206,17 +210,16 @@ class _HomeAppBar extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               title: Text(
                 'Hello $firstName',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
                 greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.normal,
-                      color: appTheme.primaryColor,
-                    ),
+                  fontWeight: FontWeight.normal,
+                  color: appTheme.primaryColor,
+                ),
               ),
             ),
           ),
@@ -418,10 +421,9 @@ class _AddMoneyButton extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               'Add Money',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: appTheme.primaryColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: appTheme.primaryColor),
             ),
           ],
         ),
