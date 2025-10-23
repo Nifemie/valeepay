@@ -26,7 +26,6 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(_getTitle()),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
