@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
-class ChangePinScreen extends StatefulWidget {
+class ChangePinScreen extends ConsumerStatefulWidget {
   const ChangePinScreen({super.key});
 
   @override
-  State<ChangePinScreen> createState() => _ChangePinScreenState();
+  ConsumerState<ChangePinScreen> createState() => _ChangePinScreenState();
 }
 
-class _ChangePinScreenState extends State<ChangePinScreen> {
+class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
   String currentPin = '';
   String newPin = '';
   String confirmPin = '';
   int step = 1; // 1: current pin, 2: new pin, 3: confirm pin
   final int pinLength = 4;
+    String _passcode = '';
+  final int _pinLength = 6;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,76 +36,66 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            children: [
-              Text(
-                _getSubtitle(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(pinLength, (index) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    width: 25,
-                    height: 25,
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        shape: BoxShape.circle),
-                    child: Center(
-                      child: Text(
-                        index < _getCurrentPin().length ? '•' : '',
-                        style: TextStyle(
-                            fontSize: 12, color: appTheme.primaryColor),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 48),
-              Flexible(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    double buttonSize = (constraints.maxWidth - 60) / 3;
-                    buttonSize = buttonSize > 80 ? 80 : buttonSize;
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            const Text(
+              'Enter Wallet Pin',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Enter your 4-digit pin to continue',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 40),
 
-                    return Container(
-                      constraints: BoxConstraints(
-                        maxHeight: buttonSize * 4 + 30, // 4 rows + spacing
-                      ),
-                      child: GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 15,
-                        mainAxisSpacing: 15,
-                        childAspectRatio: 1.0,
-                        children: [
-                          ...List.generate(9, (index) {
-                            return _buildNumberButton(
-                                '${index + 1}', buttonSize);
-                          }),
-                          const SizedBox.shrink(),
-                          _buildNumberButton('0', buttonSize),
-                          _buildNumberButton('⌫', buttonSize, isDelete: true),
-                        ],
-                      ),
-                    );
-                  },
+            // Passcode dots
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_pinLength, (index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color:
+                        index < _passcode.length
+                            ? appTheme.primaryColor
+                            : Colors.grey.shade300,
+                    shape: BoxShape.circle,
+                  ),
+                );
+              }),
+            ),
+
+            const Spacer(),
+
+            // if (_isProcessing || authState.isInitialLoading)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              ),
+
+            // if (!_isProcessing && !authState.isInitialLoading)
+              _buildNumberPad(),
+
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => context.go('/forgot-password'),
+              child: const Text(
+                'Forgot Passcode?',
+                style: TextStyle(
+                  color: appTheme.primaryColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
-      ),
-    );
+      ),);
   }
 
   String _getTitle() {
@@ -138,40 +135,6 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
       default:
         return '';
     }
-  }
-
-  Widget _buildNumberButton(String text, double size, {bool isDelete = false}) {
-    return GestureDetector(
-      onTap: () {
-        if (isDelete) {
-          _deleteDigit();
-        } else {
-          _addDigit(text);
-        }
-      },
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.grey.shade300,
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: size * 0.25, // Responsive font size
-              fontWeight: FontWeight.w600,
-              color: isDelete ? Colors.grey[700] : Colors.black87,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   void _addDigit(String digit) {
@@ -233,9 +196,9 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
             break;
           case 3:
             if (newPin == confirmPin) {
-              _showSuccessDialog();
+              AppMessenger.show(context, message: 'Successfully confirmed', type: MessageType.success);
             } else {
-              _showErrorDialog();
+             AppMessenger.show(context, message: 'An error has occured', type: MessageType.error);
             }
             break;
         }
@@ -243,80 +206,178 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
     });
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 64,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'PIN Changed Successfully',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Your transaction PIN has been successfully changed.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Done'),
-              ),
-            ),
-          ],
+   Widget _buildNumberPad() {
+    final numbers = [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '',
+      '0',
+      'del',
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 20,
+          crossAxisSpacing: 20,
+        ),
+        itemCount: numbers.length,
+        itemBuilder: (context, index) {
+          final item = numbers[index];
+          if (item.isEmpty) return const SizedBox.shrink();
+          if (item == 'del') return _buildDeleteButton();
+          return _buildNumberButton(item);
+        },
+      ),
+    );
+  }
+
+  // void _onNumberPressed(String number) async {
+  //   if (_passcode.length < _passcodeLength) {
+  //     setState(() => _passcode += number);
+
+  //     if (_passcode.length == _passcodeLength) {
+  //       FocusScope.of(context).unfocus();
+  //       setState(() => _isProcessing = true);
+
+  //       final ip = await DeviceUtils.getIpAddress();
+  //       final deviceName = await DeviceUtils.getDeviceName();
+  //       final os = await DeviceUtils.getDeviceOS();
+
+  //       final savedUsername = await SessionService.getUsername() ?? '';
+  //       if (savedUsername != '') {
+  //         final request = PasscodeLoginRequest(
+  //           username: savedUsername,
+  //           passcode: _passcode,
+  //           ipAddress: ip,
+  //           deviceName: deviceName,
+  //           operatingSystem: os,
+  //         );
+
+  //         final notifier = ref.read(authNotifierProvider.notifier);
+  //         await notifier.loginWithPasscode(request);
+  //         final state = ref.read(authNotifierProvider);
+
+  //         if (state.isDataAvailable && mounted) {
+  //           final loginResponse = state.data?.first;
+
+  //           // Save session with access token
+  //           await SessionService.saveSession(loginResponse!);
+
+  //           // 🔥 FIX: Fetch fresh user data with wallet from /me endpoint
+  //           print('🔥 [PasscodeLogin] About to call refreshUserProfile...');
+  //           final freshUser =
+  //               await ref
+  //                   .read(userNotifierProvider.notifier)
+  //                   .refreshUserProfile();
+  //           print(
+  //             '🔥 [PasscodeLogin] refreshUserProfile returned: ${freshUser != null}',
+  //           );
+  //           if (freshUser != null) {
+  //             print(
+  //               '🔥 [PasscodeLogin] Fresh user has ${freshUser.wallets.length} wallets',
+  //             );
+  //           }
+
+  //           if (freshUser != null) {
+  //             // Update user provider with fresh data including wallet
+  //             ref.read(userProvider.notifier).setUser(freshUser);
+
+  //             // Update cached session with complete user data
+  //             await SessionService.saveSession(
+  //               LoginResponse(
+  //                 message: loginResponse.message,
+  //                 statusCode: loginResponse.statusCode,
+  //                 user: freshUser,
+  //                 accessToken: loginResponse.accessToken,
+  //               ),
+  //             );
+  //           } else {
+  //             // Fallback to login response user if refresh fails
+  //             ref.read(userProvider.notifier).setUser(loginResponse.user);
+  //           }
+
+  //           AppMessenger.show(
+  //             context,
+  //             message: 'Welcome ${loginResponse.user.fullname}',
+  //             type: MessageType.success,
+  //           );
+
+  //           // Navigate after the current frame to avoid duplicate key issues
+  //           WidgetsBinding.instance.addPostFrameCallback((_) {
+  //             if (mounted) {
+  //               context.go('/');
+  //             }
+  //           });
+  //         } else {
+  //           AppMessenger.show(
+  //             context,
+  //             message: state.message ?? 'Invalid passcode',
+  //             type: MessageType.error,
+  //           );
+  //           setState(() => _passcode = '');
+  //         }
+  //       } else {
+  //         AppMessenger.show(
+  //           context,
+  //           message: 'Please login with your password first.',
+  //           type: MessageType.warning,
+  //         );
+  //         context.go('/signin');
+  //       }
+  //       setState(() => _isProcessing = false);
+  //     }
+  //   }
+  // }
+
+ 
+
+  Widget _buildNumberButton(String number) {
+    return GestureDetector(
+      // onTap: () => _onNumberPressed(number),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor.withOpacity(0.5),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            number,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     );
   }
 
-  void _showErrorDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        title: const Text('PIN Mismatch'),
-        content:
-            const Text('The PINs you entered do not match. Please try again.'),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                newPin = '';
-                confirmPin = '';
-                step = 2;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: appTheme.primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Try Again'),
-          ),
-        ],
+  Widget _buildDeleteButton() {
+    return GestureDetector(
+      onTap: _onDeletePressed,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor.withOpacity(0.5),
+          shape: BoxShape.circle,
+        ),
+        child: const Center(child: Icon(Icons.backspace_outlined, size: 24)),
       ),
     );
   }
+
+    void _onDeletePressed() {
+    if (_passcode.isNotEmpty) {
+      setState(() => _passcode = _passcode.substring(0, _passcode.length - 1));
+    }
+  }
+
 }

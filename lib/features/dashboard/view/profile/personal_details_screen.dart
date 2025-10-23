@@ -56,6 +56,10 @@ class PersonalDetailsScreen extends ConsumerWidget {
                   title: 'Update Username',
                   currentValue: userName,
                   fieldLabel: 'Username',
+                  description: 'Enter a new username that will appear on your profile',
+                  onContinuePressed: () {
+                    
+                  },
                 ),
               ),
             ),

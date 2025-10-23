@@ -34,8 +34,11 @@ class ApiEndpoints {
   // static const String getBanks = '/api/v1/wallet/get-banks';
   // static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
   // static const String verifyAccount = '/api/v1/wallet/verify-account'; //post name inquery
-  // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external 
+  // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external
   static const String getAllTransactions = '/api/v1/wallet/transaction';
+
+  // Support endpoints
+  static const String reportScam = '/api/v1/user/report-scam';
 
   // Bill payment endpoints
   static const String getAirtimeNetworkProviders =

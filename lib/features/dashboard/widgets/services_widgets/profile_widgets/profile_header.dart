@@ -19,7 +19,6 @@ class ProfileHeader extends ConsumerStatefulWidget {
 class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = ref.watch(userProvider);
 
     // Fallbacks for safety

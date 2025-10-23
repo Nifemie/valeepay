@@ -36,7 +36,7 @@ class ApiClient {
             // Skip validation for endpoints that return data directly (not wrapped in 'data' field)
             final skipValidation =
                 response.requestOptions.path.contains('/me') ||
-                response.requestOptions.path.contains('/transaction');
+                    response.requestOptions.path.contains('/transaction');
 
             if (!skipValidation) {
               if (data is Map &&
@@ -90,6 +90,15 @@ class ApiClient {
   /// POST Request
   Future<Response> post(String path, {Map<String, dynamic>? data}) async {
     final options = Options();
+    await _withAuth(options);
+    return await dio.post(path, data: data, options: options);
+  }
+
+  /// POST Request with FormData (for file uploads)
+  Future<Response> postFormData(String path, {required FormData data}) async {
+    final options = Options(
+      contentType: 'multipart/form-data',
+    );
     await _withAuth(options);
     return await dio.post(path, data: data, options: options);
   }

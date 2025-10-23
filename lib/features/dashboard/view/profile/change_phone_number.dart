@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/dashboard/view/profile/enter_new_phone_number.dart';
 
 class ChangeMobileNumberScreen extends ConsumerWidget {
   const ChangeMobileNumberScreen({super.key});
@@ -228,10 +229,11 @@ class ChangeMobileNumberScreen extends ConsumerWidget {
                         child: TextButton(
                           onPressed: () {
                             Navigator.pop(context); // Close dialog
-                            Navigator.pop(
-                                context); // Go back to previous screen
-                            // Here you would typically navigate to the next step
-                            // or handle the phone number change logic
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        EnterNewPhoneNumberScreen()));
                           },
                           style: TextButton.styleFrom(
                             shape: RoundedRectangleBorder(

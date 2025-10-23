@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
 // Local imports removed: unused in this file
 
-class CustomerServiceScreen extends StatelessWidget {
+class CustomerServiceScreen extends ConsumerStatefulWidget {
   const CustomerServiceScreen({super.key});
 
   @override
+  ConsumerState<CustomerServiceScreen> createState() =>
+      _CustomerServiceScreenState();
+}
+
+class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
+  @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+
+    // Fallbacks for safety
+    final firstName = (user?.fullname ?? 'Guest').split(' ').first;
+    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
+        ? user!.profileImageUrl!
+        : 'https://i.pravatar.cc/150?img=3';
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -38,20 +53,15 @@ class CustomerServiceScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 20.r,
-                      backgroundColor: Theme.of(context).primaryColor,
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 20.sp,
-                      ),
+                      radius: 22.r,
+                      backgroundImage: NetworkImage(profileImageUrl),
                     ),
                     SizedBox(width: ResponsiveUtils.spacing12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello Timothy',
+                          'Hello $firstName',
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -94,7 +104,7 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'Report Scam',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            // Navigate to report scam
+                            context.push('/report-scam');
                           },
                         ),
                         SupportOptionCard(

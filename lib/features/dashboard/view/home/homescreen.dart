@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 // import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/home_widgets/payment_widget_icons.dart';
@@ -227,7 +228,9 @@ class _HomeAppBar extends StatelessWidget {
                 onTap: () => context.push('/customer-service'),
               ),
               const SizedBox(width: 16),
-              _IconButton(svgPath: 'assets/images/payment_wid/scanning.svg'),
+              _IconButton(
+                  svgPath: 'assets/images/payment_wid/scanning.svg',
+                  onTap: () => context.push('/decode-qrcode')),
               const SizedBox(width: 16),
               _IconButton(
                 svgPath: 'assets/images/payment_wid/bell.svg',
@@ -371,22 +374,14 @@ class _BalanceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isBalanceVisible ? balance : '₦ ••••••••••',
+                    isBalanceVisible
+                        ? currencyFormatter(balance)
+                        : '₦ ••••••••••',
                     style: textTheme.headlineSmall?.copyWith(
                       color: onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (accountNumber.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      accountNumber,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: onPrimary.withOpacity(0.8),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
                 ],
               ),
               const Spacer(),
