@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SecurityTipsScreen extends StatelessWidget {
   const SecurityTipsScreen({super.key});
@@ -184,68 +185,88 @@ class SecurityTipsScreen extends StatelessWidget {
               SizedBox(height: ResponsiveUtils.spacing24),
 
               // Emergency Contact Card
-              Container(
-                padding: ResponsiveUtils.paddingAll16,
-                decoration: BoxDecoration(
-                  color:
-                      isDark
-                          ? Colors.red.shade900.withOpacity(0.3)
-                          : Colors.red.shade50,
-                  borderRadius: ResponsiveUtils.borderRadius12,
-                  border: Border.all(
-                    color: isDark ? Colors.red.shade800 : Colors.red.shade200,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.phone_in_talk, color: Colors.red, size: 24.sp),
-                    SizedBox(width: ResponsiveUtils.spacing12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Need Help?',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize16,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            'Contact our 24/7 support',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtils.fontSize14,
-                              color:
-                                  isDark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
+              InkWell(
+                borderRadius: ResponsiveUtils.borderRadius12,
+                onTap: () async {
+                  final Uri phoneUri = Uri.parse('tel:+2348234146906');
+                  try {
+                    await launchUrl(
+                      phoneUri,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not make phone call'),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: Container(
+                  padding: ResponsiveUtils.paddingAll16,
+                  decoration: BoxDecoration(
+                    color:
+                        isDark
+                            ? Colors.red.shade900.withOpacity(0.3)
+                            : Colors.red.shade50,
+                    borderRadius: ResponsiveUtils.borderRadius12,
+                    border: Border.all(
+                      color: isDark ? Colors.red.shade800 : Colors.red.shade200,
+                      width: 1,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 8.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: ResponsiveUtils.borderRadius8,
-                      ),
-                      child: Text(
-                        'Call Now',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: ResponsiveUtils.fontSize12,
-                          fontWeight: FontWeight.w600,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.phone_in_talk, color: Colors.red, size: 24.sp),
+                      SizedBox(width: ResponsiveUtils.spacing12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Need Help?',
+                              style: TextStyle(
+                                fontSize: ResponsiveUtils.fontSize16,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Contact our 24/7 support',
+                              style: TextStyle(
+                                fontSize: ResponsiveUtils.fontSize14,
+                                color:
+                                    isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: ResponsiveUtils.borderRadius8,
+                        ),
+                        child: Text(
+                          'Call Now',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveUtils.fontSize12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

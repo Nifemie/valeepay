@@ -1,3 +1,5 @@
+import 'package:valarpay/features/dashboard/view/home/support/terms_and_conditions.dart';
+import 'package:valarpay/features/dashboard/view/home/support/privacy_policy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/features/auth/views/onboarding/signup/security_details.dart';
 import 'package:valarpay/features/auth/views/onboarding/signup/verify_2fa.dart';
@@ -449,6 +451,14 @@ final router = GoRouter(
     GoRoute(
       path: '/gift-card',
       builder: (context, state) => const GiftCardScreen(),
+    ),
+        GoRoute(
+      path: '/terms-and-conditions',
+      builder: (context, state) => const TermsAndConditionsScreen(),
+    ),
+    GoRoute(
+      path: '/privacy-policy',
+      builder: (context, state) => const PrivacyPolicyScreen(),
     ),
   ],
 );

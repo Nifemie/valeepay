@@ -34,7 +34,7 @@ class ApiEndpoints {
   // static const String getBanks = '/api/v1/wallet/get-banks';
   // static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
   // static const String verifyAccount = '/api/v1/wallet/verify-account'; //post name inquery
-  // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external 
+  // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external
   static const String getAllTransactions = '/api/v1/wallet/transaction';
 
   // Bill payment endpoints
@@ -49,6 +49,19 @@ class ApiEndpoints {
   static const String getDataPlan = '/api/v1/bill/data/get-plan';
   static const String getDataVariation = '/api/v1/bill/data/get-variation';
   static const String purchaseData = '/api/v1/bill/data/pay';
+
+  // Cable TV endpoints
+  static const String getCablePlan = '/api/v1/bill/cable/get-plan';
+  static const String getCableBillInfo = '/api/v1/bill/cable/get-bill-info';
+  static const String verifyCableNumber =
+      '/api/v1/bill/cable/verify-cable-number';
+  static const String payCable = '/api/v1/bill/cable/pay';
+
+  // Internet endpoints
+  static const String getInternetPlan = '/api/v1/bill/internet/get-plan';
+  static const String getInternetBillInfo =
+      '/api/v1/bill/internet/get-bill-info';
+  static const String payInternet = '/api/v1/bill/internet/pay';
 
   // International airtime endpoints
   static const String getInternationalFxRate =

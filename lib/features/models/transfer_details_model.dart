@@ -1,5 +1,6 @@
 class TransferDetails {
   final double? amount;
+  final double? fee;
   final String? senderName;
   final String? senderBankName;
   final String? beneficiaryName;
@@ -10,6 +11,7 @@ class TransferDetails {
 
   TransferDetails({
     this.amount,
+    this.fee,
     this.senderName,
     this.senderBankName,
     this.beneficiaryName,
@@ -22,6 +24,12 @@ class TransferDetails {
   factory TransferDetails.fromJson(Map<String, dynamic> json) {
     return TransferDetails(
       amount: json['amount']?.toDouble(),
+      fee:
+          json['fee'] != null
+              ? (json['fee'] is num
+                  ? (json['fee'] as num).toDouble()
+                  : double.tryParse(json['fee'].toString()))
+              : null,
       senderName: json['senderName'],
       senderBankName: json['senderBankName'],
       beneficiaryName: json['beneficiaryName'],
@@ -34,6 +42,7 @@ class TransferDetails {
 
   Map<String, dynamic> toJson() => {
     'amount': amount,
+    'fee': fee,
     'senderName': senderName,
     'senderBankName': senderBankName,
     'beneficiaryName': beneficiaryName,

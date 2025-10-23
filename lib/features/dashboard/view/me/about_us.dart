@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class AboutUsPage extends ConsumerWidget {
   const AboutUsPage({Key? key}) : super(key: key);
@@ -75,8 +76,8 @@ class AboutUsPage extends ConsumerWidget {
                       context,
                       title: 'Terms & Conditions',
                       onTap: () {
-                        // Navigate to Terms & Conditions
-                        print('Navigate to Terms & Conditions');
+                        // Use GoRouter navigation
+                        context.push('/terms-and-conditions');
                       },
                       showDivider: true,
                     ),
@@ -84,8 +85,8 @@ class AboutUsPage extends ConsumerWidget {
                       context,
                       title: 'Privacy Policy',
                       onTap: () {
-                        // Navigate to Privacy Policy
-                        print('Navigate to Privacy Policy');
+                        // Use GoRouter navigation
+                        context.push('/privacy-policy');
                       },
                       showDivider: false,
                     ),
@@ -100,11 +101,11 @@ class AboutUsPage extends ConsumerWidget {
   }
 
   Widget _buildMenuItem(
-      BuildContext context, {
-        required String title,
-        required VoidCallback onTap,
-        required bool showDivider,
-      }) {
+    BuildContext context, {
+    required String title,
+    required VoidCallback onTap,
+    required bool showDivider,
+  }) {
     return Column(
       children: [
         InkWell(
@@ -139,10 +140,7 @@ class AboutUsPage extends ConsumerWidget {
         if (showDivider)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              height: 2,
-              color: const Color(0xFFF1F4FB),
-            ),
+            child: Container(height: 2, color: const Color(0xFFF1F4FB)),
           ),
       ],
     );
