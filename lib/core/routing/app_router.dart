@@ -3,6 +3,7 @@ import 'package:valarpay/features/auth/views/onboarding/signup/security_details.
 import 'package:valarpay/features/auth/views/onboarding/signup/verify_2fa.dart';
 import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/me/rewards.dart';
+import 'package:valarpay/features/dashboard/view/me/rate_app_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
 import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
@@ -39,6 +40,7 @@ import 'package:valarpay/features/dashboard/view/home/notifications/notification
 import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/security_tips_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
@@ -226,6 +228,10 @@ final router = GoRouter(
       builder: (context, state) => const VisitOfficeScreen(),
     ),
     GoRoute(
+      path: '/security-tips',
+      builder: (context, state) => const SecurityTipsScreen(),
+    ),
+    GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
     ),
@@ -268,6 +274,10 @@ final router = GoRouter(
     GoRoute(
       path: '/my-rewards',
       builder: (context, state) => const MyRewardsPage(),
+    ),
+    GoRoute(
+      path: '/rate-app',
+      builder: (context, state) => const RateAppScreen(),
     ),
     GoRoute(
       path: '/my-portfolio',

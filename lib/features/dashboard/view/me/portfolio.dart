@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
@@ -14,18 +15,11 @@ class FinanceItem {
   FinanceItem({required this.name, required this.amount});
 }
 
-final financeItemsProvider = StateProvider<List<FinanceItem>>(
-  (ref) => [
-    FinanceItem(name: 'Fixed Savings', amount: '₦200,000'),
-    FinanceItem(name: 'Target Savings', amount: '₦500,000'),
-    FinanceItem(name: 'Easylife', amount: '₦500,000'),
-    FinanceItem(name: 'Fixed Deposit', amount: '₦500,000'),
-  ],
-);
+// TODO: Replace with actual API data when backend is ready
+final financeItemsProvider = StateProvider<List<FinanceItem>>((ref) => []);
 
-final investItemsProvider = StateProvider<List<FinanceItem>>(
-  (ref) => [FinanceItem(name: 'Investment', amount: '₦200,000')],
-);
+// TODO: Replace with actual API data when backend is ready
+final investItemsProvider = StateProvider<List<FinanceItem>>((ref) => []);
 
 class MyPortfolioPage extends ConsumerWidget {
   const MyPortfolioPage({Key? key}) : super(key: key);
@@ -43,7 +37,7 @@ class MyPortfolioPage extends ConsumerWidget {
     final wallet = hasWallet ? user!.wallets.first : null;
     final balance = wallet?.balance ?? 0.0;
     final balanceText = currencyFormatter(balance.toString());
-    final rewards = '₦7,500'; // TODO: Replace with real rewards when available
+    final rewards = '₦0'; // TODO: Replace with real rewards when available
 
     return Scaffold(
       appBar: AppBar(
@@ -117,36 +111,41 @@ class MyPortfolioPage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF216EB2).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Your Rewards: $rewards',
-                          style: const TextStyle(
-                            color: Color(0xFF216EB2),
-                            fontFamily: 'SF Pro',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w400,
-                            height: 1.4,
-                            letterSpacing: 0.1,
+                  GestureDetector(
+                    onTap: () {
+                      context.push('/my-rewards');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF216EB2).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Your Rewards: $rewards',
+                            style: const TextStyle(
+                              color: Color(0xFF216EB2),
+                              fontFamily: 'SF Pro',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w400,
+                              height: 1.4,
+                              letterSpacing: 0.1,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 8,
-                          color: Color(0xFF216EB2),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 8,
+                            color: Color(0xFF216EB2),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -194,54 +193,82 @@ class MyPortfolioPage extends ConsumerWidget {
               // Finance Section
               _buildSectionTitle('Finance', isDark),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-                decoration: BoxDecoration(
-                  color:
-                      isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children:
-                      financeItems.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final item = entry.value;
-                        final isLast = index == financeItems.length - 1;
-                        return Column(
-                          children: [
-                            _buildListItem(item, isDark),
-                            if (!isLast)
-                              Container(
-                                height: 2,
-                                color:
-                                    isDark
-                                        ? Colors.grey.shade700
-                                        : const Color(0xFFF1F4FB),
-                              ),
-                          ],
-                        );
-                      }).toList(),
-                ),
-              ),
+              financeItems.isEmpty
+                  ? _buildEmptySection(context, isDark, 'No finance items yet')
+                  : Container(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+                    decoration: BoxDecoration(
+                      color:
+                          isDark
+                              ? Colors.grey.shade800
+                              : const Color(0xFFFAFBFC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children:
+                          financeItems.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            final isLast = index == financeItems.length - 1;
+                            return Column(
+                              children: [
+                                _buildListItem(item, isDark),
+                                if (!isLast)
+                                  Container(
+                                    height: 2,
+                                    color:
+                                        isDark
+                                            ? Colors.grey.shade700
+                                            : const Color(0xFFF1F4FB),
+                                  ),
+                              ],
+                            );
+                          }).toList(),
+                    ),
+                  ),
               const SizedBox(height: 32),
               // Invest Section
               _buildSectionTitle('Invest', isDark),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-                decoration: BoxDecoration(
-                  color:
-                      isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children:
-                      investItems
-                          .map((item) => _buildListItem(item, isDark))
-                          .toList(),
-                ),
-              ),
+              investItems.isEmpty
+                  ? _buildEmptySection(context, isDark, 'No investments yet')
+                  : Container(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+                    decoration: BoxDecoration(
+                      color:
+                          isDark
+                              ? Colors.grey.shade800
+                              : const Color(0xFFFAFBFC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children:
+                          investItems
+                              .map((item) => _buildListItem(item, isDark))
+                              .toList(),
+                    ),
+                  ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptySection(BuildContext context, bool isDark, String message) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            fontSize: 14,
+            color: isDark ? Colors.grey.shade400 : const Color(0xFF9CA3AF),
           ),
         ),
       ),

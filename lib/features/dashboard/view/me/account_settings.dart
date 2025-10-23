@@ -22,27 +22,7 @@ class LinkedAccount {
   });
 }
 
-final linkedAccountsProvider = StateProvider<List<LinkedAccount>>(
-  (ref) => [
-    LinkedAccount(
-      name: 'Valarpay Bank',
-      number: '0000000000',
-      iconPath: 'assets/images/logo.png',
-    ),
-    LinkedAccount(
-      name: 'First Bank of Nigeria',
-      number: '00000000',
-      iconPath: 'assets/images/firstbank.png',
-      isAccount: true,
-    ),
-    LinkedAccount(
-      name: 'Wema Bank',
-      number: '00000000',
-      iconPath: 'assets/images/wema.png',
-      isAccount: true,
-    ),
-  ],
-);
+final linkedAccountsProvider = StateProvider<List<LinkedAccount>>((ref) => []);
 
 class AccountSettingsPage extends ConsumerWidget {
   const AccountSettingsPage({Key? key}) : super(key: key);
@@ -186,59 +166,94 @@ class AccountSettingsPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // Single Card containing all linked accounts
-              Container(
-                padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    // All linked accounts in same card
-                    ...linkedAccounts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final account = entry.value;
-                      final isLast = index == linkedAccounts.length - 1;
+              // Show empty state or linked accounts
+              linkedAccounts.isEmpty
+                  ? _buildEmptyLinkedAccounts(context)
+                  : Container(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        // All linked accounts in same card
+                        ...linkedAccounts.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final account = entry.value;
+                          final isLast = index == linkedAccounts.length - 1;
 
-                      // Update ValarPay account with user's actual account number
-                      final displayAccount =
-                          account.name == 'Valarpay Bank'
-                              ? LinkedAccount(
-                                name: account.name,
-                                number: accountNumber,
-                                iconPath: account.iconPath,
-                                isAccount: account.isAccount,
-                              )
-                              : account;
-
-                      return Column(
-                        children: [
-                          _buildLinkedAccountRow(
-                            context,
-                            ref,
-                            displayAccount,
-                            index,
-                          ),
-                          if (!isLast)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Container(
-                                height: 2,
-                                color: Theme.of(
-                                  context,
-                                ).cardColor.withOpacity(0.2),
+                          return Column(
+                            children: [
+                              _buildLinkedAccountRow(
+                                context,
+                                ref,
+                                account,
+                                index,
                               ),
-                            ),
-                        ],
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ),
+                              if (!isLast)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  child: Container(
+                                    height: 2,
+                                    color: Theme.of(
+                                      context,
+                                    ).cardColor.withOpacity(0.2),
+                                  ),
+                                ),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyLinkedAccounts(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.account_balance_outlined,
+            size: 48,
+            color: isDark ? Colors.grey.shade600 : const Color(0xFF9CA3AF),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Linked Accounts',
+            style: TextStyle(
+              fontFamily: 'SF Pro',
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Link your bank accounts or cards for easier transactions',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'SF Pro',
+              fontSize: 14,
+              color: isDark ? Colors.grey.shade400 : const Color(0xFF9CA3AF),
+              height: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -34,6 +34,11 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   void initState() {
     super.initState();
     _startBannerRotation();
+
+    // Fetch user data immediately on first load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
   }
 
   void _startBannerRotation() {
@@ -94,9 +99,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
     // Fallbacks for safety
     final firstName = (user?.fullname ?? 'Guest').split(' ').first;
-    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
-        ? user!.profileImageUrl!
-        : 'https://i.pravatar.cc/150?img=3';
 
     // Get wallet data
     final wallet =
@@ -114,18 +116,16 @@ class _HomescreenState extends ConsumerState<Homescreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
-                _HomeAppBar(
-                  profileImageUrl: profileImageUrl,
-                  firstName: firstName,
-                  greeting: greeting,
-                ),
+                _HomeAppBar(firstName: firstName, greeting: greeting),
                 const SizedBox(height: 16),
                 _BalanceCard(
                   balance: balance,
                   accountNumber: accountNumber,
                   isBalanceVisible: _isBalanceVisible,
-                  onToggleVisibility: () =>
-                      setState(() => _isBalanceVisible = !_isBalanceVisible),
+                  onToggleVisibility:
+                      () => setState(
+                        () => _isBalanceVisible = !_isBalanceVisible,
+                      ),
                 ),
                 const SizedBox(height: 16),
                 const PaymentWidget(),
@@ -172,19 +172,16 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
 /// ---------- App Bar ----------
 class _HomeAppBar extends StatelessWidget {
-  final String profileImageUrl;
   final String firstName;
   final String greeting;
 
-  const _HomeAppBar({
-    Key? key,
-    required this.profileImageUrl,
-    required this.firstName,
-    required this.greeting,
-  }) : super(key: key);
+  const _HomeAppBar({Key? key, required this.firstName, required this.greeting})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
@@ -196,7 +193,14 @@ class _HomeAppBar extends StatelessWidget {
             },
             child: CircleAvatar(
               radius: 20,
-              backgroundImage: NetworkImage(profileImageUrl),
+              backgroundColor:
+                  isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+              child: Icon(
+                Icons.person,
+                size: 24,
+                color:
+                    isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -206,17 +210,16 @@ class _HomeAppBar extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               title: Text(
                 'Hello $firstName',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
                 greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.normal,
-                      color: appTheme.primaryColor,
-                    ),
+                  fontWeight: FontWeight.normal,
+                  color: appTheme.primaryColor,
+                ),
               ),
             ),
           ),
@@ -418,10 +421,9 @@ class _AddMoneyButton extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               'Add Money',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: appTheme.primaryColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: appTheme.primaryColor),
             ),
           ],
         ),

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
+import 'customer_service_form_screen.dart';
 // Local imports removed: unused in this file
 
-class CustomerServiceScreen extends StatelessWidget {
+class CustomerServiceScreen extends ConsumerWidget {
   const CustomerServiceScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider);
+    final firstName = (user?.fullname ?? 'Hello').split(' ').first;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -51,20 +56,22 @@ class CustomerServiceScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello Timothy',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: ResponsiveUtils.fontSize16,
-                                  ),
+                          'Hello $firstName',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: ResponsiveUtils.fontSize16,
+                          ),
                         ),
                         Text(
                           'How can we help you?',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[600],
-                                    fontSize: ResponsiveUtils.fontSize12,
-                                  ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[600],
+                            fontSize: ResponsiveUtils.fontSize12,
+                          ),
                         ),
                       ],
                     ),
@@ -102,7 +109,16 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'Transfer Dispute',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            // Navigate to transfer dispute
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        const CustomerServiceFormScreen(
+                                          title: 'Transfer Dispute',
+                                        ),
+                              ),
+                            );
                           },
                         ),
                         SupportOptionCard(
@@ -110,7 +126,16 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'Card Issue',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            // Navigate to card issue
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        const CustomerServiceFormScreen(
+                                          title: 'Card Issue',
+                                        ),
+                              ),
+                            );
                           },
                         ),
                         SupportOptionCard(
@@ -118,7 +143,16 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'Phone Number Change',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            // Navigate to phone number change
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        const CustomerServiceFormScreen(
+                                          title: 'Phone Number Change',
+                                        ),
+                              ),
+                            );
                           },
                         ),
                         SupportOptionCard(
@@ -126,7 +160,16 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'Theme',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            context.push('/themes');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        const CustomerServiceFormScreen(
+                                          title: 'Theme',
+                                        ),
+                              ),
+                            );
                           },
                         ),
                         SupportOptionCard(
@@ -134,7 +177,16 @@ class CustomerServiceScreen extends StatelessWidget {
                           title: 'PIN Settings',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            // Navigate to PIN settings
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        const CustomerServiceFormScreen(
+                                          title: 'PIN Settings',
+                                        ),
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -210,9 +262,9 @@ class CustomerServiceScreen extends StatelessWidget {
               Center(
                 child: Text(
                   'AVG. Response time: 1hour',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
               ),
 

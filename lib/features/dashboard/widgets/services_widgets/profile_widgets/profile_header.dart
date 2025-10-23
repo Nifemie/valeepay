@@ -7,10 +7,7 @@ import 'package:valarpay/features/providers/user_provider.dart';
 class ProfileHeader extends ConsumerStatefulWidget {
   final VoidCallback? onEditTap;
 
-  const ProfileHeader({
-    super.key,
-    this.onEditTap,
-  });
+  const ProfileHeader({super.key, this.onEditTap});
 
   @override
   ConsumerState<ProfileHeader> createState() => _ProfileHeaderState();
@@ -23,9 +20,6 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
     final user = ref.watch(userProvider);
 
     // Fallbacks for safety
-    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
-        ? user!.profileImageUrl!
-        : 'https://i.pravatar.cc/150?img=3';
     final wallet =
         user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
 
@@ -51,7 +45,13 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
           // Profile Avatar
           CircleAvatar(
             radius: 30,
-            backgroundImage: NetworkImage(profileImageUrl),
+            backgroundColor:
+                isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+            child: Icon(
+              Icons.person,
+              size: 36,
+              color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+            ),
           ),
 
           const SizedBox(height: 12),
@@ -62,23 +62,15 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
             children: [
               Text(
                 accountNumber,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               SizedBox(width: 10),
               InkWell(
                 onTap: () {
-                  Clipboard.setData(
-                    ClipboardData(text: accountNumber),
-                  );
+                  Clipboard.setData(ClipboardData(text: accountNumber));
                 },
-                child: Icon(
-                  Icons.copy,
-                  size: 14,
-                ),
-              )
+                child: Icon(Icons.copy, size: 14),
+              ),
             ],
           ),
           TextButton(
@@ -88,19 +80,16 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
               children: [
                 Text(
                   'Tier 1',
-                  style: TextStyle(
-                    color: appTheme.primaryColor,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: appTheme.primaryColor, fontSize: 14),
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 14,
                   color: appTheme.primaryColor,
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

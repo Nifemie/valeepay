@@ -13,7 +13,7 @@ class ProfileHeaderCard extends ConsumerStatefulWidget {
   final VoidCallback? onRewardsTap;
 
   const ProfileHeaderCard({Key? key, this.onSecurityTipsTap, this.onRewardsTap})
-      : super(key: key);
+    : super(key: key);
 
   @override
   ConsumerState<ProfileHeaderCard> createState() => _ProfileHeaderCardState();
@@ -54,15 +54,16 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
     debugPrint('💰 [Profile Card] Wallets count: ${user?.wallets.length ?? 0}');
     if (wallet != null) {
       debugPrint(
-          '💰 [Profile Card] Wallet balance from model: ${wallet.balance}');
+        '💰 [Profile Card] Wallet balance from model: ${wallet.balance}',
+      );
       debugPrint(
-          '💰 [Profile Card] Wallet formatted: ${wallet.formattedBalance}');
+        '💰 [Profile Card] Wallet formatted: ${wallet.formattedBalance}',
+      );
     }
     const double rewardsAmount =
         0.00; // TODO: Get from rewards API when available
-    final profileImagePath = user?.profileImageUrl?.isNotEmpty == true
-        ? user!.profileImageUrl!
-        : 'https://i.pravatar.cc/150?img=3';
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
@@ -85,31 +86,17 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
           Row(
             children: [
               // Profile Image
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4ADE80),
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: profileImagePath.startsWith('http')
-                      ? Image.network(
-                          profileImagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.person,
-                                color: Colors.white, size: 24);
-                          },
-                        )
-                      : Image.asset(
-                          profileImagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.person,
-                                color: Colors.white, size: 24);
-                          },
-                        ),
+              CircleAvatar(
+                radius: 24,
+                backgroundColor:
+                    isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+                child: Icon(
+                  Icons.person,
+                  size: 28,
+                  color:
+                      isDark
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF6B7280),
                 ),
               ),
               const SizedBox(width: 12),
@@ -147,9 +134,11 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                               ClipboardData(text: accountNumber),
                             );
 
-                            AppMessenger.show(context,
-                                type: MessageType.success,
-                                message: 'Account number copied');
+                            AppMessenger.show(
+                              context,
+                              type: MessageType.success,
+                              message: 'Account number copied',
+                            );
                           },
                           child: const Icon(
                             Icons.copy,
@@ -258,10 +247,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const Icon(
-                            Icons.chevron_right,
-                            size: 16,
-                          ),
+                          const Icon(Icons.chevron_right, size: 16),
                         ],
                       ),
                     ),
