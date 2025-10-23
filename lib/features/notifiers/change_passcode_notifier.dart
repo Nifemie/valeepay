@@ -20,8 +20,8 @@ class ChangePasscodeNotifier
 
     try {
       final request = ChangePasscodeRequest(
-        oldPassword: oldPasscode,
-        newPassword: newPasscode,
+        oldPasscode: oldPasscode,
+        newPasscode: newPasscode,
       );
 
       final response = await _repository.changePasscode(request);

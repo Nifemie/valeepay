@@ -53,8 +53,11 @@ class _ChangePassCodeScreenState extends ConsumerState<ChangePassCodeScreen> {
           if (newPin == confirm) {
             _submitChange(oldPin, newPin);
           } else {
-            AppMessenger.show(context, message: 'New passcodes do not match', type: MessageType.error);
-            ref.read(passcodeControllerProvider.notifier).clearConfirmNewPasscode();
+            AppMessenger.show(context,
+                message: 'New passcodes do not match', type: MessageType.error);
+            ref
+                .read(passcodeControllerProvider.notifier)
+                .clearConfirmNewPasscode();
             setState(() => _stepIndex = 1);
           }
         }
@@ -103,13 +106,13 @@ class _ChangePassCodeScreenState extends ConsumerState<ChangePassCodeScreen> {
             message: state.message ?? 'Failed to change passcode',
             type: MessageType.error);
         ref.read(passcodeControllerProvider.notifier).clearAllPasscodes();
-  setState(() => _stepIndex = 0);
+        setState(() => _stepIndex = 0);
       }
     } catch (e) {
       AppMessenger.show(context,
           message: 'Failed: ${e.toString()}', type: MessageType.error);
       ref.read(passcodeControllerProvider.notifier).clearAllPasscodes();
-  setState(() => _stepIndex = 0);
+      setState(() => _stepIndex = 0);
     } finally {
       setState(() => _isSaving = false);
     }
@@ -129,27 +132,33 @@ class _ChangePassCodeScreenState extends ConsumerState<ChangePassCodeScreen> {
         child: Column(
           children: [
             const SizedBox(height: 24),
-      Text(
-        _stepIndex == 0
-          ? 'Enter Current Passcode'
-          : (_stepIndex == 1 ? 'Enter New Passcode' : 'Confirm New Passcode'),
-        style:
-          const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+                _stepIndex == 0
+                    ? 'Enter Current Passcode'
+                    : (_stepIndex == 1
+                        ? 'Enter New Passcode'
+                        : 'Confirm New Passcode'),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-      Text(
-        _stepIndex == 0
-          ? 'Enter your current 6-digit passcode'
-          : (_stepIndex == 1 ? 'Enter your new 6-digit passcode' : 'Confirm the new 6-digit passcode'),
-        style: const TextStyle(color: Colors.grey)),
+            Text(
+                _stepIndex == 0
+                    ? 'Enter your current 6-digit passcode'
+                    : (_stepIndex == 1
+                        ? 'Enter your new 6-digit passcode'
+                        : 'Confirm the new 6-digit passcode'),
+                style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 32),
 
             // dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_passcodeLength, (index) {
-        final current = _stepIndex == 0
-          ? passcodeState.passcode
-          : (_stepIndex == 1 ? passcodeState.confirmPasscode : passcodeState.confirmNewPasscode);
+                final current = _stepIndex == 0
+                    ? passcodeState.passcode
+                    : (_stepIndex == 1
+                        ? passcodeState.confirmPasscode
+                        : passcodeState.confirmNewPasscode);
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   width: 18,
@@ -171,9 +180,11 @@ class _ChangePassCodeScreenState extends ConsumerState<ChangePassCodeScreen> {
                   padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator()),
 
-            if (!_isSaving) _buildNumberPad(),
+            if (!_isSaving) SizedBox(height: 24),
 
-            const SizedBox(height: 16),
+            _buildNumberPad(),
+
+            const SizedBox(height: 24),
             if (_stepIndex != 0)
               TextButton(
                   onPressed: () {

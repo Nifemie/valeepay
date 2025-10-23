@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
-import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:dio/dio.dart';
+import 'package:valarpay/core/network/api_client.dart';
 
 class ChangePinScreen extends ConsumerStatefulWidget {
   const ChangePinScreen({super.key});
@@ -18,8 +19,6 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
   String confirmPin = '';
   int step = 1; // 1: current pin, 2: new pin, 3: confirm pin
   final int pinLength = 4;
-    String _passcode = '';
-  final int _pinLength = 4;
   bool _isProcessing = false;
 
   @override
@@ -38,30 +37,29 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            const Text(
-              'Enter Wallet Pin',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              _getTitle(),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Enter your 4-digit pin to continue',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            Text(
+              _getSubtitle(),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 40),
 
             // Passcode dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_pinLength, (index) {
+              children: List.generate(pinLength, (index) {
+                final filled = index < _getCurrentPin().length;
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
                     color:
-                        index < _passcode.length
-                            ? appTheme.primaryColor
-                            : Colors.grey.shade300,
+                        filled ? appTheme.primaryColor : Colors.grey.shade300,
                     shape: BoxShape.circle,
                   ),
                 );
@@ -70,14 +68,13 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
 
             const Spacer(),
 
-            // if (_isProcessing || authState.isInitialLoading)
+            if (_isProcessing)
               const Padding(
                 padding: EdgeInsets.all(24),
                 child: CircularProgressIndicator(),
               ),
 
-            // if (!_isProcessing && !authState.isInitialLoading)
-              _buildNumberPad(),
+            if (!_isProcessing) _buildNumberPad(),
 
             const SizedBox(height: 16),
             TextButton(
@@ -94,7 +91,8 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
             const SizedBox(height: 20),
           ],
         ),
-      ),);
+      ),
+    );
   }
 
   String _getTitle() {
@@ -195,9 +193,17 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
             break;
           case 3:
             if (newPin == confirmPin) {
-              AppMessenger.show(context, message: 'Successfully confirmed', type: MessageType.success);
+              // call backend to change pin
+              _submitChangePin();
             } else {
-             AppMessenger.show(context, message: 'An error has occured', type: MessageType.error);
+              AppMessenger.show(context,
+                  message: 'Pins do not match', type: MessageType.error);
+              // reset new pin steps
+              setState(() {
+                newPin = '';
+                confirmPin = '';
+                step = 2;
+              });
             }
             break;
         }
@@ -205,7 +211,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
     });
   }
 
-   Widget _buildNumberPad() {
+  Widget _buildNumberPad() {
     final numbers = [
       '1',
       '2',
@@ -340,11 +346,9 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
   //   }
   // }
 
- 
-
   Widget _buildNumberButton(String number) {
     return GestureDetector(
-      // onTap: () => _onNumberPressed(number),
+      onTap: () => _addDigit(number),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor.withOpacity(0.5),
@@ -362,7 +366,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
 
   Widget _buildDeleteButton() {
     return GestureDetector(
-      onTap: _onDeletePressed,
+      onTap: _deleteDigit,
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor.withOpacity(0.5),
@@ -373,10 +377,53 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
     );
   }
 
-    void _onDeletePressed() {
-    if (_passcode.isNotEmpty) {
-      setState(() => _passcode = _passcode.substring(0, _passcode.length - 1));
+  Future<void> _submitChangePin() async {
+    // final ApiClient will attach Authorization header from SessionService
+    setState(() => _isProcessing = true);
+    try {
+      final client = ApiClient();
+      final resp = await client.put('/api/v1/user/change-pin', data: {
+        'oldPin': currentPin,
+        'newPin': newPin,
+      });
+
+      if (resp.statusCode == 200) {
+        AppMessenger.show(context,
+            message: 'PIN changed successfully', type: MessageType.success);
+        // pop back after a short delay to show message
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) Navigator.of(context).pop();
+        });
+      } else {
+        AppMessenger.show(context,
+            message: resp.statusMessage ?? 'Failed to change PIN',
+            type: MessageType.error);
+        // reset to new pin step so user can try again
+        setState(() {
+          newPin = '';
+          confirmPin = '';
+          step = 2;
+        });
+      }
+    } on DioException catch (e) {
+      final message =
+          e.response?.data?.toString() ?? e.message ?? 'An error occurred';
+      AppMessenger.show(context, message: message, type: MessageType.error);
+      setState(() {
+        newPin = '';
+        confirmPin = '';
+        step = 2;
+      });
+    } catch (e) {
+      AppMessenger.show(context,
+          message: e.toString(), type: MessageType.error);
+      setState(() {
+        newPin = '';
+        confirmPin = '';
+        step = 2;
+      });
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
-
 }
