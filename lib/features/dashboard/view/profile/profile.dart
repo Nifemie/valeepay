@@ -12,14 +12,6 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider);
-    final wallet =
-        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
-
-    // Extract wallet data
-    final accountNumber = wallet?.accountNumber ?? '00000000';
-    final bankName = wallet?.bankName ?? 'ValarPay Bank';
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,

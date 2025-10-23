@@ -53,7 +53,7 @@ class _TransferToValarPayScreenState
           .read(internalAccountVerificationNotifierProvider.notifier)
           .verifyAccount(
             accountNumber: _accountController.text,
-            bankCode: '000014',
+            bankCode: '090672',
           );
     } catch (e) {
       // Error handling is done in the listener

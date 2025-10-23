@@ -37,6 +37,11 @@ class ApiEndpoints {
   // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external
   static const String getAllTransactions = '/api/v1/wallet/transaction';
 
+  // Support endpoints
+  static const String reportScam = '/api/v1/user/report-scam';
+  static const String changePasscode = '/api/v1/user/change-passcode';
+  static const String changePassword = '/api/v1/user/change-password';
+
   // Bill payment endpoints
   static const String getAirtimeNetworkProviders =
       '/api/v1/bill/airtime/network-providers';

@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
 import 'customer_service_form_screen.dart';
 // Local imports removed: unused in this file
 
-class CustomerServiceScreen extends ConsumerWidget {
+class CustomerServiceScreen extends ConsumerStatefulWidget {
   const CustomerServiceScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CustomerServiceScreen> createState() =>
+      _CustomerServiceScreenState();
+      
+      
+}
+
+class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final firstName = (user?.fullname ?? 'Hello').split(' ').first;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -42,15 +53,16 @@ class CustomerServiceScreen extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 20.r,
-                      backgroundColor: Theme.of(context).primaryColor,
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 20.sp,
-                      ),
-                    ),
+                             CircleAvatar(
+            radius: 30,
+            backgroundColor:
+                isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+            child: Icon(
+              Icons.person,
+              size: 36,
+              color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+            ),
+          ),
                     SizedBox(width: ResponsiveUtils.spacing12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +113,7 @@ class CustomerServiceScreen extends ConsumerWidget {
                           title: 'Report Scam',
                           iconColor: appTheme.primaryColor,
                           onTap: () {
-                            // Navigate to report scam
+                            context.push('/report-scam');
                           },
                         ),
                         SupportOptionCard(

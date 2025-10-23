@@ -16,9 +16,8 @@ class ProfileHeader extends ConsumerStatefulWidget {
 class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = ref.watch(userProvider);
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Fallbacks for safety
     final wallet =
         user?.wallets.isNotEmpty == true ? user!.wallets.first : null;

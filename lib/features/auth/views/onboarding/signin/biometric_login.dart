@@ -6,6 +6,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/constants/enums/enums.dart';
 import 'package:valarpay/core/services/biometric_auth_service.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/platform_responsive.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
@@ -147,6 +148,22 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   /// Request biometric (Face ID / Fingerprint) and camera permission
   Future<void> _requestBiometricAndCameraPermissions() async {
     try {
+      // Check if user has enabled biometrics in settings
+      final fpEnabled =
+          await LocalStorageService.getBool('pref_biometric_fingerprint');
+      final faceEnabled =
+          await LocalStorageService.getBool('pref_biometric_faceid');
+      if ((fpEnabled ?? false) == false && (faceEnabled ?? false) == false) {
+        AppMessenger.show(
+          context,
+          message:
+              'Biometric login is not enabled. Please enable it in settings.',
+          type: MessageType.warning,
+        );
+        context.push('/signin');
+        return;
+      }
+
       // Request camera permission
       final cameraStatus = await Permission.camera.request();
 
@@ -158,10 +175,10 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final canCheckBiometrics = await localAuth.canCheckBiometrics;
       final isDeviceSupported = await localAuth.isDeviceSupported();
 
-      if (cameraStatus.isGranted &&
+      if (cameraStatus.isGranted && canCheckBiometrics && isDeviceSupported ||
           biometricStatus.isGranted &&
-          canCheckBiometrics &&
-          isDeviceSupported) {
+              canCheckBiometrics &&
+              isDeviceSupported) {
         _showBiometricBottomSheet(context, ref);
       } else if (!cameraStatus.isGranted) {
         AppMessenger.show(
@@ -247,7 +264,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 40.rw,
+                        width: 50.rw,
                         height: 50.rh,
                         decoration: BoxDecoration(
                           color: appTheme.primaryColor,

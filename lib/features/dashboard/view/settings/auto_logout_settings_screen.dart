@@ -55,7 +55,7 @@ class _AutoLogoutSettingsScreenState extends State<AutoLogoutSettingsScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
+                        color: Theme.of(context).cardColor.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: selectedOption == option
@@ -76,7 +76,7 @@ class _AutoLogoutSettingsScreenState extends State<AutoLogoutSettingsScreen> {
                                     fontWeight: FontWeight.w500,
                                     color: selectedOption == option
                                         ? appTheme.primaryColor
-                                        : Colors.black87,
+                                        : null,
                                   ),
                             ),
                           ),

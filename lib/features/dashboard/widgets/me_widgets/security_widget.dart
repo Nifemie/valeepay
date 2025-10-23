@@ -45,7 +45,7 @@ class SecurityMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/report.svg',
             title: 'Report Scam',
             onTap: () {
-              context.push('/coming-soon');
+              context.push('/report-scam');
             },
           ),
           const SizedBox(height: 20),

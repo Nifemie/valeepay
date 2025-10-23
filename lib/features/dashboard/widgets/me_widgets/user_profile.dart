@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
@@ -218,7 +219,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                     const SizedBox(height: 4),
                     Text(
                       isBalanceVisible
-                          ? "₦${balance.toStringAsFixed(2)}"
+                          ? currencyFormatter(balance.toString())
                           : "₦****",
                       style: const TextStyle(
                         fontSize: 24,

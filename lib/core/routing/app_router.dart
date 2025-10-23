@@ -12,6 +12,8 @@ import 'package:valarpay/features/dashboard/view/services/education/education.da
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
+import 'package:valarpay/features/dashboard/view/settings/change_passcode_screen.dart';
+import 'package:valarpay/features/dashboard/view/settings/change_password_screen.dart';
 import 'package:valarpay/features/dashboard/view/settings/create_passcode.dart';
 import 'package:valarpay/features/dashboard/view/services/insurance/insurance.dart';
 import 'package:valarpay/features/dashboard/view/services/international_airtime/international_airtime_screen.dart';
@@ -42,9 +44,10 @@ import 'package:valarpay/features/dashboard/view/home/notifications/notification
 import 'package:valarpay/features/dashboard/view/home/support/customer_service_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/faq_screen.dart';
 import 'package:valarpay/features/dashboard/view/home/support/visit_office_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/support/report_scam_screen.dart';
+import 'package:valarpay/features/dashboard/view/home/QRCode/decode_qr_code.dart';
 import 'package:valarpay/features/dashboard/view/home/support/security_tips_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_to_bank.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_to_valarpay_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_bank_branch_screen.dart';
 import 'package:valarpay/features/dashboard/view/withdraw/withdraw_merchant_screen.dart';
@@ -152,8 +155,8 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/signin',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: SignInScreen()),
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: SignInScreen()),
     ),
     GoRoute(
       path: '/biometric-login',
@@ -224,6 +227,14 @@ final router = GoRouter(
       path: '/customer-service',
       builder: (context, state) => const CustomerServiceScreen(),
     ),
+    GoRoute(
+      path: '/report-scam',
+      builder: (context, state) => const ReportScamScreen(),
+    ),
+    GoRoute(
+      path: '/decode-qrcode',
+      builder: (context, state) => const DecodeQrCodeScreen(),
+    ),
     GoRoute(path: '/faq', builder: (context, state) => const FAQScreen()),
     GoRoute(
       path: '/visit-office',
@@ -266,12 +277,20 @@ final router = GoRouter(
       builder: (context, state) => const ChangePinScreen(),
     ),
     GoRoute(
+      path: '/change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
       path: '/auto-logout-settings',
       builder: (context, state) => const AutoLogoutSettingsScreen(),
     ),
     GoRoute(
       path: '/create-passcode',
       builder: (context, state) => const CreatePasscodeScreen(),
+    ),
+    GoRoute(
+      path: '/change-passcode',
+      builder: (context, state) => const ChangePassCodeScreen(),
     ),
     GoRoute(
       path: '/my-rewards',
@@ -320,6 +339,10 @@ final router = GoRouter(
       path: '/ussd-enquiry',
       builder: (context, state) => const USSDEnquiryScreen(),
     ),
+    GoRoute(
+      path: '/decode-qrcode',
+      builder: (context, state) => const DecodeQrCodeScreen(),
+    ),
 
     // Me section routes
     GoRoute(
@@ -340,8 +363,7 @@ final router = GoRouter(
     GoRoute(
       path: '/notification-view',
       builder: (context, state) {
-        final Map<String, String> data =
-            state.extra as Map<String, String>? ??
+        final Map<String, String> data = state.extra as Map<String, String>? ??
             {'title': 'Notification', 'content': 'No content'};
         return NotificationViewScreen(
           title: data['title']!,
@@ -354,8 +376,7 @@ final router = GoRouter(
     GoRoute(
       path: '/faq-detail',
       builder: (context, state) {
-        final Map<String, String> data =
-            state.extra as Map<String, String>? ??
+        final Map<String, String> data = state.extra as Map<String, String>? ??
             {'question': 'FAQ', 'answer': 'No answer available'};
         return FAQDetailScreen(
           question: data['question']!,

@@ -70,6 +70,8 @@ class _TransactionPinSettingsScreenState
                   ),
                 ),
                 const SizedBox(height: 24),
+                Divider(),
+                const SizedBox(height: 12),
                 InkWell(
                   onTap: () {
                     // Navigate to forgot PIN

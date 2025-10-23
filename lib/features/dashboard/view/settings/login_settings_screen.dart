@@ -1,21 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/services/biometric_auth_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/constants/enums/enums.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
-class LoginSettingsScreen extends StatefulWidget {
+class LoginSettingsScreen extends ConsumerStatefulWidget {
   const LoginSettingsScreen({super.key});
 
   @override
-  State<LoginSettingsScreen> createState() => _LoginSettingsScreenState();
+  ConsumerState<LoginSettingsScreen> createState() =>
+      _LoginSettingsScreenState();
 }
 
-class _LoginSettingsScreenState extends State<LoginSettingsScreen> {
-  bool fingerprintEnabled = true;
+class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
+  static const _keyFingerprint = 'pref_biometric_fingerprint';
+  static const _keyFaceId = 'pref_biometric_faceid';
+
+  bool fingerprintEnabled = false;
   bool faceIdEnabled = false;
   bool logInWithFaceId = false;
 
+  // Device capability flags
+  bool hasFingerprintAvailable = false;
+  bool hasFaceAvailable = false;
+  bool canCheckBiometrics = false;
+
+  final _localAuth = LocalAuthentication();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+    _checkDeviceBiometrics();
+  }
+
+  Future<void> _checkDeviceBiometrics() async {
+    try {
+      final canCheck = await _localAuth.canCheckBiometrics;
+      final isDeviceSupported = await _localAuth.isDeviceSupported();
+      final available = await _localAuth.getAvailableBiometrics();
+      setState(() {
+        canCheckBiometrics = canCheck && isDeviceSupported;
+        hasFaceAvailable = available.contains(BiometricType.face);
+        hasFingerprintAvailable = available.contains(BiometricType.fingerprint);
+      });
+    } catch (_) {
+      // ignore and keep defaults
+    }
+  }
+
+  Future<void> _loadPreferences() async {
+    final fp = await LocalStorageService.getBool(_keyFingerprint);
+    final face = await LocalStorageService.getBool(_keyFaceId);
+    setState(() {
+      fingerprintEnabled = fp ?? false;
+      faceIdEnabled = face ?? false;
+      logInWithFaceId = faceIdEnabled;
+    });
+  }
+
+  Future<void> _saveFingerprintPref(bool value) async {
+    await LocalStorageService.saveBool(_keyFingerprint, value);
+  }
+
+  Future<void> _saveFaceIdPref(bool value) async {
+    await LocalStorageService.saveBool(_keyFaceId, value);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = ref.read(userProvider);
+    final bool hasPasscodeCodeSet = user?.isPasscodeSet ?? false;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -51,51 +111,13 @@ class _LoginSettingsScreenState extends State<LoginSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Change Password',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Forgot Password',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(),
-                    const SizedBox(height: 12),
                     InkWell(
-                      onTap: () {
-                        context.push('/create-passcode');
-                      },
+                      onTap: () => context.push('/change-password'),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              'Create Passcode',
+                              'Change Password',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ),
@@ -107,6 +129,74 @@ class _LoginSettingsScreenState extends State<LoginSettingsScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () => context.push('/forgot-password'),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Forgot Password',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (!hasPasscodeCodeSet) const Divider(),
+                    if (!hasPasscodeCodeSet) const SizedBox(height: 12),
+                    if (!hasPasscodeCodeSet)
+                      InkWell(
+                        onTap: () {
+                          context.push('/create-passcode');
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Create Passcode',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (hasPasscodeCodeSet) const Divider(),
+                    if (hasPasscodeCodeSet) const SizedBox(height: 12),
+                    if (hasPasscodeCodeSet)
+                      InkWell(
+                        onTap: () {
+                          context.push('/change-passcode');
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Change Passcode',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 12),
                     const Divider(),
                     const SizedBox(height: 12),
@@ -164,11 +254,38 @@ class _LoginSettingsScreenState extends State<LoginSettingsScreen> {
                           ),
                         ),
                         Switch(
-                          value: faceIdEnabled,
-                          onChanged: (value) {
-                            setState(() {
-                              faceIdEnabled = value;
-                            });
+                          value: fingerprintEnabled,
+                          onChanged: (value) async {
+                            // If device doesn't support fingerprint, don't attempt to enable
+                            if (value && !hasFingerprintAvailable) {
+                              AppMessenger.show(context,
+                                  message:
+                                      'Fingerprint is not available on this device',
+                                  type: MessageType.warning);
+                              return;
+                            }
+
+                            // require biometric verification before enabling/disabling
+                            final result = await BiometricAuthService
+                                .authenticateWithFallback(
+                                    promptMessage:
+                                        'Verify to change biometric setting');
+                            if (result == BiometricAuthResult.success) {
+                              setState(() {
+                                fingerprintEnabled = value;
+                              });
+                              _saveFingerprintPref(value);
+                            } else if (result == BiometricAuthResult.fallback) {
+                              AppMessenger.show(context,
+                                  message:
+                                      'Biometrics not available. Please use your passcode to change settings',
+                                  type: MessageType.warning);
+                            } else {
+                              AppMessenger.show(context,
+                                  message:
+                                      'Authentication failed. Biometric setting unchanged',
+                                  type: MessageType.error);
+                            }
                           },
                           activeTrackColor: appTheme.primaryColor,
                         ),
@@ -200,10 +317,37 @@ class _LoginSettingsScreenState extends State<LoginSettingsScreen> {
                         ),
                         Switch(
                           value: logInWithFaceId,
-                          onChanged: (value) {
-                            setState(() {
-                              logInWithFaceId = value;
-                            });
+                          onChanged: (value) async {
+                            // If enabling, ensure device has Face available
+                            if (value && !hasFaceAvailable) {
+                              AppMessenger.show(context,
+                                  message:
+                                      'Face ID is not available on this device',
+                                  type: MessageType.warning);
+                              return;
+                            }
+
+                            final result = await BiometricAuthService
+                                .authenticateWithFallback(
+                                    promptMessage:
+                                        'Verify to change biometric setting');
+                            if (result == BiometricAuthResult.success) {
+                              setState(() {
+                                logInWithFaceId = value;
+                                faceIdEnabled = value;
+                              });
+                              _saveFaceIdPref(value);
+                            } else if (result == BiometricAuthResult.fallback) {
+                              AppMessenger.show(context,
+                                  message:
+                                      'Biometrics not available. Please use your passcode to change settings',
+                                  type: MessageType.warning);
+                            } else {
+                              AppMessenger.show(context,
+                                  message:
+                                      'Authentication failed. Biometric setting unchanged',
+                                  type: MessageType.error);
+                            }
                           },
                           activeTrackColor: appTheme.primaryColor,
                         ),
