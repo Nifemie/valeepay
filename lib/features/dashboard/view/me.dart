@@ -22,9 +22,10 @@ class MeScreen extends ConsumerWidget {
         toolbarHeight: 0, // keep it hidden
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: theme.brightness == Brightness.dark
-              ? Brightness.light
-              : Brightness.dark,
+          statusBarIconBrightness:
+              theme.brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
         ),
       ),
       body: SafeArea(
@@ -36,7 +37,7 @@ class MeScreen extends ConsumerWidget {
               // Profile Header Card
               ProfileHeaderCard(
                 onSecurityTipsTap: () {
-                  debugPrint('Security Tips tapped');
+                  context.push('/coming-soon', extra: 'Security Tips');
                 },
                 onRewardsTap: () {
                   context.push('/my-rewards');

@@ -44,12 +44,14 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   }
 
   void _showContactAccessDialog() => showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => ContactAccessDialog(
-            onAllow: () => Navigator.of(context).pop(),
-            onCancel: () => Navigator.of(context).pop()),
-      );
+    context: context,
+    barrierDismissible: true,
+    builder:
+        (context) => ContactAccessDialog(
+          onAllow: () => Navigator.of(context).pop(),
+          onCancel: () => Navigator.of(context).pop(),
+        ),
+  );
 
   bool _isFormValid(String network, int operatorId) {
     return _controller.text.isNotEmpty &&
@@ -68,9 +70,10 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
     // Show loading dialog
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()));
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
 
     try {
       final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
@@ -83,57 +86,21 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         addBeneficiary: false,
       );
 
+      print('🔐 Initiating airtime purchase...');
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
-
-      // Use post frame callback to close dialog and navigate after frame completes
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-
-          // Close loading dialog
-          Navigator.pop(context);
-
-          // Check the state and navigate
-          final state = ref.read(airtimePurchaseNotifierProvider);
-          if (state.isDataAvailable &&
-              state.data != null &&
-              state.data!.isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TransactionReceiptWidget(
-                  amount: '₦${_amountController.text}',
-                  topDetails: [
-                    TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true),
-                    TransactionDetail(
-                        label: 'Recipient Number', value: _controller.text),
-                    TransactionDetail(
-                        label: 'Network',
-                        value: ref.read(airtimeSelectedNetworkProvider)),
-                    TransactionDetail(
-                        label: 'Amount', value: '₦${_amountController.text}'),
-                  ],
-                  onShareReceipt: () {},
-                ),
-              ),
-            );
-          } else if (state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(state.message!), backgroundColor: Colors.red));
-          }
-        });
-      }
+      print('📤 Airtime purchase request sent');
     } catch (e) {
+      print('❌ Airtime purchase error: $e');
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red));
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -143,17 +110,21 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ReuseableTransactionDetailsScreen(
-          hasBottom: false,
-          topTitleText: 'Transaction',
-          topTransactionsDetailsList: [
-            buildDetailRow('Recipient Number', _controller.text, isDark),
-            buildDetailRow('Provider', selectedNetwork, isDark),
-            buildDetailRow(
-                'Amount', currencyFormatter(_amountController.text), isDark),
-          ],
-          onButtonPressed: _handlePinEntry,
-        ),
+        builder:
+            (context) => ReuseableTransactionDetailsScreen(
+              hasBottom: false,
+              topTitleText: 'Transaction',
+              topTransactionsDetailsList: [
+                buildDetailRow('Recipient Number', _controller.text, isDark),
+                buildDetailRow('Provider', selectedNetwork, isDark),
+                buildDetailRow(
+                  'Amount',
+                  currencyFormatter(_amountController.text),
+                  isDark,
+                ),
+              ],
+              onButtonPressed: _handlePinEntry,
+            ),
       ),
     );
   }
@@ -167,28 +138,81 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     final providersState = ref.watch(airtimeProvidersNotifierProvider);
     final networkProviders = providersState.data ?? <NetworkProvider>[];
 
+    // Listen to airtime purchase state
+    ref.listen(airtimePurchaseNotifierProvider, (previous, next) {
+      if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
+        // Purchase successful - close loading and navigate to receipt
+        print('✅ Airtime purchase successful');
+        Navigator.pop(context); // Close loading dialog
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => TransactionReceiptWidget(
+                  amount: '₦${_amountController.text}',
+                  topDetails: [
+                    TransactionDetail(
+                      label: 'Transaction ID',
+                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                      showCopyIcon: true,
+                    ),
+                    TransactionDetail(
+                      label: 'Recipient Number',
+                      value: _controller.text,
+                    ),
+                    TransactionDetail(label: 'Network', value: selectedNetwork),
+                    TransactionDetail(
+                      label: 'Amount',
+                      value: '₦${_amountController.text}',
+                    ),
+                  ],
+                  onShareReceipt: () {},
+                ),
+          ),
+        );
+      } else if (next.message != null &&
+          !next.isDataAvailable &&
+          !next.isInitialLoading) {
+        // Purchase failed
+        print('❌ Airtime purchase failed: ${next.message}');
+        Navigator.pop(context); // Close loading dialog
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.message!), backgroundColor: Colors.red),
+        );
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop()),
-        title: const Text('Airtime',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'Airtime',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const SizedBox(height: 20),
-            const Text('Phone Number',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'Phone Number',
                 style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 12),
-            ReuseableTextFieldWithCountry(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ReuseableTextFieldWithCountry(
                 controller: _controller,
                 countryCode: '+234 ',
                 flagImagePath: 'assets/images/ngflag.png',
@@ -197,90 +221,136 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                 textInputType: TextInputType.phone,
                 showCountryLabel: true,
                 suffixWidget: IconButton(
-                    onPressed: _showContactAccessDialog,
-                    icon: const Icon(Icons.person))),
-            const SizedBox(height: 24),
-            const Text('Network Provider',
+                  onPressed: _showContactAccessDialog,
+                  icon: const Icon(Icons.person),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Network Provider',
                 style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300)),
-              child: providersState.isInitialLoading && networkProviders.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                          value:
-                              selectedNetwork.isEmpty ? null : selectedNetwork,
-                          hint: const Text('Select Network Provider'),
-                          isExpanded: true,
-                          items: networkProviders
-                              .map((p) => DropdownMenuItem(
-                                  value: p.network, child: Text(p.network)))
-                              .toList(),
-                          onChanged: (value) async {
-                            if (value == null) return;
-                            final provider = networkProviders
-                                .firstWhere((p) => p.network == value);
-                            ref
-                                .read(airtimeSelectedNetworkProvider.notifier)
-                                .state = value;
-                            ref
-                                .read(
-                                    airtimeSelectedOperatorIdProvider.notifier)
-                                .state = provider.operatorId;
-                            if (_controller.text.isNotEmpty) {
-                              await ref
-                                  .read(airtimePlanNotifierProvider.notifier)
-                                  .getPlan(
-                                      phone: _controller.text, currency: 'NGN');
-                            }
-                          })),
-            ),
-            const SizedBox(height: 24),
-            const Text('Amount',
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child:
+                    providersState.isInitialLoading && networkProviders.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value:
+                                selectedNetwork.isEmpty
+                                    ? null
+                                    : selectedNetwork,
+                            hint: const Text('Select Network Provider'),
+                            isExpanded: true,
+                            items:
+                                networkProviders
+                                    .map(
+                                      (p) => DropdownMenuItem(
+                                        value: p.network,
+                                        child: Text(p.network),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (value) async {
+                              if (value == null) return;
+                              final provider = networkProviders.firstWhere(
+                                (p) => p.network == value,
+                              );
+                              ref
+                                  .read(airtimeSelectedNetworkProvider.notifier)
+                                  .state = value;
+                              ref
+                                  .read(
+                                    airtimeSelectedOperatorIdProvider.notifier,
+                                  )
+                                  .state = provider.operatorId;
+                              if (_controller.text.isNotEmpty) {
+                                await ref
+                                    .read(airtimePlanNotifierProvider.notifier)
+                                    .getPlan(
+                                      phone: _controller.text,
+                                      currency: 'NGN',
+                                    );
+                              }
+                            },
+                          ),
+                        ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Amount',
                 style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 12),
-            ReuseableAmountTextfield(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ReuseableAmountTextfield(
                 amountController: _amountController,
                 prefixText: '₦',
-                hintText: '500'),
-            const SizedBox(height: 24),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Expanded(
-                  child: Text('Use Cashback',
+                hintText: '500',
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Use Cashback',
                       style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500))),
-              Row(mainAxisSize: MainAxisSize.min, children: [
-                const Text('₦50.00',
-                    style: TextStyle(color: Colors.grey, fontSize: 14)),
-                const SizedBox(width: 8),
-                Switch(
-                    value: useCashback,
-                    onChanged: (v) =>
-                        ref.read(airtimeUseCashbackProvider.notifier).state = v,
-                    activeTrackColor: appTheme.primaryColor)
-              ])
-            ]),
-            const SizedBox(height: 32),
-            FullWidthButton(
+                        color: Colors.grey,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        '₦50.00',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      const SizedBox(width: 8),
+                      Switch(
+                        value: useCashback,
+                        onChanged:
+                            (v) =>
+                                ref
+                                    .read(airtimeUseCashbackProvider.notifier)
+                                    .state = v,
+                        activeTrackColor: appTheme.primaryColor,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              FullWidthButton(
                 text: 'Continue',
-                onPressed: () =>
-                    _navigateToDetails(selectedNetwork, selectedOperatorId),
-                isEnabled: _isFormValid(selectedNetwork, selectedOperatorId)),
-            const SizedBox(height: 32),
-            const AirtimeServicesSection(),
-          ]),
+                onPressed:
+                    () =>
+                        _navigateToDetails(selectedNetwork, selectedOperatorId),
+                isEnabled: _isFormValid(selectedNetwork, selectedOperatorId),
+              ),
+              const SizedBox(height: 32),
+              const AirtimeServicesSection(),
+            ],
+          ),
         ),
       ),
     );

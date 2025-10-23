@@ -36,7 +36,10 @@ class ApiClient {
             // Skip validation for endpoints that return data directly (not wrapped in 'data' field)
             final skipValidation =
                 response.requestOptions.path.contains('/me') ||
-                response.requestOptions.path.contains('/transaction');
+                response.requestOptions.path.contains('/transaction') ||
+                response.requestOptions.path.contains('/airtime') ||
+                response.requestOptions.path.contains('/data') ||
+                response.requestOptions.path.contains('/electricity');
 
             if (!skipValidation) {
               if (data is Map &&

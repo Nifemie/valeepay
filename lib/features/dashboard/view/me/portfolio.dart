@@ -192,12 +192,13 @@ class MyPortfolioPage extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               // Finance Section
-              _buildSectionTitle('Finance'),
+              _buildSectionTitle('Finance', isDark),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color:
+                      isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -208,7 +209,7 @@ class MyPortfolioPage extends ConsumerWidget {
                         final isLast = index == financeItems.length - 1;
                         return Column(
                           children: [
-                            _buildListItem(item),
+                            _buildListItem(item, isDark),
                             if (!isLast)
                               Container(
                                 height: 2,
@@ -224,17 +225,20 @@ class MyPortfolioPage extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               // Invest Section
-              _buildSectionTitle('Invest'),
+              _buildSectionTitle('Invest', isDark),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAFBFC),
+                  color:
+                      isDark ? Colors.grey.shade800 : const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   children:
-                      investItems.map((item) => _buildListItem(item)).toList(),
+                      investItems
+                          .map((item) => _buildListItem(item, isDark))
+                          .toList(),
                 ),
               ),
             ],
@@ -244,22 +248,23 @@ class MyPortfolioPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, bool isDark) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'SF Pro',
           fontSize: 16,
           fontWeight: FontWeight.w600,
           height: 1.5,
+          color: isDark ? Colors.white : null,
         ),
       ),
     );
   }
 
-  Widget _buildListItem(FinanceItem item) {
+  Widget _buildListItem(FinanceItem item, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -267,8 +272,8 @@ class MyPortfolioPage extends ConsumerWidget {
         children: [
           Text(
             item.name,
-            style: const TextStyle(
-              color: Color(0xFF9CA3AF),
+            style: TextStyle(
+              color: isDark ? Colors.grey.shade400 : const Color(0xFF9CA3AF),
               fontFamily: 'SF Pro',
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -278,12 +283,13 @@ class MyPortfolioPage extends ConsumerWidget {
           ),
           Text(
             item.amount,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'SF Pro',
               fontSize: 14,
               fontWeight: FontWeight.w400,
               height: 1.43,
               letterSpacing: 0.035,
+              color: isDark ? Colors.white : null,
             ),
           ),
         ],
