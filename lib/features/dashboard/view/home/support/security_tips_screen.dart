@@ -20,7 +20,6 @@ class SecurityTipsScreen extends StatelessWidget {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),

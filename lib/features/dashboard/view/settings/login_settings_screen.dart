@@ -39,35 +39,36 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
     _checkDeviceBiometrics();
   }
 
-Future<void> _checkDeviceBiometrics() async {
-  try {
-    final isDeviceSupported = await _localAuth.isDeviceSupported();
-    final canCheck = await _localAuth.canCheckBiometrics;
-    final availableBiometrics = await _localAuth.getAvailableBiometrics();
+  Future<void> _checkDeviceBiometrics() async {
+    try {
+      final isDeviceSupported = await _localAuth.isDeviceSupported();
+      final canCheck = await _localAuth.canCheckBiometrics;
+      final availableBiometrics = await _localAuth.getAvailableBiometrics();
 
-    bool fingerprint = false;
-    bool face = false;
+      bool fingerprint = false;
+      bool face = false;
 
-    // Some devices (Android 11+) may report BiometricType.strong
-    // instead of fingerprint or face.
-    for (final bio in availableBiometrics) {
-      if (bio == BiometricType.fingerprint || bio == BiometricType.strong) {
-        fingerprint = true;
+      // Some devices (Android 11+) may report BiometricType.strong
+      // instead of fingerprint or face.
+      for (final bio in availableBiometrics) {
+        if (bio == BiometricType.fingerprint || bio == BiometricType.strong) {
+          fingerprint = true;
+        }
+        if (bio == BiometricType.face) {
+          face = true;
+        }
       }
-      if (bio == BiometricType.face) {
-        face = true;
-      }
+
+      setState(() {
+        canCheckBiometrics = canCheck && isDeviceSupported;
+        hasFingerprintAvailable = fingerprint;
+        hasFaceAvailable = face;
+      });
+    } catch (e) {
+      debugPrint('Biometric check failed: $e');
     }
-
-    setState(() {
-      canCheckBiometrics = canCheck && isDeviceSupported;
-      hasFingerprintAvailable = fingerprint;
-      hasFaceAvailable = face;
-    });
-  } catch (e) {
-    debugPrint('Biometric check failed: $e');
   }
-}
+
   Future<void> _loadPreferences() async {
     final fp = await LocalStorageService.getBool(_keyFingerprint);
     final face = await LocalStorageService.getBool(_keyFaceId);
@@ -109,9 +110,9 @@ Future<void> _checkDeviceBiometrics() async {
             children: [
               Text(
                 'Password',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
               // Password Section
@@ -165,52 +166,32 @@ Future<void> _checkDeviceBiometrics() async {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (!hasPasscodeCodeSet) const Divider(),
-                    if (!hasPasscodeCodeSet) const SizedBox(height: 12),
-                    if (!hasPasscodeCodeSet)
-                      InkWell(
-                        onTap: () {
-                          context.push('/create-passcode');
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Create Passcode',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () {
+                        hasPasscodeCodeSet
+                            ? context.push('/change-passcode')
+                            : context.push('/create-passcode');
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              hasPasscodeCodeSet
+                                  ? 'Change Passcode'
+                                  : 'Create Passcode',
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                          ],
-                        ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ],
                       ),
-                    if (hasPasscodeCodeSet) const Divider(),
-                    if (hasPasscodeCodeSet) const SizedBox(height: 12),
-                    if (hasPasscodeCodeSet)
-                      InkWell(
-                        onTap: () {
-                          context.push('/change-passcode');
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Change Passcode',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                          ],
-                        ),
-                      ),
+                    ),
                     const SizedBox(height: 12),
                     const Divider(),
                     const SizedBox(height: 12),
@@ -234,6 +215,7 @@ Future<void> _checkDeviceBiometrics() async {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
@@ -241,12 +223,11 @@ Future<void> _checkDeviceBiometrics() async {
               const SizedBox(height: 20),
 
               // Biometrics Section
-
               Text(
                 'Biometrics',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 16),
 
@@ -272,33 +253,40 @@ Future<void> _checkDeviceBiometrics() async {
                           onChanged: (value) async {
                             // If device doesn't support fingerprint, don't attempt to enable
                             if (value && !hasFingerprintAvailable) {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Fingerprint is not available on this device',
-                                  type: MessageType.warning);
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Fingerprint is not available on this device',
+                                type: MessageType.warning,
+                              );
                               return;
                             }
 
                             // require biometric verification before enabling/disabling
-                            final result = await BiometricAuthService
-                                .authenticateWithFallback(
-                                    promptMessage:
-                                        'Verify to change biometric setting');
+                            final result =
+                                await BiometricAuthService.authenticateWithFallback(
+                                  promptMessage:
+                                      'Verify to change biometric setting',
+                                );
                             if (result == BiometricAuthResult.success) {
                               setState(() {
                                 fingerprintEnabled = value;
                               });
                               _saveFingerprintPref(value);
                             } else if (result == BiometricAuthResult.fallback) {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Biometrics not available. Please use your passcode to change settings',
-                                  type: MessageType.warning);
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Biometrics not available. Please use your passcode to change settings',
+                                type: MessageType.warning,
+                              );
                             } else {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Authentication failed. Biometric setting unchanged',
-                                  type: MessageType.error);
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Authentication failed. Biometric setting unchanged',
+                                type: MessageType.error,
+                              );
                             }
                           },
                           activeTrackColor: appTheme.primaryColor,
@@ -309,9 +297,7 @@ Future<void> _checkDeviceBiometrics() async {
                 ),
               ),
 
-              SizedBox(
-                height: 12,
-              ),
+              SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -334,17 +320,20 @@ Future<void> _checkDeviceBiometrics() async {
                           onChanged: (value) async {
                             // If enabling, ensure device has Face available
                             if (value && !hasFaceAvailable) {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Face ID is not available on this device',
-                                  type: MessageType.warning);
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Face ID is not available on this device',
+                                type: MessageType.warning,
+                              );
                               return;
                             }
 
-                            final result = await BiometricAuthService
-                                .authenticateWithFallback(
-                                    promptMessage:
-                                        'Verify to change biometric setting');
+                            final result =
+                                await BiometricAuthService.authenticateWithFallback(
+                                  promptMessage:
+                                      'Verify to change biometric setting',
+                                );
                             if (result == BiometricAuthResult.success) {
                               setState(() {
                                 logInWithFaceId = value;
@@ -352,15 +341,19 @@ Future<void> _checkDeviceBiometrics() async {
                               });
                               _saveFaceIdPref(value);
                             } else if (result == BiometricAuthResult.fallback) {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Biometrics not available. Please use your passcode to change settings',
-                                  type: MessageType.warning);
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Biometrics not available. Please use your passcode to change settings',
+                                type: MessageType.warning,
+                              );
                             } else {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Authentication failed. Biometric setting unchanged',
-                                  type: MessageType.error);
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Authentication failed. Biometric setting unchanged',
+                                type: MessageType.error,
+                              );
                             }
                           },
                           activeTrackColor: appTheme.primaryColor,

@@ -94,8 +94,9 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
     } else {
       // Confirming passcode
       if (passcodeState.confirmPasscode.length < _passcodeLength) {
-        passcodeNotifier
-            .updateConfirmPasscode(passcodeState.confirmPasscode + number);
+        passcodeNotifier.updateConfirmPasscode(
+          passcodeState.confirmPasscode + number,
+        );
 
         if (passcodeState.confirmPasscode.length + 1 == _passcodeLength) {
           FocusScope.of(context).unfocus();
@@ -104,8 +105,9 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
           Future.delayed(const Duration(milliseconds: 300), () {
             if (passcodeNotifier.doPasscodesMatch()) {
               // Check passcode strength
-              final strength =
-                  passcodeNotifier.getPasscodeStrength(passcodeState.passcode);
+              final strength = passcodeNotifier.getPasscodeStrength(
+                passcodeState.passcode,
+              );
 
               if (strength == PasscodeStrength.weak) {
                 AppMessenger.show(
@@ -143,13 +145,21 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
 
     if (!_isConfirming) {
       if (passcodeState.passcode.isNotEmpty) {
-        passcodeNotifier.updatePasscode(passcodeState.passcode
-            .substring(0, passcodeState.passcode.length - 1));
+        passcodeNotifier.updatePasscode(
+          passcodeState.passcode.substring(
+            0,
+            passcodeState.passcode.length - 1,
+          ),
+        );
       }
     } else {
       if (passcodeState.confirmPasscode.isNotEmpty) {
-        passcodeNotifier.updateConfirmPasscode(passcodeState.confirmPasscode
-            .substring(0, passcodeState.confirmPasscode.length - 1));
+        passcodeNotifier.updateConfirmPasscode(
+          passcodeState.confirmPasscode.substring(
+            0,
+            passcodeState.confirmPasscode.length - 1,
+          ),
+        );
       }
     }
   }
@@ -179,7 +189,7 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
             Text(
               _isConfirming
                   ? 'Re-enter your 6-digit passcode'
-                  : 'Create a 6-digit passcode',
+                  : 'Create a 6-digit passcode to login',
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 40),
@@ -188,17 +198,19 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_passcodeLength, (index) {
-                final currentPasscode = _isConfirming
-                    ? passcodeState.confirmPasscode
-                    : passcodeState.passcode;
+                final currentPasscode =
+                    _isConfirming
+                        ? passcodeState.confirmPasscode
+                        : passcodeState.passcode;
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
-                    color: index < currentPasscode.length
-                        ? appTheme.primaryColor
-                        : Colors.grey.shade300,
+                    color:
+                        index < currentPasscode.length
+                            ? appTheme.primaryColor
+                            : Colors.grey.shade300,
                     shape: BoxShape.circle,
                   ),
                 );
@@ -213,15 +225,15 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
                 child: CircularProgressIndicator(),
               ),
 
-            if (!_isSaving) _buildNumberPad(),
-
-            const SizedBox(height: 16),
+            if (_isSaving) const SizedBox(height: 30),
+            _buildNumberPad(),
 
             if (_isConfirming)
               TextButton(
                 onPressed: () {
-                  final passcodeNotifier =
-                      ref.read(passcodeControllerProvider.notifier);
+                  final passcodeNotifier = ref.read(
+                    passcodeControllerProvider.notifier,
+                  );
                   passcodeNotifier.clearAllPasscodes();
                   setState(() {
                     _isConfirming = false;
@@ -306,9 +318,7 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
           color: Theme.of(context).cardColor.withOpacity(0.5),
           shape: BoxShape.circle,
         ),
-        child: const Center(
-          child: Icon(Icons.backspace_outlined, size: 24),
-        ),
+        child: const Center(child: Icon(Icons.backspace_outlined, size: 24)),
       ),
     );
   }

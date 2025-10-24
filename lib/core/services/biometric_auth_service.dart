@@ -17,7 +17,7 @@ class BiometricAuthService {
       final available = await _auth.getAvailableBiometrics();
       bool supportsFace = false;
       bool supportsFingerprint = false;
-
+      
       for (final b in available) {
         if (b == BiometricType.face) supportsFace = true;
         if (b == BiometricType.fingerprint || b == BiometricType.strong) {
@@ -26,22 +26,22 @@ class BiometricAuthService {
       }
 
       final success = await _auth.authenticate(
-        localizedReason: supportsFace
-            ? 'Use Face ID to authenticate'
-            : supportsFingerprint
+        localizedReason:
+            supportsFace
+                ? 'Use Face ID to authenticate'
+                : supportsFingerprint
                 ? 'Use fingerprint to authenticate'
                 : promptMessage,
         options: const AuthenticationOptions(
-          biometricOnly: true,
+          biometricOnly: false,
           stickyAuth: true,
           useErrorDialogs: true,
         ),
       );
 
-      return success
-          ? BiometricAuthResult.success
-          : BiometricAuthResult.failed;
+      return success ? BiometricAuthResult.success : BiometricAuthResult.failed;
     } catch (e) {
+   
       return BiometricAuthResult.failed;
     }
   }

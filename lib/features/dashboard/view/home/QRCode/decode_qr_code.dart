@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_tools/qr_code_tools.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/generate_qr_screen.dart';
 import 'package:valarpay/features/notifiers/decode_qr_notifier.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/decode_qr_result.dart';
@@ -86,12 +87,16 @@ class _DecodeQrCodeScreenState extends ConsumerState<DecodeQrCodeScreen> {
           state.data!.isNotEmpty) {
         final parsed = state.data!.first;
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => DecodeQrResultScreen(data: parsed)));
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => DecodeQrResultScreen(data: parsed)),
+        );
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message ?? 'Failed to decode QR')));
+        AppMessenger.show(
+          context,
+          message: state.message ?? 'Failed to decode QR',
+          type: MessageType.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -135,61 +140,74 @@ class _DecodeQrCodeScreenState extends ConsumerState<DecodeQrCodeScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.8,
+                height: MediaQuery.of(context).size.height * 0.7,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: _hasPermission
-                      ? MobileScanner(
-                          controller: _scannerController,
-                          onDetect: (BarcodeCapture capture) async {
-                            final barcode = capture.barcodes.first;
-                            if (_isProcessing) return;
-                            final raw = barcode.rawValue;
-                            if (raw == null || raw.isEmpty) return;
-                            await _processImageFile(null, qrString: raw);
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey.shade200,
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('Camera permission required'),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    await openAppSettings();
-                                  },
-                                  child: const Text('Open settings'),
-                                ),
-                              ],
+                  child:
+                      _hasPermission
+                          ? MobileScanner(
+                            controller: _scannerController,
+                            onDetect: (BarcodeCapture capture) async {
+                              final barcode = capture.barcodes.first;
+                              if (_isProcessing) return;
+                              final raw = barcode.rawValue;
+                              if (raw == null || raw.isEmpty) return;
+                              await _processImageFile(null, qrString: raw);
+                            },
+                          )
+                          : Container(
+                            color: Colors.grey.shade200,
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('Camera permission required'),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      await openAppSettings();
+                                    },
+                                    child: const Text('Open settings'),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
                 ),
               ),
               const SizedBox(height: 16),
               Center(
                 child: ElevatedButton.icon(
-                    onPressed: _pickImage,
-                    icon: const Icon(Icons.image),
-                    label: const Text('Upload Image')),
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.image),
+                  label: const Text('Upload Image'),
+                ),
               ),
               const SizedBox(height: 24),
               if (_pickedImage != null) ...[
-                const Text('Picked Image:'),
+                Center(
+                  child: const Text(
+                    'Picked Image:',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
                 const SizedBox(height: 8),
-                ClipRRect(
+                Center(
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(_pickedImage!,
-                        height: 220, fit: BoxFit.cover)),
+                    child: Image.file(
+                      _pickedImage!,
+                      height: 220,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
               ],
             ],
           ),

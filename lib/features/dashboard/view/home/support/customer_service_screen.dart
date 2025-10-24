@@ -17,8 +17,6 @@ class CustomerServiceScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<CustomerServiceScreen> createState() =>
       _CustomerServiceScreenState();
-      
-      
 }
 
 class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
@@ -53,16 +51,33 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                 ),
                 child: Row(
                   children: [
-                             CircleAvatar(
-            radius: 30,
-            backgroundColor:
-                isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
-            child: Icon(
-              Icons.person,
-              size: 36,
-              color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
-            ),
-          ),
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor:
+                          isDark
+                              ? const Color(0xFF374151)
+                              : const Color(0xFFF3F4F6),
+                      child: ClipOval(
+                        child:
+                            user?.profileImageUrl != null &&
+                                    user!.profileImageUrl!.isNotEmpty
+                                ? Image.network(
+                                  user.profileImageUrl!,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                )
+                                : Icon(
+                                  Icons.person,
+                                  size: 36,
+                                  color:
+                                      isDark
+                                          ? const Color(0xFF9CA3AF)
+                                          : const Color(0xFF6B7280),
+                                ),
+                      ),
+                    ),
+
                     SizedBox(width: ResponsiveUtils.spacing12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -196,10 +196,10 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
                 child: CircularProgressIndicator(),
               ),
 
-            if (!_isProcessing && !authState.isInitialLoading)
-            SizedBox(height: 15),
-            
-              _buildNumberPad(),
+            if (_isProcessing || authState.isInitialLoading)
+              SizedBox(height: 30),
+
+            _buildNumberPad(),
 
             const SizedBox(height: 16),
             TextButton(

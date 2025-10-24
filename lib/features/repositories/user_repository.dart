@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
 import 'package:valarpay/features/models/api_response.dart';
@@ -257,6 +258,41 @@ class UserRepository {
       throw Exception(
         e.response?.data['message'] ?? 'Failed to verify wallet PIN',
       );
+    }
+  }
+
+  /// Upload profile image using multipart PUT
+  Future<ApiResponse> editProfileImage(String filePath, String fullName) async {
+    try {
+      final file = File(filePath);
+      final fileName = file.path.split(Platform.pathSeparator).last;
+      final formData = FormData.fromMap({
+        'profile-image': await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+        ),
+        'fullName': fullName
+      });
+
+      final response = await apiClient.putFormData(
+        ApiEndpoints.editProfile,
+        data: formData,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          response.data?['message'] ?? 'Failed to upload profile image',
+        );
+      }
+      // Success - backend returns message. Caller may refresh profile afterwards.
+      return ApiResponse.fromJson(response.data);
+      ;
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to upload profile image',
+      );
+    } catch (e) {
+      throw Exception('Failed to upload profile image: $e');
     }
   }
 }

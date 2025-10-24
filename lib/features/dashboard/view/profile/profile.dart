@@ -16,17 +16,12 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-          ),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'My Profile',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -35,6 +30,7 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             // Profile Header
             ProfileHeader(
+              context: context,
               onEditTap: () {
                 // Handle edit profile picture
               },

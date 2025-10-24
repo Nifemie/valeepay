@@ -50,14 +50,16 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
   Future<void> _onGenerate() async {
     final text = _amountController.text.replaceAll(',', '').trim();
     if (text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter an amount')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter an amount')));
       return;
     }
     final amount = double.tryParse(text);
     if (amount == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Invalid amount')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid amount')));
       return;
     }
 
@@ -69,7 +71,8 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message ?? 'Failed to generate QR')));
+        SnackBar(content: Text(state.message ?? 'Failed to generate QR')),
+      );
     }
   }
 
@@ -85,13 +88,20 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
 
       final dir = await getApplicationDocumentsDirectory();
       final file = File(
-          '${dir.path}/valeepay_qr_${DateTime.now().millisecondsSinceEpoch}.png');
+        '${dir.path}/valeepay_qr_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
       await file.writeAsBytes(bytes);
-      AppMessenger.show(context,
-          message: 'Saved to ${file.path}', type: MessageType.success);
+      AppMessenger.show(
+        context,
+        message: 'Saved to ${file.path}',
+        type: MessageType.success,
+      );
     } catch (e) {
-      AppMessenger.show(context,
-          message: 'Save failed  $e', type: MessageType.error);
+      AppMessenger.show(
+        context,
+        message: 'Save failed  $e',
+        type: MessageType.error,
+      );
     } finally {
       setState(() => _saving = false);
     }
@@ -109,16 +119,19 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
           final isWide = constraints.maxWidth > 600;
           return Center(
             child: ConstrainedBox(
-              constraints:
-                  BoxConstraints(maxWidth: isWide ? 600 : double.infinity),
+              constraints: BoxConstraints(
+                maxWidth: isWide ? 600 : double.infinity,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SizedBox(height: 24),
-                    const Text('Enter amount to generate a payment QR code',
-                        style: TextStyle(fontSize: 16)),
+                    const Text(
+                      'Enter amount to generate a payment QR code',
+                      style: TextStyle(fontSize: 16),
+                    ),
                     const SizedBox(height: 12),
                     ReuseableAmountTextfield(
                       amountController: _amountController,
@@ -133,38 +146,45 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
                     const SizedBox(height: 24),
                     if (_generatedDataUri != null) ...[
                       Center(
-                          child: Text('Generated QR',
-                              style: Theme.of(context).textTheme.titleMedium)),
+                        child: Text(
+                          'Generated QR',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Builder(builder: (_) {
+                        borderRadius: BorderRadius.circular(8),
+                        child: Builder(
+                          builder: (_) {
                             final uri = _generatedDataUri!;
                             final idx = uri.indexOf('base64,');
                             final base64Str =
                                 idx >= 0 ? uri.substring(idx + 7) : uri;
                             final bytes = base64Decode(base64Str);
-                            return Image.memory(bytes,
-                                height: 260, fit: BoxFit.contain);
-                          })),
+                            return Image.memory(
+                              bytes,
+                              height: 260,
+                              fit: BoxFit.contain,
+                            );
+                          },
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       FullWidthButton(
-                          isEnabled: !_saving,
-                          isLoading: isLoading,
-                          text: 'Save To Device',
-                          onPressed: _saveToDevice),
-                    ],
-                    if (state.message != null && !state.isDataAvailable) ...[
-                      const SizedBox(height: 24),
-                      Text(state.message!,
-                          style: const TextStyle(color: Colors.red)),
-                    ],
-                    FullWidthButton(
-                        isEnabled: _amountController.text.isNotEmpty,
+                        isEnabled: !_saving,
                         isLoading: isLoading,
-                        text: 'Generate',
-                        onPressed: _onGenerate),
-                    SizedBox(height: 24)
+                        text: 'Save To Device',
+                        onPressed: _saveToDevice,
+                      ),
+                    ],
+
+                    FullWidthButton(
+                      isEnabled: _amountController.text.isNotEmpty,
+                      isLoading: isLoading,
+                      text: 'Generate',
+                      onPressed: _onGenerate,
+                    ),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),

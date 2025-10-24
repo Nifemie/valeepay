@@ -172,7 +172,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 }
 
 /// ---------- App Bar ----------
-class _HomeAppBar extends StatelessWidget {
+class _HomeAppBar extends ConsumerStatefulWidget {
   final String firstName;
   final String greeting;
 
@@ -180,8 +180,14 @@ class _HomeAppBar extends StatelessWidget {
     : super(key: key);
 
   @override
+  ConsumerState<_HomeAppBar> createState() => _HomeAppBarState();
+}
+
+class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = ref.watch(userProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -196,11 +202,24 @@ class _HomeAppBar extends StatelessWidget {
               radius: 20,
               backgroundColor:
                   isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
-              child: Icon(
-                Icons.person,
-                size: 24,
-                color:
-                    isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+              child: ClipOval(
+                child:
+                    user?.profileImageUrl != null &&
+                            user!.profileImageUrl!.isNotEmpty
+                        ? Image.network(
+                          user.profileImageUrl!,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        )
+                        : Icon(
+                          Icons.person,
+                          size: 36,
+                          color:
+                              isDark
+                                  ? const Color(0xFF9CA3AF)
+                                  : const Color(0xFF6B7280),
+                        ),
               ),
             ),
           ),
@@ -210,13 +229,13 @@ class _HomeAppBar extends StatelessWidget {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Hello $firstName',
+                'Hello ${widget.firstName}',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                greeting,
+                widget.greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.normal,
                   color: appTheme.primaryColor,
@@ -232,8 +251,9 @@ class _HomeAppBar extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               _IconButton(
-                  svgPath: 'assets/images/payment_wid/scanning.svg',
-                  onTap: () => context.push('/decode-qrcode')),
+                svgPath: 'assets/images/payment_wid/scanning.svg',
+                onTap: () => context.push('/decode-qrcode'),
+              ),
               const SizedBox(width: 16),
               _IconButton(
                 svgPath: 'assets/images/payment_wid/bell.svg',
@@ -408,11 +428,11 @@ class _AddMoneyButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
         ),
         child: Row(
           children: [
-            const Icon(Icons.add, color: Colors.white, size: 16),
+            const Icon(Icons.add, color: appTheme.primaryColor, size: 20),
             const SizedBox(width: 4),
             Text(
               'Add Money',

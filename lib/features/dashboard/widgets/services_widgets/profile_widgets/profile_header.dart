@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/notifiers/profile_notifier.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class ProfileHeader extends ConsumerStatefulWidget {
   final VoidCallback? onEditTap;
+  final BuildContext context;
 
-  const ProfileHeader({super.key, this.onEditTap});
+  const ProfileHeader({super.key, required this.context, this.onEditTap});
 
   @override
   ConsumerState<ProfileHeader> createState() => _ProfileHeaderState();
@@ -41,21 +46,222 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
       ),
       child: Column(
         children: [
-          // Profile Avatar
-          CircleAvatar(
-            radius: 30,
-            backgroundColor:
-                isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
-            child: Icon(
-              Icons.person,
-              size: 36,
-              color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
-            ),
-          ),
+          // Profile Avatar with edit button
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 42,
+                backgroundColor:
+                    isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+                child: ClipOval(
+                  child:
+                      user?.profileImageUrl != null &&
+                              user!.profileImageUrl!.isNotEmpty
+                          ? Image.network(
+                            user.profileImageUrl!,
+                            width: 72,
+                            height: 72,
+                            fit: BoxFit.cover,
+                          )
+                          : Icon(
+                            Icons.person,
+                            size: 36,
+                            color:
+                                isDark
+                                    ? const Color(0xFF9CA3AF)
+                                    : const Color(0xFF6B7280),
+                          ),
+                ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () async {
+                      // show dialog with options (camera / gallery)
+                      showDialog(
+                        context: context,
+                        builder: (dialogContext) {
+                          return AlertDialog(
+                            title: const Text(
+                              'Update profile image',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(Icons.camera_alt),
+                                    title: const Text('Take photo'),
+                                    onTap: () async {
+                                      Navigator.of(dialogContext).pop();
+                                      final XFile? picked = await ImagePicker()
+                                          .pickImage(
+                                            source: ImageSource.camera,
+                                            imageQuality: 80,
+                                          );
+                                      if (picked != null) {
+                                        // show loading
+                                        showDialog(
+                                          context: widget.context,
+                                          barrierDismissible: false,
+                                          builder:
+                                              (_) => const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                        );
+                                        final ok = await ref
+                                            .read(
+                                              profileNotifierProvider.notifier,
+                                            )
+                                            .uploadProfileImage(
+                                              picked.path,
+                                              user?.fullname ?? '',
+                                            );
+                                        Navigator.of(
+                                          widget.context,
+                                        ).pop(); // dismiss loading
+                                        if (ok) {
+                                          final updated =
+                                              await ref
+                                                  .read(
+                                                    userNotifierProvider
+                                                        .notifier,
+                                                  )
+                                                  .refreshUserProfile();
+                                          if (updated != null) {
+                                            ref
+                                                .read(userProvider.notifier)
+                                                .setUser(updated);
+                                          }
+                                          AppMessenger.show(
+                                            widget.context,
+                                            message: 'Profile image updated',
+                                            type: MessageType.success,
+                                          );
 
+                                          if (widget.onEditTap != null)
+                                            widget.onEditTap!();
+                                        } else {
+                                          AppMessenger.show(
+                                            widget.context,
+                                            message:
+                                                ref
+                                                    .read(
+                                                      profileNotifierProvider,
+                                                    )
+                                                    .message ??
+                                                'Failed to update profile',
+                                            type: MessageType.error,
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.photo_library),
+                                    title: const Text('Choose from gallery'),
+                                    onTap: () async {
+                                      Navigator.of(dialogContext).pop();
+                                      final XFile? picked = await ImagePicker()
+                                          .pickImage(
+                                            source: ImageSource.gallery,
+                                            imageQuality: 80,
+                                          );
+                                      if (picked != null) {
+                                        showDialog(
+                                          context: widget.context,
+                                          barrierDismissible: false,
+                                          builder:
+                                              (_) => const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                        );
+                                        final ok = await ref
+                                            .read(
+                                              profileNotifierProvider.notifier,
+                                            )
+                                            .uploadProfileImage(
+                                              picked.path,
+                                              user?.fullname ?? '',
+                                            );
+                                        Navigator.of(
+                                          widget.context,
+                                        ).pop(); // dismiss loading
+                                        if (ok) {
+                                          final updated =
+                                              await ref
+                                                  .read(
+                                                    userNotifierProvider
+                                                        .notifier,
+                                                  )
+                                                  .refreshUserProfile();
+                                          if (updated != null) {
+                                            ref
+                                                .read(userProvider.notifier)
+                                                .setUser(updated);
+                                          }
+                                          AppMessenger.show(
+                                            widget.context,
+                                            message: 'Profile image updated',
+                                            type: MessageType.success,
+                                          );
+
+                                          if (widget.onEditTap != null)
+                                            widget.onEditTap!();
+                                        } else {
+                                          AppMessenger.show(
+                                            widget.context,
+                                            message:
+                                                ref
+                                                    .read(
+                                                      profileNotifierProvider,
+                                                    )
+                                                    .message ??
+                                                'Failed to update profile',
+                                            type: MessageType.error,
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if(accountNumber.isNotEmpty && accountNumber != '00000000')
           const SizedBox(height: 12),
 
           // User Info
+          if(accountNumber.isNotEmpty && accountNumber != '00000000')
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [

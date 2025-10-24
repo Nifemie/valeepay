@@ -121,7 +121,7 @@ class ThemesPage extends ConsumerWidget {
             if (context.mounted) {
               AppMessenger.show(
                 context,
-                type: MessageType.error,
+                type: MessageType.success,
                 message: 'Theme changed to ${title.toLowerCase()}',
               );
             }

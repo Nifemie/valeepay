@@ -14,21 +14,15 @@ class FAQDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'FAQ Details',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -73,11 +67,7 @@ class FAQDetailScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     question,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
+                    style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                 ],
               ),
@@ -134,34 +124,21 @@ class FAQDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.blue.withOpacity(0.3),
-                ),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.support_agent,
-                    color: Colors.blue,
-                    size: 32,
-                  ),
+                  Icon(Icons.support_agent, color: Colors.blue, size: 32),
                   const SizedBox(height: 12),
                   const Text(
                     'Still need help?',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Contact our support team for personalized assistance',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(

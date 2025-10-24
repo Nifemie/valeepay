@@ -91,15 +91,27 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                 radius: 24,
                 backgroundColor:
                     isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
-                child: Icon(
-                  Icons.person,
-                  size: 28,
-                  color:
-                      isDark
-                          ? const Color(0xFF9CA3AF)
-                          : const Color(0xFF6B7280),
+                child: ClipOval(
+                  child:
+                      user?.profileImageUrl != null &&
+                              user!.profileImageUrl!.isNotEmpty
+                          ? Image.network(
+                            user.profileImageUrl!,
+                            width: 72,
+                            height: 72,
+                            fit: BoxFit.cover,
+                          )
+                          : Icon(
+                            Icons.person,
+                            size: 24,
+                            color:
+                                isDark
+                                    ? const Color(0xFF9CA3AF)
+                                    : const Color(0xFF6B7280),
+                          ),
                 ),
               ),
+
               const SizedBox(width: 12),
 
               // Name + Account

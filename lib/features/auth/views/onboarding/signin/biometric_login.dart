@@ -44,14 +44,16 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
   /// 🔒 Core login handler after biometric succeeds
   Future<void> _handleBiometricLogin(
-      BuildContext context, WidgetRef ref) async {
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     try {
       final userAccessToken = await SessionService.getAccessToken();
 
       if (userAccessToken == null) {
         AppMessenger.show(
           context,
-          message: 'Please login with your password',
+          message: 'Please login with your password or passcode',
           type: MessageType.warning,
         );
         context.push('/signin');
@@ -84,80 +86,39 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     }
   }
 
-  Future<void> _showBiometricBottomSheet(
-      BuildContext context, WidgetRef ref) async {
-    showModalBottomSheet(
-      context: context,
-      isDismissible: false,
-      
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        // start biometric auth right away
-        Future.microtask(() async {
-          final result = await BiometricAuthService.authenticateWithFallback(
-            promptMessage: 'Authenticate with Fingerprint or Face ID',
-          );
+  Future<void> _showBiometricBottomSheet(BuildContext ctx) async {
+    Future.microtask(() async {
+      final result = await BiometricAuthService.authenticateWithFallback(
+        promptMessage: 'Authenticate with Fingerprint or Face ID',
+      );
 
-          if (result == BiometricAuthResult.success && ctx.mounted) {
-            Navigator.pop(ctx);
-            _handleBiometricLogin(context, ref);
-          } else if (result == BiometricAuthResult.fallback && ctx.mounted) {
-            Navigator.pop(ctx);
-            context.push('/passcode-login');
-          } else if (ctx.mounted) {
-            Navigator.pop(ctx);
-            AppMessenger.show(
-              context,
-              message: 'Biometric authentication failed or cancelled.',
-              type: MessageType.error,
-            );
-          }
-        });
-
-        return SizedBox(
-          height: 260,
-          width: MediaQuery.of(context).size.width,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.fingerprint,
-                    size: 60, color: appTheme.primaryColor),
-                const SizedBox(height: 16),
-                const Text(
-                  'Authenticate to continue',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Use Face ID or Fingerprint',
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 36),
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child:
-                      const Text('Cancel', style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ),
-          ),
+      if (result == BiometricAuthResult.success && ctx.mounted) {
+        Navigator.pop(ctx);
+        _handleBiometricLogin(context, ref);
+      } else if (result == BiometricAuthResult.fallback && ctx.mounted) {
+        Navigator.pop(ctx);
+        context.push('/passcode-login');
+      } else if (ctx.mounted) {
+        Navigator.pop(ctx);
+        AppMessenger.show(
+          context,
+          message: 'Biometric authentication failed or cancelled.',
+          type: MessageType.error,
         );
-      },
-    );
+      }
+    });
   }
 
   /// Request biometric (Face ID / Fingerprint) and camera permission
   Future<void> _requestBiometricAndCameraPermissions() async {
     try {
       // Check if user has enabled biometrics in settings
-      final fpEnabled =
-          await LocalStorageService.getBool('pref_biometric_fingerprint');
-      final faceEnabled =
-          await LocalStorageService.getBool('pref_biometric_faceid');
+      final fpEnabled = await LocalStorageService.getBool(
+        'pref_biometric_fingerprint',
+      );
+      final faceEnabled = await LocalStorageService.getBool(
+        'pref_biometric_faceid',
+      );
       if ((fpEnabled ?? false) == false && (faceEnabled ?? false) == false) {
         AppMessenger.show(
           context,
@@ -165,6 +126,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
               'Biometric login is not enabled. Please enable it in settings.',
           type: MessageType.warning,
         );
+        context.push('/signin');
         return;
       }
 
@@ -172,7 +134,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final cameraStatus = await Permission.camera.request();
 
       // Request biometric permission (Android-specific)
-      // final biometricStatus = await Permission.sensors.request();
+      final biometricStatus = await Permission.sensors.request();
 
       // Check biometric availability using local_auth
       final localAuth = LocalAuthentication();
@@ -180,20 +142,21 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final isDeviceSupported = await localAuth.isDeviceSupported();
 
       if (cameraStatus.isGranted && canCheckBiometrics && isDeviceSupported ||
+          biometricStatus.isGranted &&
               canCheckBiometrics &&
               isDeviceSupported) {
-        _showBiometricBottomSheet(context, ref);
+        _showBiometricBottomSheet(context);
       } else if (!cameraStatus.isGranted) {
         AppMessenger.show(
           context,
           message: 'Camera permission is required for face verification',
           type: MessageType.error,
         );
-      } else if (!canCheckBiometrics) {
+      } else if (!biometricStatus.isGranted || !canCheckBiometrics) {
         AppMessenger.show(
           context,
           message:
-              'Unable to check available biometrics',
+              'Biometric (Face ID / Fingerprint) permission is required for verification',
           type: MessageType.error,
         );
       } else {
@@ -298,8 +261,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   CircleAvatar(
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
-                    child:
-                        const Icon(Icons.person, size: 50, color: Colors.white),
+                    child: const Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 18.h),
                   Text(
@@ -313,10 +279,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   SizedBox(height: 6.h),
                   Text(
                     _username ?? 'Loading...',
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      color: Colors.grey[300],
-                    ),
+                    style: TextStyle(fontSize: 15.sp, color: Colors.grey[300]),
                   ),
                   SizedBox(height: 50.h),
                   GestureDetector(
@@ -393,13 +356,18 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.shield_outlined,
-                          size: 16.sp, color: Colors.white70),
+                      Icon(
+                        Icons.shield_outlined,
+                        size: 16.sp,
+                        color: Colors.white70,
+                      ),
                       SizedBox(width: 6.w),
                       Text(
                         'Securely encrypted',
-                        style:
-                            TextStyle(fontSize: 13.sp, color: Colors.white70),
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),

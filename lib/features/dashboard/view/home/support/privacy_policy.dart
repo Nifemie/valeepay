@@ -17,13 +17,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Privacy Policy'),
-          leading: Navigator.of(context).canPop()
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => context.pop(),
-                )
-              : null,
+          leading:
+              Navigator.of(context).canPop()
+                  ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.pop(),
+                  )
+                  : null,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),

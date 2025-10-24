@@ -67,7 +67,7 @@ class AboutUsPage extends ConsumerWidget {
               // Menu Container
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.3),
+                  color: Theme.of(context).cardColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -121,7 +121,7 @@ class AboutUsPage extends ConsumerWidget {
                     style: const TextStyle(
                       color: Color(0xFF9CA3AF),
                       fontFamily: 'SF Pro',
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.w400,
                       height: 1.43,
                       letterSpacing: 0.035,

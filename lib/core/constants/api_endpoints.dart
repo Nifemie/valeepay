@@ -2,7 +2,6 @@ class ApiEndpoints {
   //auth apis
   static const String login = '/api/v1/auth/login';
   static const String loginWithPasscode = '/api/v1/auth/passcode-login';
-  static const String createPasscode = '/api/v1/auth/create-passcode';
   static const String resend2fa = '/api/v1/auth/resend-2fa';
   static const String verify2fa = '/api/v1/auth/verify-2fa';
   //user api
@@ -31,6 +30,8 @@ class ApiEndpoints {
 
   // User Profile
   static const String getUserProfile = '/api/v1/user/me';
+  static const String createPasscode = '/api/v1/user/create-passcode';
+  static const String editProfile = '/api/v1/user/edit-profile';
 
   // // Wallet - Transfers & Transactions
   // static const String getBanks = '/api/v1/wallet/get-banks';

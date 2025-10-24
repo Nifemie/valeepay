@@ -17,13 +17,13 @@ class TermsAndConditionsScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Terms and Conditions'),
-          leading: Navigator.of(context).canPop()
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => context.pop(),
-                )
-              : null,
+          leading:
+              Navigator.of(context).canPop()
+                  ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.pop(),
+                  )
+                  : null,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -70,7 +70,10 @@ class TermsAndConditionsScreen extends StatelessWidget {
               Text(
                 'ValarPay may charge fees for certain services. All fees will be disclosed to you before you complete a transaction.\n',
               ),
-              Text('5. Security', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                '5. Security',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Text(
                 'You are responsible for keeping your login credentials secure. Notify us immediately if you suspect unauthorized access to your account.\n',
               ),
