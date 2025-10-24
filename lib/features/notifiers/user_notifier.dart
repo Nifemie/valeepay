@@ -70,7 +70,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
   Future<void> checkUserExistance(UserAvailabilityRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final res = await _repository.checkUserExistance(request);
+      final res = await _repository.checkUserAvailablity(request);
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: true,

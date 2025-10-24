@@ -1,26 +1,26 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:valarpay/core/services/verification_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/KYC/setup_pin.dart';
-import 'package:valarpay/features/models/bvn_face_match_request.dart';
-import 'package:valarpay/features/models/bvn_face_match_response.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
+import 'package:valarpay/features/models/qore_bvn_face_verification_request.dart';
+import '../../../notifiers/wallet_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import '../../widgets/Kyc/Dialog/profile_setup_dialog.dart';
 import 'kyc_step_provider.dart';
-import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
 
 class IdentityVerificationPage extends ConsumerStatefulWidget {
   final KycAddressRequest request;
   const IdentityVerificationPage({required this.request, Key? key})
-      : super(key: key);
+    : super(key: key);
 
   @override
   ConsumerState<IdentityVerificationPage> createState() =>
@@ -34,6 +34,7 @@ class _IdentityVerificationPageState
   bool _isCameraInitialized = false;
   bool _isCapturing = false;
   bool _isCaptured = false;
+  bool _isLoading = false;
   File? _capturedImage;
   Timer? _countdownTimer;
   int _countdown = 10;
@@ -44,12 +45,45 @@ class _IdentityVerificationPageState
     _initializeCamera();
   }
 
+
+  _setupWallet() async {
+    try {
+      await ref.read(walletNotifierProvider.notifier).setupWallet(widget.request);
+      final userState = ref.read(walletNotifierProvider);
+      if (userState.isDataAvailable && mounted) {
+        AppMessenger.show(
+          context,
+          type: MessageType.success,
+          message: 'BVN Verified Successfully!',
+        );
+        _showSuccessDialog();
+      } else {
+        // 3️⃣ Handle failure
+        if (context.mounted) {
+          AppMessenger.show(
+            context,
+            message: userState.message ?? 'Failed to setup wallet',
+            type: MessageType.error,
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppMessenger.show(
+          context,
+          message: 'An unexpected error occurred: $e',
+          type: MessageType.error,
+        );
+      }
+    }
+  }
+
   Future<void> _initializeCamera() async {
     try {
       _cameras = await availableCameras();
       final frontCamera = _cameras!.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.front);
-
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+      );
       _controller = CameraController(
         frontCamera,
         ResolutionPreset.medium,
@@ -115,45 +149,41 @@ class _IdentityVerificationPageState
     _startCountdown();
   }
 
-  Future<void> _verifyCapturedImage(File? capturedImage) async {
+  Future<String> convertFileToBase64Async(File file) async {
+    final bytes = await file.readAsBytes();
+    return base64Encode(bytes);
+  }
+
+  Future<void> _verifyCapturedImage(File capturedImage) async {
     try {
-      final bytes = await capturedImage!.readAsBytes();
-      final base64Image = base64Encode(bytes);
-
-      final requestBody = BvnFaceMatchRequest(
+      setState(() => _isLoading = true);
+      String? base64 = await convertFileToBase64Async(capturedImage);
+      final requestBody = QoreBvnFaceVerificationRequest(
         idNumber: widget.request.bvn.toString(),
-        photoBase64: base64Image,
+        photoBase64: base64.toString(),
       );
-
-      _showSuccessDialog();
-
-      //   const apiUrl =
-      //       "/v1/ng/identities/face-verification/bvn";
-
-      //   final response = await http.post(
-      //     Uri.parse(apiUrl),
-      //     headers: {'Content-Type': 'application/json'},
-      //     body: requestBody.toJsonString(),
-      //   );
-
-      //   // 5️⃣ Handle response
-      //   if (response.statusCode == 200) {
-      //     final data = jsonDecode(response.body);
-      //     final faceMatchResponse = BvnFaceMatchResponse.fromJson(data);
-
-      //     if (faceMatchResponse.summary?.faceVerificationCheck?.match == true) {
-      //       final score =
-      //           faceMatchResponse.summary?.faceVerificationCheck?.matchScore;
-      //       debugPrint("✅ Face matched successfully! Match score: $score");
-      //     } else {
-      //       debugPrint("❌ Face verification failed.");
-      //     }
-      //   } else {
-      //     debugPrint(
-      //         "❌ Verification failed with status: ${response.statusCode}, body: ${response.body}");
-      //   }
+      final service = VerificationService();
+      final response = await service.verifyBvnFace(requestBody);
+      if (response.summary?.faceVerificationCheck?.faceVerification != null) {
+       _setupWallet();
+      } else {
+        AppMessenger.show(
+          context,
+          type: MessageType.error,
+          message:
+              response.message ?? 'Face verification failed. Please retry.',
+        );
+        _retake();
+      }
     } catch (e) {
-      debugPrint("⚠️ Error verifying face: $e");
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Face verification failed: ${e.toString()}',
+      );
+      _retake();
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -167,7 +197,8 @@ class _IdentityVerificationPageState
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => SetupTransactionPinPage()),
+                builder: (context) => SetupTransactionPinPage(),
+              ),
             );
           },
         );
@@ -190,11 +221,12 @@ class _IdentityVerificationPageState
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              ref.read(kycStepProvider.notifier).state = 2;
-              Navigator.pop(context);
-            }),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            ref.read(kycStepProvider.notifier).state = 2;
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -210,8 +242,10 @@ class _IdentityVerificationPageState
                   height: 220,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border:
-                        Border.all(color: const Color(0xFFF76301), width: 2),
+                    border: Border.all(
+                      color: const Color(0xFFF76301),
+                      width: 2,
+                    ),
                   ),
                   child: ClipOval(
                     child: Stack(
@@ -221,8 +255,11 @@ class _IdentityVerificationPageState
                           FittedBox(
                             fit: BoxFit.cover,
                             child: SizedBox(
-                              width: _controller!.value.previewSize!
-                                  .height, // swap to correct ratio
+                              width:
+                                  _controller!
+                                      .value
+                                      .previewSize!
+                                      .height, // swap to correct ratio
                               height: _controller!.value.previewSize!.width,
                               child: CameraPreview(_controller!),
                             ),
@@ -240,16 +277,18 @@ class _IdentityVerificationPageState
                               child: Text(
                                 '$_countdown',
                                 style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold),
+                                  color: Colors.white,
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
                         if (_isCapturing)
                           const Center(
-                            child:
-                                CircularProgressIndicator(color: Colors.white),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
                           ),
                       ],
                     ),
@@ -259,11 +298,9 @@ class _IdentityVerificationPageState
               const SizedBox(height: 10),
               if (_isCameraInitialized && _isCaptured)
                 TextButton(
-                    onPressed: _isCameraInitialized ? _retake : null,
-                    child: Icon(
-                      Icons.refresh,
-                      size: 40,
-                    )),
+                  onPressed: _isCameraInitialized ? _retake : null,
+                  child: Icon(Icons.refresh, size: 40),
+                ),
               // Title
               const Text(
                 'Tips for a Successful Identity Verification',
@@ -300,11 +337,12 @@ class _IdentityVerificationPageState
               const SizedBox(height: 20),
               FullWidthButton(
                 text: 'Continue',
+                isLoading: _isLoading,
                 isEnabled: _capturedImage != null,
                 onPressed: () {
                   if (_capturedImage != null) {
                     ref.read(kycStepProvider.notifier).state = 4;
-                    _verifyCapturedImage(_capturedImage);
+                    _verifyCapturedImage(_capturedImage!);
                   }
                 },
               ),
@@ -316,14 +354,10 @@ class _IdentityVerificationPageState
   }
 }
 
-// Tip Item Widget
 class TipItem extends StatelessWidget {
   final String text;
 
-  const TipItem({
-    Key? key,
-    required this.text,
-  }) : super(key: key);
+  const TipItem({Key? key, required this.text}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -336,16 +370,9 @@ class TipItem extends StatelessWidget {
           margin: const EdgeInsets.only(top: 2),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFF9CA3AF),
-              width: 1.5,
-            ),
+            border: Border.all(color: const Color(0xFF9CA3AF), width: 1.5),
           ),
-          child: const Icon(
-            Icons.check,
-            size: 12,
-            color: Color(0xFF9CA3AF),
-          ),
+          child: const Icon(Icons.check, size: 12, color: Color(0xFF9CA3AF)),
         ),
         const SizedBox(width: 12),
         Expanded(

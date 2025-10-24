@@ -54,7 +54,7 @@ class UserRepository {
     }
   }
 
-  Future<ApiResponse> checkUserExistance(
+  Future<ApiResponse> checkUserAvailablity(
     UserAvailabilityRequest request,
   ) async {
     try {
@@ -62,11 +62,27 @@ class UserRepository {
         ApiEndpoints.existanceCheck,
         data: request.toJson(),
       );
-      return ApiResponse.fromJson(response.data);
+
+      // Log full response to confirm structure
+      print('[UserRepo] Response code: ${response.statusCode}');
+      print('[UserRepo] Response data: ${response.data}');
+
+      // Handle expected structure gracefully
+      if (response.statusCode == 200 && response.data != null) {
+        return ApiResponse.fromJson(response.data);
+      } else {
+        throw Exception('Unexpected response: ${response.statusCode}');
+      }
     } on DioException catch (e) {
-      throw Exception(
-        e.response?.data['message'] ?? 'User existance check failed',
-      );
+      final serverMessage =
+          e.response?.data != null
+              ? e.response?.data['message'] ?? 'User existance check failed'
+              : 'User existance check failed';
+      print('[UserRepo] DioException: $serverMessage');
+      throw Exception(serverMessage);
+    } catch (e) {
+      print('[UserRepo] Unexpected error: $e');
+      throw Exception('User existance check failed');
     }
   }
 
