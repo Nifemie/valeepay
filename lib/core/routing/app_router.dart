@@ -21,6 +21,7 @@ import 'package:valarpay/features/dashboard/view/services/internet/internet_scre
 import 'package:valarpay/features/dashboard/view/services/shopping/shopping.dart';
 import 'package:valarpay/features/dashboard/view/services/swap_currency/swap_currency.dart';
 import 'package:valarpay/features/dashboard/view/settings/close_account_screen.dart';
+import 'package:valarpay/features/dashboard/view/settings/forgot_pin_screen.dart';
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/models/user.dart';
 import 'package:valarpay/features/models/username_request.dart';
@@ -275,6 +276,10 @@ final router = GoRouter(
     GoRoute(
       path: '/change-pin',
       builder: (context, state) => const ChangePinScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-pin',
+      builder: (context, state) => const ForgotPinScreen(),
     ),
     GoRoute(
       path: '/change-password',

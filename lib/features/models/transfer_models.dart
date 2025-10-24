@@ -154,6 +154,8 @@ class InitiateTransferRequest {
   final String currency;
   final String description;
   final String pin;
+  final bool saveBeneficiary;
+  final String sessionId;
 
   InitiateTransferRequest({
     required this.bankCode,
@@ -162,6 +164,8 @@ class InitiateTransferRequest {
     required this.currency,
     required this.description,
     required this.pin,
+    required this.saveBeneficiary,
+    required this.sessionId
   });
 
   Map<String, dynamic> toJson() => {
@@ -171,6 +175,8 @@ class InitiateTransferRequest {
     'currency': currency,
     'description': description,
     'walletPin': pin, // Backend expects 'walletPin', not 'pin'
+    "saveBeneficiary": saveBeneficiary,
+    "sessionId": sessionId
   };
 }
 

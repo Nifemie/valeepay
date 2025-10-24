@@ -26,6 +26,8 @@ class ApiEndpoints {
   // Wallet - Transaction PIN
   static const String setWalletPin = '/api/v1/user/set-wallet-pin';
   static const String verifyWalletPin = '/api/v1/user/verify-wallet-pin';
+  static const String forgotWalletPin = '/api/v1/user/forget-pin';
+  static const String resetWalletPin = '/api/v1/user/reset-pin';
 
   // User Profile
   static const String getUserProfile = '/api/v1/user/me';

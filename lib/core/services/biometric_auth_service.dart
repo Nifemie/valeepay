@@ -9,20 +9,28 @@ class BiometricAuthService {
   }) async {
     try {
       final canCheck = await _auth.canCheckBiometrics;
-      final isAvailable = await _auth.isDeviceSupported();
-      if (!canCheck || !isAvailable) {
-        // Fallback to passcode if biometrics unavailable
+      final isDeviceSupported = await _auth.isDeviceSupported();
+      if (!canCheck || !isDeviceSupported) {
         return BiometricAuthResult.fallback;
       }
 
-      final availableBiometrics = await _auth.getAvailableBiometrics();
-      final supportsFaceID = availableBiometrics.contains(BiometricType.face);
-      availableBiometrics.contains(BiometricType.fingerprint);
+      final available = await _auth.getAvailableBiometrics();
+      bool supportsFace = false;
+      bool supportsFingerprint = false;
+
+      for (final b in available) {
+        if (b == BiometricType.face) supportsFace = true;
+        if (b == BiometricType.fingerprint || b == BiometricType.strong) {
+          supportsFingerprint = true;
+        }
+      }
 
       final success = await _auth.authenticate(
-        localizedReason: supportsFaceID
-            ? 'Use Face ID to login'
-            : 'Use Fingerprint to login',
+        localizedReason: supportsFace
+            ? 'Use Face ID to authenticate'
+            : supportsFingerprint
+                ? 'Use fingerprint to authenticate'
+                : promptMessage,
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
@@ -30,8 +38,10 @@ class BiometricAuthService {
         ),
       );
 
-      return success ? BiometricAuthResult.success : BiometricAuthResult.failed;
-    } catch (_) {
+      return success
+          ? BiometricAuthResult.success
+          : BiometricAuthResult.failed;
+    } catch (e) {
       return BiometricAuthResult.failed;
     }
   }

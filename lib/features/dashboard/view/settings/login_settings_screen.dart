@@ -39,21 +39,35 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
     _checkDeviceBiometrics();
   }
 
-  Future<void> _checkDeviceBiometrics() async {
-    try {
-      final canCheck = await _localAuth.canCheckBiometrics;
-      final isDeviceSupported = await _localAuth.isDeviceSupported();
-      final available = await _localAuth.getAvailableBiometrics();
-      setState(() {
-        canCheckBiometrics = canCheck && isDeviceSupported;
-        hasFaceAvailable = available.contains(BiometricType.face);
-        hasFingerprintAvailable = available.contains(BiometricType.fingerprint);
-      });
-    } catch (_) {
-      // ignore and keep defaults
-    }
-  }
+Future<void> _checkDeviceBiometrics() async {
+  try {
+    final isDeviceSupported = await _localAuth.isDeviceSupported();
+    final canCheck = await _localAuth.canCheckBiometrics;
+    final availableBiometrics = await _localAuth.getAvailableBiometrics();
 
+    bool fingerprint = false;
+    bool face = false;
+
+    // Some devices (Android 11+) may report BiometricType.strong
+    // instead of fingerprint or face.
+    for (final bio in availableBiometrics) {
+      if (bio == BiometricType.fingerprint || bio == BiometricType.strong) {
+        fingerprint = true;
+      }
+      if (bio == BiometricType.face) {
+        face = true;
+      }
+    }
+
+    setState(() {
+      canCheckBiometrics = canCheck && isDeviceSupported;
+      hasFingerprintAvailable = fingerprint;
+      hasFaceAvailable = face;
+    });
+  } catch (e) {
+    debugPrint('Biometric check failed: $e');
+  }
+}
   Future<void> _loadPreferences() async {
     final fp = await LocalStorageService.getBool(_keyFingerprint);
     final face = await LocalStorageService.getBool(_keyFaceId);

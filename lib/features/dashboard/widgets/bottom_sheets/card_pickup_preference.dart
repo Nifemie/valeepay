@@ -17,8 +17,8 @@ class _SelectPreferenceBottomSheetState
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration:  BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -40,14 +40,13 @@ class _SelectPreferenceBottomSheetState
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 18, color: Colors.black87),
+                    size: 18),
                 onPressed: () {},
               ),
               const SizedBox(width: 4),
               const Text(
                 "Select Preference",
                 style: TextStyle(
-                  color: Colors.black,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
@@ -117,7 +116,6 @@ class _SelectPreferenceBottomSheetState
               title,
               style: const TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
                 fontWeight: FontWeight.w500,
               ),
             ),

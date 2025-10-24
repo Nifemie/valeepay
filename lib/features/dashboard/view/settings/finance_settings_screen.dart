@@ -10,8 +10,8 @@ class FinanceSettingsScreen extends StatefulWidget {
 
 class _FinanceSettingsScreenState extends State<FinanceSettingsScreen> {
   bool targetSavingsEnabled = true;
-  bool fixedDepositEnabled = true;
-  bool fixedSavingsEnabled = true;
+  bool fixedDepositEnabled = false;
+  bool fixedSavingsEnabled = false;
 
   @override
   Widget build(BuildContext context) {
