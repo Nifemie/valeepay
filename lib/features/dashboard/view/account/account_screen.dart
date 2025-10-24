@@ -75,20 +75,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               onToggle: () =>
                   setState(() => showNairaBalance = !showNairaBalance),
             ),
-            SizedBox(height: 16.h),
-
-            // Dollar Account Card (coming soon - no wallet yet)
-            _accountCard(
-              currency: "\$",
-              balance: '\$0.00',
-              bankName: 'ValarPay Bank',
-              accountName: 'Not Available',
-              accountNumber: 'Coming Soon',
-              tierLevel: tierLevel,
-              isVisible: showDollarBalance,
-              onToggle: () =>
-                  setState(() => showDollarBalance = !showDollarBalance),
-            ),
             SizedBox(height: 20.h),
 
             // Get Euro Account

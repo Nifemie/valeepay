@@ -16,10 +16,7 @@ import 'package:valarpay/features/providers/user_provider.dart';
 class Verify2faScreen extends ConsumerStatefulWidget {
   final UserModel request;
 
-  const Verify2faScreen({
-    required this.request,
-    super.key,
-  });
+  const Verify2faScreen({required this.request, super.key});
 
   @override
   ConsumerState<Verify2faScreen> createState() => _Verify2faScreenState();
@@ -36,19 +33,22 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
     _timer?.cancel();
     _resendTimer = 30;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       if (_resendTimer == 0) {
         timer.cancel();
-        setState(() {});
+        if (mounted) setState(() {});
       } else {
-        setState(() {
-          _resendTimer--;
-        });
+        if (mounted)
+          setState(() {
+            _resendTimer--;
+          });
       }
     });
   }
 
   Future<void> _verify2fa() async {
     if (_otp.length != 6) {
+      if (!mounted) return;
       AppMessenger.show(
         context,
         type: MessageType.error,
@@ -57,12 +57,15 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
       return;
     }
     try {
-      await ref.read(authNotifierProvider.notifier).verify2fa(
+      await ref
+          .read(authNotifierProvider.notifier)
+          .verify2fa(
             VerifyOtpRequest(username: widget.request.email, otpCode: _otp),
           );
       final userState = ref.read(authNotifierProvider);
 
-      if (userState.isDataAvailable && mounted) {
+      if (!mounted) return;
+      if (userState.isDataAvailable) {
         // Save the session including access token after 2FA verification
         final loginResponse = userState.data?.first;
         if (loginResponse != null) {
@@ -70,7 +73,9 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
           ref.read(userProvider.notifier).setUser(loginResponse.user);
         }
         context.pushReplacement('/', extra: widget.request);
-      } else if (mounted) {
+        return;
+      } else {
+        if (!mounted) return;
         AppMessenger.show(
           context,
           type: MessageType.error,
@@ -78,6 +83,7 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
         );
       }
     } catch (e) {
+      if (!mounted) return;
       AppMessenger.show(
         context,
         type: MessageType.error,
@@ -111,6 +117,7 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
 
   @override
   void codeUpdated() {
+    if (!mounted) return;
     setState(() {
       _otp = code ?? '';
     });
@@ -202,13 +209,14 @@ class _Verify2faScreenState extends ConsumerState<Verify2faScreen>
                       _isLoading
                           ? 'Sending...'
                           : _resendTimer == 0
-                              ? 'Resend'
-                              : 'Resend in $_resendTimer seconds',
+                          ? 'Resend'
+                          : 'Resend in $_resendTimer seconds',
                       style: TextStyle(
                         fontSize: 14,
-                        color: _resendTimer == 0
-                            ? appTheme.primaryColor
-                            : Colors.grey,
+                        color:
+                            _resendTimer == 0
+                                ? appTheme.primaryColor
+                                : Colors.grey,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

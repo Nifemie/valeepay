@@ -4,7 +4,7 @@ import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/transaction_model.dart';
 import 'package:valarpay/features/models/transactions_response.dart';
 import 'package:valarpay/features/repositories/wallet_repository.dart';
-import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 /// Repository provider
 final walletRepositoryProvider = Provider<WalletRepository>((ref) {
@@ -14,9 +14,10 @@ final walletRepositoryProvider = Provider<WalletRepository>((ref) {
 /// Transaction Notifier for managing transaction history state
 class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
   final WalletRepository _repository;
+  final Ref _ref;
 
-  TransactionNotifier(this._repository)
-    : super(DataState<TransactionModel>.initial());
+  TransactionNotifier(this._repository, this._ref)
+      : super(DataState<TransactionModel>.initial());
 
   int _currentPage = 1;
   int _totalPages = 1;
@@ -58,6 +59,18 @@ class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
 
     state = state.copyWith(isInitialLoading: _currentPage == 1, message: null);
 
+    final user = _ref.read(userNotifierProvider).data?.first;
+    if (user == null) {
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'User not authenticated.',
+      );
+      return;
+    }
+    final userId = user.id;
+    log('Fetching transactions for userId: $userId');
+
     try {
       final response = await _repository.getAllTransactions(
         page: _currentPage,
@@ -65,6 +78,7 @@ class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
         status: _statusFilter,
         dateFrom: _dateFromFilter,
         dateTo: _dateToFilter,
+        userId: userId,
       );
 
       _totalPages = response.totalPages;
@@ -144,5 +158,5 @@ final transactionNotifierProvider =
     StateNotifierProvider<TransactionNotifier, DataState<TransactionModel>>((
       ref,
     ) {
-      return TransactionNotifier(ref.read(walletRepositoryProvider));
+      return TransactionNotifier(ref.read(walletRepositoryProvider), ref);
     });

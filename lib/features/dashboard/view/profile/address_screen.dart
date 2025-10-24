@@ -9,6 +9,10 @@ class AddressScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.read(userProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Check if address is set
+    final hasAddress = user?.address != null && user!.address!.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -27,30 +31,64 @@ class AddressScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ProfileInfoTile(
-              label: 'LGA',
-              value: user?.city ?? 'Ikeja East',
+      body: hasAddress
+          ? SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileInfoTile(
+                    label: 'LGA',
+                    value: user?.city ?? 'Not set',
+                  ),
+                  ProfileInfoTile(
+                    label: 'State',
+                    value: user?.state ?? 'Not set',
+                  ),
+                  ProfileInfoTile(
+                    label: 'Address',
+                    value: user!.address!,
+                  ),
+                  ProfileInfoTile(
+                    label: 'Landmark',
+                    value: user.country ?? 'Not set',
+                  ),
+                ],
+              ),
+            )
+          : Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.location_off_outlined,
+                      size: 80,
+                      color: isDark ? Colors.grey[600] : Colors.grey[400],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'KYC Not Set',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Complete your KYC verification to view your address details',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            ProfileInfoTile(
-              label: 'State',
-              value: user?.state ?? 'Lagos',
-            ),
-            ProfileInfoTile(
-              label: 'Address',
-              value: user?.address ?? 'No 1, Adeniyi Jones Avenue, Ikeja',
-            ),
-            ProfileInfoTile(
-              label: 'Landmark',
-              value: user?.country ?? 'Opposite Chicken Republic',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

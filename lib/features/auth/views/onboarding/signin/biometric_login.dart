@@ -49,35 +49,46 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   ) async {
     try {
       final userAccessToken = await SessionService.getAccessToken();
+      print('🔐 [BiometricLogin] Access token: $userAccessToken');
 
       if (userAccessToken == null) {
+        print('🔐 [BiometricLogin] No access token found.');
+        if (!context.mounted) return;
         AppMessenger.show(
           context,
-          message: 'Please login with your password or passcode',
+          message: 'Session expired. Please login with your password',
           type: MessageType.warning,
         );
-        context.push('/signin');
+        context.go('/signin');
         return;
       }
 
       final user = await SessionService.getUser();
+      print('🔐 [BiometricLogin] User: $user');
       if (user != null) {
         ref.read(userProvider.notifier).setUser(user);
+        if (!context.mounted) return;
         AppMessenger.show(
           context,
           message: 'Welcome back, ${user.fullname}',
           type: MessageType.success,
         );
-        context.pushReplacement('/');
+        print('🔐 [BiometricLogin] Navigating to home screen...');
+        // Use go instead of pushReplacement to clear the entire stack
+        context.go('/');
       } else {
+        print('🔐 [BiometricLogin] No user found.');
+        if (!context.mounted) return;
         AppMessenger.show(
           context,
-          message: 'Authentication failed, login with your password',
-          type: MessageType.error,
+          message: 'Session expired. Please login with your password',
+          type: MessageType.warning,
         );
-        context.push('/signin');
+        context.go('/signin');
       }
     } catch (e) {
+      print('🔐 [BiometricLogin] Exception: $e');
+      if (!context.mounted) return;
       AppMessenger.show(
         context,
         message: 'An error occurred: ${e.toString()}',
@@ -86,27 +97,83 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     }
   }
 
-  Future<void> _showBiometricBottomSheet(BuildContext ctx) async {
-    Future.microtask(() async {
-      final result = await BiometricAuthService.authenticateWithFallback(
-        promptMessage: 'Authenticate with Fingerprint or Face ID',
-      );
+  Future<void> _showBiometricBottomSheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        // start biometric auth right away
+        Future.microtask(() async {
+          final result = await BiometricAuthService.authenticateWithFallback(
+            promptMessage: 'Authenticate with Fingerprint or Face ID',
+          );
 
-      if (result == BiometricAuthResult.success && ctx.mounted) {
-        Navigator.pop(ctx);
-        _handleBiometricLogin(context, ref);
-      } else if (result == BiometricAuthResult.fallback && ctx.mounted) {
-        Navigator.pop(ctx);
-        context.push('/passcode-login');
-      } else if (ctx.mounted) {
-        Navigator.pop(ctx);
-        AppMessenger.show(
-          context,
-          message: 'Biometric authentication failed or cancelled.',
-          type: MessageType.error,
+          if (!ctx.mounted) return;
+
+          // Pop the bottom sheet first
+          Navigator.pop(ctx);
+
+          // Wait for bottom sheet animation to complete
+          await Future.delayed(const Duration(milliseconds: 300));
+
+          if (!context.mounted) return;
+
+          // Now handle navigation based on result
+          if (result == BiometricAuthResult.success) {
+            await _handleBiometricLogin(context, ref);
+          } else if (result == BiometricAuthResult.fallback) {
+            context.go('/passcode-login');
+          } else {
+            AppMessenger.show(
+              context,
+              message: 'Biometric authentication failed or cancelled.',
+              type: MessageType.error,
+            );
+          }
+        });
+
+        return Container(
+          height: 280,
+          width: MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.fingerprint,
+                size: 60,
+                color: appTheme.primaryColor,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Authenticate to continue',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Use Face ID or Fingerprint',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 36),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
         );
-      }
-    });
+      },
+    );
   }
 
   /// Request biometric (Face ID / Fingerprint) and camera permission
@@ -120,6 +187,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         'pref_biometric_faceid',
       );
       if ((fpEnabled ?? false) == false && (faceEnabled ?? false) == false) {
+        if (!mounted) return;
         AppMessenger.show(
           context,
           message:
@@ -141,11 +209,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final canCheckBiometrics = await localAuth.canCheckBiometrics;
       final isDeviceSupported = await localAuth.isDeviceSupported();
 
+      if (!mounted) return;
+
       if (cameraStatus.isGranted && canCheckBiometrics && isDeviceSupported ||
-          biometricStatus.isGranted &&
-              canCheckBiometrics &&
-              isDeviceSupported) {
-        _showBiometricBottomSheet(context);
+          canCheckBiometrics && isDeviceSupported) {
+        _showBiometricBottomSheet(context, ref);
       } else if (!cameraStatus.isGranted) {
         AppMessenger.show(
           context,
@@ -155,8 +223,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       } else if (!biometricStatus.isGranted || !canCheckBiometrics) {
         AppMessenger.show(
           context,
-          message:
-              'Biometric (Face ID / Fingerprint) permission is required for verification',
+          message: 'Unable to check available biometrics',
           type: MessageType.error,
         );
       } else {
@@ -168,6 +235,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       AppMessenger.show(
         context,
         message: 'Failed to request permissions: ${e.toString()}',
@@ -184,7 +252,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: IconButton(
-          onPressed: () => context.push('/signin'),
+          onPressed: () => context.go('/signin'),
           icon: const Icon(Icons.arrow_back, color: appTheme.darkColor),
         ),
         actions: [
@@ -322,7 +390,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.push('/passcode-login'),
+                      onPressed: () => context.go('/passcode-login'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: appTheme.primaryColor,
                         padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -342,7 +410,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   ),
                   SizedBox(height: 22.h),
                   GestureDetector(
-                    onTap: () => context.push('/signin'),
+                    onTap: () => context.go('/signin'),
                     child: Text(
                       'Switch Account',
                       style: TextStyle(

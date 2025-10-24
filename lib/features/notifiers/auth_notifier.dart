@@ -6,6 +6,7 @@ import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/repositories/auth_repository.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
   final AuthRepository _repository;
@@ -96,7 +97,7 @@ class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
 }
 
 // 🔹 Providers
-final apiClientProvider = Provider((ref) => ApiClient());
+
 
 final authRepositoryProvider = Provider(
   (ref) => AuthRepository(ref.read(apiClientProvider)),

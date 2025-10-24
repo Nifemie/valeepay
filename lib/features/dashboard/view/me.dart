@@ -43,13 +43,12 @@ class _MeScreenState extends ConsumerState<MeScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Column(
-            children: [
-              // Profile Header Card
-              ProfileHeaderCard(
+        child: Column(
+          children: [
+            // Profile Header Card - Pinned at top
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              child: ProfileHeaderCard(
                 onSecurityTipsTap: () {
                   context.push('/security-tips');
                 },
@@ -57,16 +56,28 @@ class _MeScreenState extends ConsumerState<MeScreen> {
                   context.push('/my-rewards');
                 },
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
 
-              // Account Menu Widget
-              const AccountMenuWidget(),
-              const SizedBox(height: 16),
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    // Account Menu Widget
+                    const AccountMenuWidget(),
+                    const SizedBox(height: 16),
 
-              // Security Menu Widget
-              const SecurityMenuWidget(),
-            ],
-          ),
+                    // Security Menu Widget
+                    const SecurityMenuWidget(),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

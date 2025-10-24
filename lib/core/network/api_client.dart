@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/services/session_service.dart';
 
@@ -78,7 +79,6 @@ class ApiClient {
     );
   }
 
-  /// Adds Authorization header if access token is available
   Future<void> _withAuth(Options options) async {
     final token = await SessionService.getAccessToken();
     if (token != null && token.isNotEmpty) {
@@ -87,7 +87,6 @@ class ApiClient {
     }
   }
 
-  /// POST Request
   Future<Response> post(String path, {Map<String, dynamic>? data}) async {
     final options = Options();
     await _withAuth(options);
@@ -115,14 +114,12 @@ class ApiClient {
     return await dio.get(path, queryParameters: query, options: options);
   }
 
-  /// PUT Request
   Future<Response> put(String path, {Map<String, dynamic>? data}) async {
     final options = Options();
     await _withAuth(options);
     return await dio.put(path, data: data, options: options);
   }
 
-  /// DELETE Request
   Future<Response> delete(String path) async {
     final options = Options();
     await _withAuth(options);

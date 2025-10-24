@@ -16,12 +16,53 @@ import '../../widgets/Kyc/Dialog/passcode_success.dart';
 class ConfirmTransactionPinPage extends ConsumerWidget {
   const ConfirmTransactionPinPage({Key? key}) : super(key: key);
 
+  /// ✅ Extracted helper to handle PIN creation logic
+  _createPin(
+      BuildContext context,
+      WidgetRef ref,
+      String pin,
+      String? errorMessage,
+      ) async {
+    try {
+      // 1️⃣ Call API to save PIN to backend
+      final request = SetWalletPinRequest(pin: pin);
+      final response =
+      await ref.read(userNotifierProvider.notifier).setWalletPin(request);
+
+      if (response != null) {
+        // 2️⃣ Save locally
+        await ref.read(pinControllerProvider.notifier).savePinSecurely(pin);
+
+        if (context.mounted) {
+          _showSuccessDialog(context, ref);
+        }
+      } else {
+        // 3️⃣ Handle failure
+        if (context.mounted) {
+          AppMessenger.show(
+            context,
+            message: errorMessage ?? 'Failed to save PIN',
+            type: MessageType.error,
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppMessenger.show(
+          context,
+          message: 'An unexpected error occurred: $e',
+          type: MessageType.error,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pinState = ref.watch(pinControllerProvider);
     final userState = ref.watch(userNotifierProvider);
     final isFormValid =
-        ref.read(pinControllerProvider.notifier).isConfirmPinValid();
+    ref.read(pinControllerProvider.notifier).isConfirmPinValid();
 
     return Scaffold(
       appBar: AppBar(
@@ -38,7 +79,6 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              // Title
               const Text(
                 'Confirm Your Transaction Pin',
                 textAlign: TextAlign.center,
@@ -50,7 +90,6 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              // Subtitle
               const Text(
                 'Re-enter your 4-digit PIN to always authorize and secure every transaction',
                 textAlign: TextAlign.center,
@@ -63,7 +102,6 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              // PIN Input Boxes
               PinInputField(
                 onChanged: (value) {
                   ref
@@ -72,7 +110,6 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 40),
-              // Continue Button
               FullWidthButton(
                 text: 'Continue',
                 isEnabled: isFormValid,
@@ -81,33 +118,12 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                   ref.read(pinControllerProvider.notifier).submitConfirmPin(
                     context,
                     onSuccess: () async {
-                      // Call API to save PIN to backend
-                      final request = SetWalletPinRequest(pin: pinState.pin);
-                      final response = await ref
-                          .read(userNotifierProvider.notifier)
-                          .setWalletPin(request);
-
-                      if (response != null) {
-                        // PIN saved successfully to backend
-                        // Also save locally for secure storage
-                        await ref
-                            .read(pinControllerProvider.notifier)
-                            .savePinSecurely(pinState.pin);
-
-                        if (context.mounted) {
-                          // Show success dialog
-                          _showSuccessDialog(context, ref);
-                        }
-                      } else {
-                        // API call failed, show error
-                        if (context.mounted) {
-                          AppMessenger.show(
-                            context,
-                            message: userState.message ?? 'Failed to save PIN',
-                            type: MessageType.error,
-                          );
-                        }
-                      }
+                      await _createPin(
+                        context,
+                        ref,
+                        pinState.pin,
+                        userState.message,
+                      );
                     },
                     onError: () {
                       _showPinMismatchDialog(context, ref);
@@ -122,6 +138,7 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
     );
   }
 
+  /// ✅ Success dialog (unchanged)
   void _showSuccessDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -129,34 +146,28 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
       builder: (BuildContext context) {
         return PasscodeSuccessDialog(
           onDone: () async {
-            // Clear all PINs from state
             ref.read(pinControllerProvider.notifier).clearAllPins();
 
-            // Refresh user profile to update isWalletPinSet status
-            final updatedUser = await ref
-                .read(userNotifierProvider.notifier)
-                .refreshUserProfile();
+            final updatedUser =
+            await ref.read(userNotifierProvider.notifier).refreshUserProfile();
 
-            // Update user provider with fresh data
             if (updatedUser != null) {
               ref.read(userProvider.notifier).setUser(updatedUser);
 
-              // Update session storage with new user data
               final currentToken = await SessionService.getAccessToken();
               if (currentToken != null) {
-                await SessionService.saveSession(LoginResponse(
-                  user: updatedUser,
-                  accessToken: currentToken,
-                  message: 'Success',
-                  statusCode: 200,
-                ));
+                await SessionService.saveSession(
+                  LoginResponse(
+                    user: updatedUser,
+                    accessToken: currentToken,
+                    message: 'Success',
+                    statusCode: 200,
+                  ),
+                );
               }
             }
 
-            // Close the dialog first
             Navigator.of(context).pop();
-
-            // Navigate to home screen, replacing all previous routes
             context.go('/');
           },
         );
@@ -164,6 +175,7 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
     );
   }
 
+  /// ❌ Mismatch dialog (unchanged)
   void _showPinMismatchDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -198,27 +210,12 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                           Navigator.of(context).pop();
                           Navigator.of(context).pop();
                         },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Color(0xFF111827),
-                            fontFamily: 'SF Pro',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        child: const Text('Cancel'),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Container(
-                        height: 40,
                         decoration: BoxDecoration(
                           color: const Color(0xFFF76301),
                           borderRadius: BorderRadius.circular(8),
@@ -226,25 +223,13 @@ class ConfirmTransactionPinPage extends ConsumerWidget {
                         child: TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
-                            // Clear only the confirm PIN field
                             ref
                                 .read(pinControllerProvider.notifier)
                                 .clearConfirmPin();
                           },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
                           child: const Text(
                             'Try Again',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'SF Pro',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TextStyle(color: Colors.white),
                           ),
                         ),
                       ),

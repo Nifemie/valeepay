@@ -9,6 +9,9 @@ import 'package:valarpay/core/utils/responsive_utils.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../widgets/home_widgets/support_widgets.dart';
 import 'customer_service_form_screen.dart';
+import '../../profile/change_phone_number.dart';
+import '../../me/theme.dart';
+import '../../settings/transaction_pin_settings_screen.dart';
 // Local imports removed: unused in this file
 
 class CustomerServiceScreen extends ConsumerStatefulWidget {
@@ -175,9 +178,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) =>
-                                        const CustomerServiceFormScreen(
-                                          title: 'Phone Number Change',
-                                        ),
+                                        const ChangeMobileNumberScreen(),
                               ),
                             );
                           },
@@ -190,11 +191,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const CustomerServiceFormScreen(
-                                          title: 'Theme',
-                                        ),
+                                builder: (context) => const ThemesPage(),
                               ),
                             );
                           },
@@ -209,9 +206,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) =>
-                                        const CustomerServiceFormScreen(
-                                          title: 'PIN Settings',
-                                        ),
+                                        const TransactionPinSettingsScreen(),
                               ),
                             );
                           },

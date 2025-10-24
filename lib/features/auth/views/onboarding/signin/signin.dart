@@ -49,7 +49,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       await notifier.login(request);
       final state = ref.read(authNotifierProvider);
 
-      if (state.isDataAvailable && mounted) {
+      if (!mounted) return;
+      if (state.isDataAvailable) {
         final loginResponse = state.data?.first;
         ref.read(userProvider.notifier).setUser(loginResponse!.user);
         await SessionService.saveSession(loginResponse);
@@ -59,13 +60,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         });
 
         if (loginResponse.accessToken != null) {
-          context.pushReplacement(
-            '/',
-          );
+          // Don't call setState or show snackbar after navigation
+          context.pushReplacement('/');
+          return;
         } else {
           context.push('/verify-2fa', extra: loginResponse.user);
+          return;
         }
       } else {
+        if (!mounted) return;
         AppMessenger.show(
           context,
           message: state.message ?? 'Login failed',
@@ -103,10 +106,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           SizedBox(
             width: double.infinity,
             height: double.infinity,
-            child: Image.asset(
-              'assets/images/loginbg.jpg',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/images/loginbg.jpg', fit: BoxFit.cover),
           ),
 
           // Black gradient overlay
@@ -228,8 +228,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         label: 'Password',
                         hint: '*********',
                         obscureText: _obscurePassword,
-                        onToggleVisibility: () => setState(
-                            () => _obscurePassword = !_obscurePassword),
+                        onToggleVisibility:
+                            () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                         hasError: _hasIncorrectCred,
                         isDark: true,
                       ),
@@ -281,31 +283,33 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             _buildLoginOption(
                               icon: Icons.fingerprint,
                               label: 'Login with Thumbprint',
-                              onTap: _hasStoredUsername
-                                  ? () => context.push('/biometric-login')
-                                  : () {
-                                      AppMessenger.show(
-                                        context,
-                                        message:
-                                            'Please login once before enabling biometric login.',
-                                        type: MessageType.warning,
-                                      );
-                                    },
+                              onTap:
+                                  _hasStoredUsername
+                                      ? () => context.push('/biometric-login')
+                                      : () {
+                                        AppMessenger.show(
+                                          context,
+                                          message:
+                                              'Please login once before enabling biometric login.',
+                                          type: MessageType.warning,
+                                        );
+                                      },
                             ),
                             SizedBox(height: 12.h),
                             _buildLoginOption(
                               icon: Icons.lock_outline,
                               label: 'Login with Passcode',
-                              onTap: _hasStoredUsername
-                                  ? () => context.push('/passcode-login')
-                                  : () {
-                                      AppMessenger.show(
-                                        context,
-                                        message:
-                                            'Please login once before enabling passcode login.',
-                                        type: MessageType.warning,
-                                      );
-                                    },
+                              onTap:
+                                  _hasStoredUsername
+                                      ? () => context.push('/passcode-login')
+                                      : () {
+                                        AppMessenger.show(
+                                          context,
+                                          message:
+                                              'Please login once before enabling passcode login.',
+                                          type: MessageType.warning,
+                                        );
+                                      },
                             ),
                           ],
                         ),
@@ -392,12 +396,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               borderRadius: BorderRadius.circular(8.r),
               borderSide: const BorderSide(color: appTheme.primaryColor),
             ),
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 12.h,
+            ),
           ),
-          validator: (value) => (value == null || value.isEmpty)
-              ? 'This field is required'
-              : null,
+          validator:
+              (value) =>
+                  (value == null || value.isEmpty)
+                      ? 'This field is required'
+                      : null,
         ),
       ],
     );
@@ -460,12 +468,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 color: hasError ? Colors.red : appTheme.primaryColor,
               ),
             ),
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 12.h,
+            ),
           ),
-          validator: (value) => (value == null || value.isEmpty)
-              ? 'This field is required'
-              : null,
+          validator:
+              (value) =>
+                  (value == null || value.isEmpty)
+                      ? 'This field is required'
+                      : null,
         ),
       ],
     );

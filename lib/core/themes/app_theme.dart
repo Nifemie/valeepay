@@ -17,10 +17,8 @@ class AppTheme {
         elevation: 0,
         surfaceTintColor: Colors.white,
       ),
-      bottomAppBarTheme: const BottomAppBarThemeData(
-        color: Colors.white,
-      ),
-      cardColor: Colors.grey[200],
+      bottomAppBarTheme: const BottomAppBarThemeData(color: Colors.white),
+      cardColor: Colors.grey,
       textTheme: const TextTheme(
         labelSmall: TextStyle(color: Colors.black),
         labelMedium: TextStyle(
