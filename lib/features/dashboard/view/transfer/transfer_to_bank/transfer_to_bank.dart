@@ -166,7 +166,7 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
               maxLength: 10,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                hintText: 'Enter ValarPay account name/number',
+                hintText: 'Enter Bank account name/number',
                 hintStyle: TextStyle(
                   color: Colors.grey[500],
                   fontSize: 14,

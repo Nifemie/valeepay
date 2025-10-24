@@ -95,6 +95,8 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
               type: MessageType.success,
             );
 
+            if (!mounted) return;
+            setState(() => _isProcessing = false);
             // Navigate after the current frame to avoid duplicate key issues
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
@@ -102,12 +104,14 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
               }
             });
           } else {
+            if (!mounted) return;
             AppMessenger.show(
               context,
               message: state.message ?? 'Invalid passcode',
               type: MessageType.error,
             );
             setState(() => _passcode = '');
+            setState(() => _isProcessing = false);
           }
         } else {
           AppMessenger.show(
@@ -197,9 +201,9 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
               ),
 
             if (!_isProcessing && !authState.isInitialLoading)
-            SizedBox(height: 15),
-            
-              _buildNumberPad(),
+              SizedBox(height: 15),
+
+            _buildNumberPad(),
 
             const SizedBox(height: 16),
             TextButton(

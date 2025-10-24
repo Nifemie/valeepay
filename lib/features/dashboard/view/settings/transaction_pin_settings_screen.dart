@@ -38,7 +38,7 @@ class _TransactionPinSettingsScreenState
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Transaction PIN Section
+            // Transaction PIN Section,
             Text(
               'Transaction PIN',
               style: Theme.of(

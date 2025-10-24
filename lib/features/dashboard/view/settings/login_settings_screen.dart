@@ -279,26 +279,49 @@ Future<void> _checkDeviceBiometrics() async {
                               return;
                             }
 
-                            // require biometric verification before enabling/disabling
-                            final result = await BiometricAuthService
-                                .authenticateWithFallback(
-                                    promptMessage:
-                                        'Verify to change biometric setting');
-                            if (result == BiometricAuthResult.success) {
+                            // If enabling, verify with biometric first
+                            if (value) {
+                              final result = await BiometricAuthService
+                                  .authenticateWithFallback(
+                                      promptMessage:
+                                          'Verify fingerprint to enable');
+                              if (result == BiometricAuthResult.success) {
+                                setState(() {
+                                  fingerprintEnabled = value;
+                                });
+                                _saveFingerprintPref(value);
+                                if (context.mounted) {
+                                  AppMessenger.show(context,
+                                      message: 'Fingerprint login enabled',
+                                      type: MessageType.success);
+                                }
+                              } else if (result ==
+                                  BiometricAuthResult.fallback) {
+                                if (context.mounted) {
+                                  AppMessenger.show(context,
+                                      message:
+                                          'Biometrics not available on this device',
+                                      type: MessageType.warning);
+                                }
+                              } else {
+                                if (context.mounted) {
+                                  AppMessenger.show(context,
+                                      message:
+                                          'Authentication cancelled or failed',
+                                      type: MessageType.error);
+                                }
+                              }
+                            } else {
+                              // Disabling doesn't require authentication
                               setState(() {
                                 fingerprintEnabled = value;
                               });
                               _saveFingerprintPref(value);
-                            } else if (result == BiometricAuthResult.fallback) {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Biometrics not available. Please use your passcode to change settings',
-                                  type: MessageType.warning);
-                            } else {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Authentication failed. Biometric setting unchanged',
-                                  type: MessageType.error);
+                              if (context.mounted) {
+                                AppMessenger.show(context,
+                                    message: 'Fingerprint login disabled',
+                                    type: MessageType.success);
+                              }
                             }
                           },
                           activeTrackColor: appTheme.primaryColor,
@@ -341,26 +364,50 @@ Future<void> _checkDeviceBiometrics() async {
                               return;
                             }
 
-                            final result = await BiometricAuthService
-                                .authenticateWithFallback(
-                                    promptMessage:
-                                        'Verify to change biometric setting');
-                            if (result == BiometricAuthResult.success) {
+                            // If enabling, verify with biometric first
+                            if (value) {
+                              final result = await BiometricAuthService
+                                  .authenticateWithFallback(
+                                      promptMessage: 'Verify Face ID to enable');
+                              if (result == BiometricAuthResult.success) {
+                                setState(() {
+                                  logInWithFaceId = value;
+                                  faceIdEnabled = value;
+                                });
+                                _saveFaceIdPref(value);
+                                if (context.mounted) {
+                                  AppMessenger.show(context,
+                                      message: 'Face ID login enabled',
+                                      type: MessageType.success);
+                                }
+                              } else if (result ==
+                                  BiometricAuthResult.fallback) {
+                                if (context.mounted) {
+                                  AppMessenger.show(context,
+                                      message:
+                                          'Biometrics not available on this device',
+                                      type: MessageType.warning);
+                                }
+                              } else {
+                                if (context.mounted) {
+                                  AppMessenger.show(context,
+                                      message:
+                                          'Authentication cancelled or failed',
+                                      type: MessageType.error);
+                                }
+                              }
+                            } else {
+                              // Disabling doesn't require authentication
                               setState(() {
                                 logInWithFaceId = value;
                                 faceIdEnabled = value;
                               });
                               _saveFaceIdPref(value);
-                            } else if (result == BiometricAuthResult.fallback) {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Biometrics not available. Please use your passcode to change settings',
-                                  type: MessageType.warning);
-                            } else {
-                              AppMessenger.show(context,
-                                  message:
-                                      'Authentication failed. Biometric setting unchanged',
-                                  type: MessageType.error);
+                              if (context.mounted) {
+                                AppMessenger.show(context,
+                                    message: 'Face ID login disabled',
+                                    type: MessageType.success);
+                              }
                             }
                           },
                           activeTrackColor: appTheme.primaryColor,

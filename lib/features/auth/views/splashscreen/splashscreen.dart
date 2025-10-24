@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/services/session_service.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -73,18 +74,30 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkSession() async {
     final loggedIn = await SessionService.isLoggedIn();
+    final savedUsername = await SessionService.getUsername();
 
     if (!mounted) return;
 
-    if (loggedIn) {
-      context.pushReplacement('/');
-    } else {
-      String? savedUsername = await SessionService.getUsername();
-      if (savedUsername != null) {
-        context.push('/biometric-login');
+    if (loggedIn && savedUsername != null) {
+      // User is logged in and has username saved
+      // Check if they have biometric or passcode enabled
+      final fpEnabled = await LocalStorageService.getBool('pref_biometric_fingerprint');
+      final faceEnabled = await LocalStorageService.getBool('pref_biometric_faceid');
+      final hasPasscode = await LocalStorageService.getBool('has_passcode');
+
+      // If any lock method is enabled, show lock screen
+      if ((fpEnabled ?? false) || (faceEnabled ?? false) || (hasPasscode ?? false)) {
+        context.pushReplacement('/biometric-login');
       } else {
-        context.pushReplacement('/intro');
+        // No lock enabled, go directly to home
+        context.pushReplacement('/');
       }
+    } else if (savedUsername != null) {
+      // Not logged in but has username (logged out)
+      context.pushReplacement('/biometric-login');
+    } else {
+      // No session at all, show intro
+      context.pushReplacement('/intro');
     }
   }
 

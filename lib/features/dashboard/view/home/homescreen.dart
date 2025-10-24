@@ -104,52 +104,65 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refreshData,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              children: [
-                _HomeAppBar(firstName: firstName, greeting: greeting),
-                const SizedBox(height: 16),
-                _BalanceCard(
-                  balance: balance,
-                  accountNumber: accountNumber,
-                  isBalanceVisible: _isBalanceVisible,
-                  onToggleVisibility:
-                      () => setState(
-                        () => _isBalanceVisible = !_isBalanceVisible,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: _HomeAppBar(firstName: firstName, greeting: greeting),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _refreshData,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      _BalanceCard(
+                        balance: balance,
+                        accountNumber: accountNumber,
+                        isBalanceVisible: _isBalanceVisible,
+                        onToggleVisibility:
+                            () => setState(
+                              () => _isBalanceVisible = !_isBalanceVisible,
+                            ),
                       ),
-                ),
-                const SizedBox(height: 16),
-                const PaymentWidget(),
-                const SizedBox(height: 16),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final user = ref.watch(userProvider);
-                    final isKycComplete = user?.isWalletPinSet == true;
+                      const SizedBox(height: 16),
+                      const PaymentWidget(),
+                      const SizedBox(height: 16),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final user = ref.watch(userProvider);
+                          final isBvnVerified = user?.isBvnVerified ?? false;
+                          final isWalletPinSet = user?.isWalletPinSet ?? false;
 
-                    if (isKycComplete) {
-                      return const SizedBox.shrink();
-                    }
+                          // Show KYC widget if BVN is not verified OR wallet PIN is not set
+                          final shouldShowKyc = !isBvnVerified || !isWalletPinSet;
 
-                    return const KYCWidget();
-                  },
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  child: Image.asset(
-                    _bannerImages[_currentImageIndex],
-                    fit: BoxFit.cover,
+                          if (!shouldShowKyc) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return const KYCWidget();
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        child: Image.asset(
+                          _bannerImages[_currentImageIndex],
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const OurServicesWidget(),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                const OurServicesWidget(),
-                const SizedBox(height: 24),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -387,23 +400,27 @@ class _AddMoneyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final buttonColor = isDark ? const Color(0xFF2B2725) : Colors.white;
+    final iconColor = isDark ? Colors.white : appTheme.primaryColor;
+    
     return GestureDetector(
       onTap: () => context.push('/add-money'),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: Colors.white,
+          color: buttonColor,
         ),
         child: Row(
           children: [
-            const Icon(Icons.add, color: Colors.white, size: 16),
+            Icon(Icons.add, color: iconColor, size: 16),
             const SizedBox(width: 4),
             Text(
               'Add Money',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: appTheme.primaryColor),
+              ).textTheme.bodyMedium?.copyWith(color: iconColor),
             ),
           ],
         ),
