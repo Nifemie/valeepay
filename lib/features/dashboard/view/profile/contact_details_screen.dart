@@ -63,6 +63,10 @@ class ContactDetailsScreen extends ConsumerWidget {
                     title: 'Update Email Address',
                     currentValue: emailAddress,
                     fieldLabel: 'Email Address',
+                    description: 'Enter a new email address where you will receive account update and notifications',
+                    onContinuePressed: () {
+                      
+                    },
                   ),
                 ),
               );

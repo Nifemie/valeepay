@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
-Widget buildDetailRow(String label, String value, bool isDark,
-    {bool isTotal = false}) {
+Widget buildDetailRow(
+  String label,
+  String value,
+  bool isDark, {
+  bool isTotal = false,
+}) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(
@@ -34,16 +38,19 @@ class ReuseableTransactionDetailsScreen extends StatefulWidget {
   bool hasBottom;
   String? bottomTitleText;
   final List<Widget>? bottomTransactionsDetailsList;
-  final Function() onButtonPressed;
+  final Function()? onButtonPressed;
+  final bool showActions;
 
-  ReuseableTransactionDetailsScreen(
-      {super.key,
-      required this.topTransactionsDetailsList,
-      this.bottomTransactionsDetailsList,
-      required this.topTitleText,
-      this.bottomTitleText,
-      required this.hasBottom,
-      required this.onButtonPressed});
+  ReuseableTransactionDetailsScreen({
+    super.key,
+    required this.topTransactionsDetailsList,
+    this.bottomTransactionsDetailsList,
+    required this.topTitleText,
+    this.bottomTitleText,
+    required this.hasBottom,
+    this.onButtonPressed,
+    this.showActions = true,
+  });
 
   @override
   State<ReuseableTransactionDetailsScreen> createState() =>
@@ -62,12 +69,15 @@ class _ReuseableTransactionDetailsScreenState
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-          backgroundColor: isDark ? Colors.black : Colors.white,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back,
-                color: isDark ? Colors.white : Colors.black),
-            onPressed: () => Navigator.pop(context),
-          )),
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -77,10 +87,7 @@ class _ReuseableTransactionDetailsScreenState
               // Transaction details container
               Text(
                 '${widget.topTitleText} Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 16),
               Container(
@@ -89,18 +96,13 @@ class _ReuseableTransactionDetailsScreenState
                   color: Theme.of(context).cardColor.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Column(
-                  children: widget.topTransactionsDetailsList,
-                ),
+                child: Column(children: widget.topTransactionsDetailsList),
               ),
               if (widget.hasBottom) SizedBox(height: 24),
               if (widget.hasBottom)
                 Text(
                   widget.bottomTitleText ?? '',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               if (widget.hasBottom) SizedBox(height: 16),
 
@@ -116,76 +118,92 @@ class _ReuseableTransactionDetailsScreenState
                   ),
                 ),
 
-              const SizedBox(
-                height: 40,
-              ),
+              if (widget.showActions) ...[
+                const SizedBox(height: 40),
 
-              // Pay Via section
-              Text(
-                'Pay Via',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                // Pay Via section
+                Text(
+                  'Pay Via',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
-              ),
-              SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
+                SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Payment methods
+                      _buildPaymentMethod(
+                        'Vconnect Bank',
+                        '0000000000',
+                        'assets/images/new_valapay.png',
+                        isDark,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPaymentMethod(
+                        'First Bank of Nigeria',
+                        '0000000000',
+                        'assets/images/firstbank.png',
+                        isDark,
+                      ),
+
+                      const SizedBox(height: 12),
+                      _buildPaymentMethod(
+                        'Wema Bank',
+                        '0000000000',
+                        'assets/images/wema.png',
+                        isDark,
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                const SizedBox(height: 30),
+
+                // Save Beneficiary Toggle
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Payment methods
-                    _buildPaymentMethod('Vconnect Bank', '0000000000',
-                        'assets/images/new_valapay.png', isDark),
-                    const SizedBox(height: 12),
-                    _buildPaymentMethod('First Bank of Nigeria', '0000000000',
-                        'assets/images/firstbank.png', isDark),
-
-                    const SizedBox(height: 12),
-                    _buildPaymentMethod('Wema Bank', '0000000000',
-                        'assets/images/wema.png', isDark),
+                    Text(
+                      'Save Beneficiary',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Switch(
+                      value: saveBeneficiary,
+                      onChanged: (value) {
+                        setState(() {
+                          saveBeneficiary = value;
+                        });
+                      },
+                      activeColor: const Color(0xFFF76301),
+                      activeTrackColor: const Color(
+                        0xFFF76301,
+                      ).withOpacity(0.3),
+                      inactiveThumbColor: Colors.grey,
+                      inactiveTrackColor: Colors.grey.withOpacity(0.3),
+                    ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 30),
+                const SizedBox(height: 24),
 
-              // Save Beneficiary Toggle
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Save Beneficiary',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Switch(
-                    value: saveBeneficiary,
-                    onChanged: (value) {
-                      setState(() {
-                        saveBeneficiary = value;
-                      });
-                    },
-                    activeColor: const Color(0xFFF76301),
-                    activeTrackColor: const Color(0xFFF76301).withOpacity(0.3),
-                    inactiveThumbColor: Colors.grey,
-                    inactiveTrackColor: Colors.grey.withOpacity(0.3),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Confirm Button
-              FullWidthButton(
-                  text: 'Confirm', onPressed: widget.onButtonPressed)
+                // Confirm Button
+                FullWidthButton(
+                  text: 'Confirm',
+                  onPressed:
+                      (widget.onButtonPressed != null)
+                          ? widget.onButtonPressed!
+                          : () {},
+                ),
+              ],
             ],
           ),
         ),
@@ -209,15 +227,17 @@ class _ReuseableTransactionDetailsScreenState
       },
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.asset(imagePath,
-                  height: 40, width: 40, fit: BoxFit.cover),
+              child: Image.asset(
+                imagePath,
+                height: 40,
+                width: 40,
+                fit: BoxFit.cover,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -226,18 +246,12 @@ class _ReuseableTransactionDetailsScreenState
                 children: [
                   Text(
                     name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     account,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                 ],
               ),

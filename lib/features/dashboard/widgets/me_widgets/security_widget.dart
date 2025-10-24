@@ -45,7 +45,7 @@ class SecurityMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/report.svg',
             title: 'Report Scam',
             onTap: () {
-              context.push('/coming-soon');
+              context.push('/report-scam');
             },
           ),
           const SizedBox(height: 20),
@@ -61,7 +61,7 @@ class SecurityMenuWidget extends StatelessWidget {
             svgPath: 'assets/images/me_icons/rate.svg',
             title: 'Rate Valarpay',
             onTap: () {
-              context.push('/coming-soon');
+              context.push('/rate-app');
             },
           ),
         ],
@@ -82,11 +82,7 @@ class SecurityMenuWidget extends StatelessWidget {
         child: Row(
           children: [
             // Left icon
-            SvgPicture.asset(
-              svgPath,
-              width: 24,
-              height: 24,
-            ),
+            SvgPicture.asset(svgPath, width: 24, height: 24),
             const SizedBox(width: 12),
             // Title text
             Expanded(

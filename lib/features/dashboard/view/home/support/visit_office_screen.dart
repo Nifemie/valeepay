@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VisitOfficeScreen extends StatelessWidget {
   const VisitOfficeScreen({super.key});
@@ -171,8 +172,14 @@ class BranchLocationsBottomSheet extends StatelessWidget {
                   onDirections: () {
                     // Open maps
                   },
-                  onCall: () {
-                    // Make phone call
+                  onCall: () async {
+                    final phoneUri = Uri.parse('tel:+2348234146906');
+                    if (await canLaunchUrl(phoneUri)) {
+                      await launchUrl(
+                        phoneUri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
                   },
                 ),
                 BranchTile(
@@ -184,8 +191,14 @@ class BranchLocationsBottomSheet extends StatelessWidget {
                   onDirections: () {
                     // Open maps
                   },
-                  onCall: () {
-                    // Make phone call
+                  onCall: () async {
+                    final phoneUri = Uri.parse('tel:+447441428182');
+                    if (await canLaunchUrl(phoneUri)) {
+                      await launchUrl(
+                        phoneUri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
                   },
                 ),
               ],

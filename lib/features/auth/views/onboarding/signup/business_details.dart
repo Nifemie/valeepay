@@ -8,6 +8,8 @@ import 'package:valarpay/core/widgets/terms_and_conditions_widget.dart';
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
+import '../../../../models/user_availablity_request.dart';
+
 class BusinessDetailsScreen extends ConsumerStatefulWidget {
   final SignUpRequest request;
   const BusinessDetailsScreen({required this.request, super.key});
@@ -30,19 +32,19 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
   Future<void> _checkUserAvailablity() async {
     try {
       if (_formKey.currentState!.validate()) {
-        // await ref
-        //     .read(userNotifierProvider.notifier)
-        //     .checkUserExistance(
-        //       UserAvailabilityRequest(username: _usernameController.text),
-        //     );
-        // final userState = ref.read(userNotifierProvider);
-        // if (!userState.isDataAvailable && mounted) {
-        //   AppMessenger.show(
-        //     context,
-        //     type: MessageType.success,
-        //     message: userState.message ?? ' User already exist',
-        //   );
-        // } else {
+        await ref
+            .read(userNotifierProvider.notifier)
+            .checkUserExistance(
+              UserAvailabilityRequest(username: _usernameController.text),
+            );
+        final userState = ref.read(userNotifierProvider);
+        if (!userState.isDataAvailable && mounted) {
+          AppMessenger.show(
+            context,
+            type: MessageType.success,
+            message: userState.message ?? ' User already exist',
+          );
+        } else {
           final updatedRequest = widget.request.copyWith(
             fullname: _businessNameController.text,
             username: _usernameController.text,
@@ -50,7 +52,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
             referralCode: _referralController.text,
           );
           context.push('/security-details', extra: updatedRequest);
-        // }
+        }
       }
     } catch (e) {
       AppMessenger.show(

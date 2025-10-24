@@ -9,11 +9,25 @@ import '../widgets/me_widgets/user_profile.dart';
 import '../widgets/me_widgets/security_widget.dart';
 // import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 
-class MeScreen extends ConsumerWidget {
+class MeScreen extends ConsumerStatefulWidget {
   const MeScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MeScreen> createState() => _MeScreenState();
+}
+
+class _MeScreenState extends ConsumerState<MeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user profile when Me screen loads to ensure latest data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userNotifierProvider.notifier).refreshUserProfile();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -37,7 +51,7 @@ class MeScreen extends ConsumerWidget {
               // Profile Header Card
               ProfileHeaderCard(
                 onSecurityTipsTap: () {
-                  context.push('/coming-soon', extra: 'Security Tips');
+                  context.push('/security-tips');
                 },
                 onRewardsTap: () {
                   context.push('/my-rewards');

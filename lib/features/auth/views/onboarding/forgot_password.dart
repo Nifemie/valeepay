@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/forgot_password.dart';
 import 'package:valarpay/features/models/username_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -19,6 +21,7 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
+  bool isUserLogedIn = false;
 
   _forgotPassword() async {
     if (_formKey.currentState!.validate()) {
@@ -46,6 +49,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     }
   }
 
+  _isUserLoggedIn() async {
+    final loggedIn = await SessionService.isLoggedIn();
+    setState(() {
+      isUserLogedIn = loggedIn;
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _isUserLoggedIn();
+  }
+
   @override
   Widget build(BuildContext context) {
     final userState = ref.watch(userNotifierProvider);
@@ -55,7 +72,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: Padding(
@@ -90,7 +107,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -117,7 +133,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             const BorderSide(color: appTheme.primaryColor),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                          horizontal: 16, vertical: 16),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -143,31 +159,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               const SizedBox(height: 16),
 
               // Back to Login
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Remember your password? ',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      context.push('/signin');
-                    },
-                    child: const Text(
-                      'Back to Login',
+              if (!isUserLogedIn)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Remember your password? ',
                       style: TextStyle(
                         fontSize: 14,
-                        color: appTheme.primaryColor,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    GestureDetector(
+                      onTap: () {
+                        context.push('/signin');
+                      },
+                      child: const Text(
+                        'Back to Login',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: appTheme.primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

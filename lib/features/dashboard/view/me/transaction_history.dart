@@ -6,6 +6,7 @@ import '../../widgets/me_widgets/category.dart';
 import '../../widgets/me_widgets/status_selection.dart';
 import '../../widgets/me_widgets/modal/date_picker_modal.dart';
 import '../../widgets/transaction_widgets/transaction_item_widget.dart';
+import 'transaction_details_page.dart';
 import '../../widgets/transaction_widgets/transaction_shimmer_loader.dart';
 import '../../widgets/transaction_widgets/empty_transactions_widget.dart';
 import '../../../notifiers/transaction_notifier.dart';
@@ -211,14 +212,43 @@ class _TransactionHistoryPageState
     final transactionState = ref.watch(transactionNotifierProvider);
     final transactions = transactionState.data ?? [];
 
-    // Calculate totals
+    // Parse selectedMonth (e.g., 'OCT 2025')
+    DateTime? monthStart;
+    DateTime? monthEnd;
+    try {
+      final parts = selectedMonth.split(' ');
+      if (parts.length == 2) {
+        final month = DateFormat.MMM().parse(parts[0]).month;
+        final year = int.parse(parts[1]);
+        monthStart = DateTime(year, month, 1);
+        monthEnd = DateTime(
+          year,
+          month + 1,
+          1,
+        ).subtract(const Duration(days: 1));
+      }
+    } catch (_) {}
+
+    // Filter transactions by selected month
+    final filteredTransactions =
+        (monthStart != null && monthEnd != null)
+            ? transactions.where((tx) {
+              final DateTime txDate = tx.createdAt;
+              return !txDate.isBefore(monthStart!) &&
+                  !txDate.isAfter(monthEnd!);
+            }).toList()
+            : transactions;
+
+    // Calculate totals for filtered transactions (only successful)
     double totalIn = 0;
     double totalOut = 0;
-    for (var transaction in transactions) {
-      if (transaction.isCredit) {
-        totalIn += transaction.amount;
-      } else {
-        totalOut += transaction.amount;
+    for (var transaction in filteredTransactions) {
+      if (transaction.status == 'success') {
+        if (transaction.isCredit) {
+          totalIn += transaction.amount;
+        } else {
+          totalOut += transaction.amount;
+        }
       }
     }
 
@@ -399,15 +429,23 @@ class _TransactionHistoryPageState
             ),
             const SizedBox(height: 4),
             // Transactions List
-            Expanded(child: _buildTransactionsList(transactionState)),
+            Expanded(
+              child: _buildTransactionsList(
+                transactionState,
+                filteredTransactions,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Build transactions list based on state
-  Widget _buildTransactionsList(dynamic transactionState) {
+  // Build transactions list based on state and filtered transactions
+  Widget _buildTransactionsList(
+    dynamic transactionState,
+    List filteredTransactions,
+  ) {
     // Loading state
     if (transactionState.isInitialLoading) {
       return const TransactionShimmerLoader();
@@ -437,32 +475,36 @@ class _TransactionHistoryPageState
     }
 
     // Empty state
-    if (transactionState.data == null || transactionState.data!.isEmpty) {
+    if (filteredTransactions.isEmpty) {
       return EmptyTransactionsWidget(onRefresh: _fetchTransactions);
     }
 
-    // Success state with data
-    final transactions = transactionState.data!;
+    // Success state with filtered data
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount:
-          transactions.length +
+          filteredTransactions.length +
           (ref.read(transactionNotifierProvider.notifier).hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         // Show loader at bottom if loading more
-        if (index == transactions.length) {
+        if (index == filteredTransactions.length) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
             child: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final transaction = transactions[index];
+        final transaction = filteredTransactions[index];
         return TransactionItemWidget(
           transaction: transaction,
           onTap: () {
-            // TODO: Navigate to transaction details
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    (_) => TransactionDetailsPage(transaction: transaction),
+              ),
+            );
           },
         );
       },

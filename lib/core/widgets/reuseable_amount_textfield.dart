@@ -5,10 +5,12 @@ class ReuseableAmountTextfield extends StatelessWidget {
   TextEditingController amountController;
   String prefixText;
   String hintText;
+  Function(String)? onChanged;
   ReuseableAmountTextfield(
       {required this.amountController,
       required this.prefixText,
       required this.hintText,
+      this.onChanged,
       super.key});
 
   @override
@@ -31,6 +33,7 @@ class ReuseableAmountTextfield extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
+              onChanged: onChanged,
               controller: amountController,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],

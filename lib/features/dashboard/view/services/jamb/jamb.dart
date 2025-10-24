@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../widgets/services_widgets/education_widget/education_button.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
 // Import your reusable button
 // import '../widgets/reusable_buttons.dart';

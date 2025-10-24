@@ -18,10 +18,6 @@ class VerificationService {
   /// Generate access token from Qore API
   Future<QoreTokenResponse> getAccessToken(QoreTokenRequest request) async {
     try {
-      log('Get token:');
-      log(_tokenUrl);
-      log(jsonEncode(request));
-
       final response = await _dio.post(
         _tokenUrl,
         data: request.toJson(),
@@ -29,7 +25,7 @@ class VerificationService {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-          },
+          }
         ),
       );
       return QoreTokenResponse.fromJson(response.data);
@@ -46,12 +42,11 @@ class VerificationService {
     }
   }
 
-  /// Perform BVN Face Verification
   Future<QoreBvnFaceVerificationResponse> verifyBvnFace(
     QoreBvnFaceVerificationRequest request,
   ) async {
     try {
-      // Step 1: Get Access Token
+      
       final tokenResponse = await getAccessToken(
         QoreTokenRequest(
           clientId: 'QLBQA1VCADWNAHRHP3G3',
@@ -59,7 +54,7 @@ class VerificationService {
         ),
       );
 
-      // Step 2: Verify Face if token exists
+      log("verifiing...");
       if (tokenResponse.accessToken != null) {
         final response = await _dio.post(
           _baseUrl,

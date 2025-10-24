@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:valarpay/core/themes/app_theme.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/home_widgets/payment_widget_icons.dart';
@@ -34,6 +34,11 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   void initState() {
     super.initState();
     _startBannerRotation();
+
+    // Fetch user data immediately on first load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
   }
 
   void _startBannerRotation() {
@@ -59,24 +64,14 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     return 'Good Evening';
   }
 
-  /// Pull-to-refresh handler
   Future<void> _refreshData() async {
     try {
-      // Refresh user profile from backend
       final updatedUser =
           await ref.read(userNotifierProvider.notifier).refreshUserProfile();
-
-      // Update user provider with fresh data
       if (updatedUser != null) {
         ref.read(userProvider.notifier).setUser(updatedUser);
       }
-
-      // You can add more refresh logic here:
-      // - Refresh wallet balance
-      // - Refresh recent transactions
-      // - etc.
     } catch (e) {
-      // Handle errors silently or show a snackbar
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -115,11 +110,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
-                _HomeAppBar(
-                  profileImageUrl: profileImageUrl,
-                  firstName: firstName,
-                  greeting: greeting,
-                ),
+                _HomeAppBar(firstName: firstName, greeting: greeting),
                 const SizedBox(height: 16),
                 _BalanceCard(
                   balance: balance,
@@ -133,19 +124,11 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                 const SizedBox(height: 16),
                 const PaymentWidget(),
                 const SizedBox(height: 16),
-                // Conditionally show KYC widget only if not complete
-                // NOTE: Backend returns both isPasscodeSet (device unlock) and isWalletPinSet (transaction PIN)
-                // We check isWalletPinSet for transaction PIN status
-                // For testing: Only checking PIN (skip button bypasses BVN)
-                // TODO: Change to AND logic when testing complete:
-                //       user?.isBvnVerified == true && user?.isWalletPinSet == true
                 Consumer(
                   builder: (context, ref, child) {
                     final user = ref.watch(userProvider);
-                    // Temporarily only check wallet PIN for testing (skip button bypasses BVN)
                     final isKycComplete = user?.isWalletPinSet == true;
 
-                    // Hide KYC widget if user has completed KYC
                     if (isKycComplete) {
                       return const SizedBox.shrink();
                     }
@@ -153,7 +136,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                     return const KYCWidget();
                   },
                 ),
-                KYCWidget(),
                 const SizedBox(height: 16),
                 Container(
                   width: MediaQuery.of(context).size.width,
@@ -176,19 +158,16 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
 /// ---------- App Bar ----------
 class _HomeAppBar extends StatelessWidget {
-  final String profileImageUrl;
   final String firstName;
   final String greeting;
 
-  const _HomeAppBar({
-    Key? key,
-    required this.profileImageUrl,
-    required this.firstName,
-    required this.greeting,
-  }) : super(key: key);
+  const _HomeAppBar({Key? key, required this.firstName, required this.greeting})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
@@ -200,7 +179,14 @@ class _HomeAppBar extends StatelessWidget {
             },
             child: CircleAvatar(
               radius: 20,
-              backgroundImage: NetworkImage(profileImageUrl),
+              backgroundColor:
+                  isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+              child: Icon(
+                Icons.person,
+                size: 24,
+                color:
+                    isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -230,7 +216,9 @@ class _HomeAppBar extends StatelessWidget {
                 onTap: () => context.push('/customer-service'),
               ),
               const SizedBox(width: 16),
-              _IconButton(svgPath: 'assets/images/payment_wid/scanning.svg'),
+              _IconButton(
+                  svgPath: 'assets/images/payment_wid/scanning.svg',
+                  onTap: () => context.push('/decode-qrcode')),
               const SizedBox(width: 16),
               _IconButton(
                 svgPath: 'assets/images/payment_wid/bell.svg',
@@ -374,22 +362,14 @@ class _BalanceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isBalanceVisible ? balance : '₦ ••••••••••',
+                    isBalanceVisible
+                        ? currencyFormatter(balance)
+                        : '₦ ••••••••••',
                     style: textTheme.headlineSmall?.copyWith(
                       color: onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (accountNumber.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      accountNumber,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: onPrimary.withOpacity(0.8),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
                 ],
               ),
               const Spacer(),

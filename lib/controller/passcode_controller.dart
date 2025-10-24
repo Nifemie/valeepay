@@ -4,15 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // State class for the Passcode
 @immutable
 class PasscodeState {
-  const PasscodeState({this.passcode = '', this.confirmPasscode = ''});
+  const PasscodeState(
+      {this.passcode = '',
+      this.confirmPasscode = '',
+      this.confirmNewPasscode = ''});
 
   final String passcode;
   final String confirmPasscode;
+  final String confirmNewPasscode;
 
-  PasscodeState copyWith({String? passcode, String? confirmPasscode}) {
+  PasscodeState copyWith(
+      {String? passcode, String? confirmPasscode, String? confirmNewPasscode}) {
     return PasscodeState(
       passcode: passcode ?? this.passcode,
       confirmPasscode: confirmPasscode ?? this.confirmPasscode,
+      confirmNewPasscode: confirmNewPasscode ?? this.confirmNewPasscode,
     );
   }
 }
@@ -27,6 +33,10 @@ class PasscodeNotifier extends StateNotifier<PasscodeState> {
 
   void updateConfirmPasscode(String confirmPasscode) {
     state = state.copyWith(confirmPasscode: confirmPasscode);
+  }
+
+  void updateConfirmNewPasscode(String confirmNewPasscode) {
+    state = state.copyWith(confirmNewPasscode: confirmNewPasscode);
   }
 
   bool isPasscodeValid() {
@@ -49,6 +59,10 @@ class PasscodeNotifier extends StateNotifier<PasscodeState> {
 
   void clearConfirmPasscode() {
     state = state.copyWith(confirmPasscode: '');
+  }
+
+  void clearConfirmNewPasscode() {
+    state = state.copyWith(confirmNewPasscode: '');
   }
 
   void clearPasscode() {

@@ -10,6 +10,8 @@ import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 import 'package:valarpay/features/models/signup_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
+import '../../../../models/user_availablity_request.dart';
+
 class PersonalDetailsScreen extends ConsumerStatefulWidget {
   final SignUpRequest request;
   const PersonalDetailsScreen({
@@ -33,16 +35,16 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
   Future<void> _checkUserAvailablity() async {
     try {
       if (_formKey.currentState!.validate()) {
-        // await ref.read(userNotifierProvider.notifier).checkUserExistance(
-        //     UserAvailabilityRequest(username: _usernameController.text));
-        // final userState = ref.read(userNotifierProvider);
-        // if (!userState.isDataAvailable && mounted) {
-        //   AppMessenger.show(
-        //     context,
-        //     type: MessageType.error,
-        //     message: userState.message ?? ' User already exist',
-        //   );
-        // } else {
+        await ref.read(userNotifierProvider.notifier).checkUserExistance(
+            UserAvailabilityRequest(username: _usernameController.text));
+        final userState = ref.read(userNotifierProvider);
+        if (!userState.isDataAvailable && mounted) {
+          AppMessenger.show(
+            context,
+            type: MessageType.error,
+            message: userState.message ?? ' User already exist',
+          );
+        } else {
           final updatedRequest = widget.request.copyWith(
             fullname:
                 '${_firstNameController.text} ${_lastNameController.text}',
@@ -52,7 +54,7 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
           );
           context.push('/security-details', extra: updatedRequest);
         }
-      // }
+      }
     } catch (e) {
       AppMessenger.show(
         context,

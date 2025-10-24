@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:camera/camera.dart';
@@ -11,10 +12,10 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/KYC/setup_pin.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
 import 'package:valarpay/features/models/qore_bvn_face_verification_request.dart';
+import '../../../notifiers/wallet_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import '../../widgets/Kyc/Dialog/profile_setup_dialog.dart';
 import 'kyc_step_provider.dart';
-import 'dart:convert';
 
 class IdentityVerificationPage extends ConsumerStatefulWidget {
   final KycAddressRequest request;
@@ -44,13 +45,45 @@ class _IdentityVerificationPageState
     _initializeCamera();
   }
 
+
+  _setupWallet() async {
+    try {
+      await ref.read(walletNotifierProvider.notifier).setupWallet(widget.request);
+      final userState = ref.read(walletNotifierProvider);
+      if (userState.isDataAvailable && mounted) {
+        AppMessenger.show(
+          context,
+          type: MessageType.success,
+          message: 'BVN Verified Successfully!',
+        );
+        _showSuccessDialog();
+      } else {
+        // 3️⃣ Handle failure
+        if (context.mounted) {
+          AppMessenger.show(
+            context,
+            message: userState.message ?? 'Failed to setup wallet',
+            type: MessageType.error,
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppMessenger.show(
+          context,
+          message: 'An unexpected error occurred: $e',
+          type: MessageType.error,
+        );
+      }
+    }
+  }
+
   Future<void> _initializeCamera() async {
     try {
       _cameras = await availableCameras();
       final frontCamera = _cameras!.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
       );
-
       _controller = CameraController(
         frontCamera,
         ResolutionPreset.medium,
@@ -116,49 +149,23 @@ class _IdentityVerificationPageState
     _startCountdown();
   }
 
-  Future<void> _verifyCapturedImage(File? capturedImage) async {
-    if (capturedImage == null) {
-      AppMessenger.show(
-        context,
-        type: MessageType.error,
-        message: 'No captured image found. Please try again.',
-      );
-      return;
-    }
+  Future<String> convertFileToBase64Async(File file) async {
+    final bytes = await file.readAsBytes();
+    return base64Encode(bytes);
+  }
 
+  Future<void> _verifyCapturedImage(File capturedImage) async {
     try {
-      log("Verification started");
-      log(jsonEncode(widget.request));
-
-      final bytes = await capturedImage.readAsBytes();
-      final base64Image = base64Encode(bytes);
-      
-
+      setState(() => _isLoading = true);
+      String? base64 = await convertFileToBase64Async(capturedImage);
       final requestBody = QoreBvnFaceVerificationRequest(
         idNumber: widget.request.bvn.toString(),
-        photoBase64: base64Image,
+        photoBase64: base64.toString(),
       );
-
-      log(jsonEncode(requestBody));
-
-      setState(() => _isLoading = true);
       final service = VerificationService();
       final response = await service.verifyBvnFace(requestBody);
-
-      log(jsonEncode(response));
-
       if (response.summary?.faceVerificationCheck?.faceVerification != null) {
-        final faceData =
-            response.summary!.faceVerificationCheck!.faceVerification!;
-        final name = "${faceData.firstname ?? ''} ${faceData.lastname ?? ''}";
-        final phone = faceData.phone ?? 'N/A';
-
-        AppMessenger.show(
-          context,
-          type: MessageType.success,
-          message: 'BVN Verified Successfully!\nName: $name\nPhone: $phone',
-        );
-        _showSuccessDialog();
+       _setupWallet();
       } else {
         AppMessenger.show(
           context,
@@ -166,6 +173,7 @@ class _IdentityVerificationPageState
           message:
               response.message ?? 'Face verification failed. Please retry.',
         );
+        _retake();
       }
     } catch (e) {
       AppMessenger.show(
@@ -173,6 +181,7 @@ class _IdentityVerificationPageState
         type: MessageType.error,
         message: 'Face verification failed: ${e.toString()}',
       );
+      _retake();
     } finally {
       setState(() => _isLoading = false);
     }
@@ -333,7 +342,7 @@ class _IdentityVerificationPageState
                 onPressed: () {
                   if (_capturedImage != null) {
                     ref.read(kycStepProvider.notifier).state = 4;
-                    _verifyCapturedImage(_capturedImage);
+                    _verifyCapturedImage(_capturedImage!);
                   }
                 },
               ),

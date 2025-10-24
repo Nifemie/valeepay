@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 // app_messenger not used here
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
@@ -95,12 +96,8 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       print('❌ Airtime purchase error: $e');
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppMessenger.show(context, message: 'Error: ${e.toString()}',type: MessageType.error);
+       
       }
     }
   }

@@ -1,0 +1,45 @@
+import 'dart:developer';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/network/data_state.dart';
+import 'package:valarpay/features/models/api_response.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
+import 'package:valarpay/features/repositories/wallet_repository.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart' show apiClientProvider;
+
+class WalletNotifier extends StateNotifier<DataState<ApiResponse>> {
+  final WalletRepository _repository;
+
+  WalletNotifier(this._repository) : super(DataState<ApiResponse>.initial());
+
+  Future<void> setupWallet(KycAddressRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.setupWallet(request);
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: true,
+        data: [res],
+        message: res.message,
+      );
+    } catch (e, stack) {
+      log('[WalletNotifier] error: $e\n$stack');
+      state = state.copyWith(
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: e.toString(),
+      );
+    }
+  }
+  void reset() => state = DataState<ApiResponse>.initial();
+}
+
+final walletRepositoryProvider = Provider<WalletRepository>((ref) {
+  final api = ref.read(apiClientProvider);
+  return WalletRepository(api);
+});
+
+final walletNotifierProvider =
+StateNotifierProvider<WalletNotifier, DataState<ApiResponse>>((ref) {
+  final repo = ref.read(walletRepositoryProvider);
+  return WalletNotifier(repo);
+});

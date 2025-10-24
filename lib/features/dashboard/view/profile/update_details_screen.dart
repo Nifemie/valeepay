@@ -5,13 +5,17 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 class UpdateUserDetailsScreen extends ConsumerStatefulWidget {
   final String title;
   final String currentValue;
+  final String description;
   final String fieldLabel;
+  final Function() onContinuePressed;
 
   const UpdateUserDetailsScreen({
     super.key,
     required this.title,
+    required this.description,
     required this.currentValue,
     required this.fieldLabel,
+    required this.onContinuePressed
   });
 
   @override
@@ -47,21 +51,17 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.title,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -89,9 +89,8 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Enter your username that will be used in your profile',
+                      widget.description,
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
                         fontSize: 14,
                       ),
                     ),
@@ -106,7 +105,6 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
             Text(
               widget.fieldLabel,
               style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -117,17 +115,13 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
             // Text field
             Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2B2725) : Colors.white,
+                color: Theme.of(context).cardColor.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
-                  width: 1,
-                ),
+               
               ),
               child: TextField(
                 controller: _controller,
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
@@ -147,19 +141,7 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
             FullWidthButton(
               text: 'Continue',
               isEnabled: _hasChanges && _controller.text.trim().isNotEmpty,
-              onPressed: () {
-                if (_hasChanges && _controller.text.trim().isNotEmpty) {
-                  // Handle update logic here
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content:
-                          Text('${widget.fieldLabel} updated successfully'),
-                      backgroundColor: const Color(0xFFF76301),
-                    ),
-                  );
-                  Navigator.pop(context);
-                }
-              },
+              onPressed: widget.onContinuePressed,
             ),
 
             const SizedBox(height: 32),

@@ -197,6 +197,8 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
               ),
 
             if (!_isProcessing && !authState.isInitialLoading)
+            SizedBox(height: 15),
+            
               _buildNumberPad(),
 
             const SizedBox(height: 16),
