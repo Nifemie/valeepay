@@ -89,6 +89,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
+      
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -117,28 +118,32 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
         return SizedBox(
           height: 260,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.fingerprint,
-                  size: 60, color: appTheme.primaryColor),
-              const SizedBox(height: 16),
-              const Text(
-                'Authenticate to continue',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Use Face ID or Fingerprint',
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 36),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child:
-                    const Text('Cancel', style: TextStyle(color: Colors.red)),
-              ),
-            ],
+          width: MediaQuery.of(context).size.width,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.fingerprint,
+                    size: 60, color: appTheme.primaryColor),
+                const SizedBox(height: 16),
+                const Text(
+                  'Authenticate to continue',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Use Face ID or Fingerprint',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 36),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child:
+                      const Text('Cancel', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -160,7 +165,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
               'Biometric login is not enabled. Please enable it in settings.',
           type: MessageType.warning,
         );
-        context.push('/signin');
         return;
       }
 
@@ -168,7 +172,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final cameraStatus = await Permission.camera.request();
 
       // Request biometric permission (Android-specific)
-      final biometricStatus = await Permission.sensors.request();
+      // final biometricStatus = await Permission.sensors.request();
 
       // Check biometric availability using local_auth
       final localAuth = LocalAuthentication();
@@ -176,7 +180,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final isDeviceSupported = await localAuth.isDeviceSupported();
 
       if (cameraStatus.isGranted && canCheckBiometrics && isDeviceSupported ||
-          biometricStatus.isGranted &&
               canCheckBiometrics &&
               isDeviceSupported) {
         _showBiometricBottomSheet(context, ref);
@@ -186,11 +189,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
           message: 'Camera permission is required for face verification',
           type: MessageType.error,
         );
-      } else if (!biometricStatus.isGranted || !canCheckBiometrics) {
+      } else if (!canCheckBiometrics) {
         AppMessenger.show(
           context,
           message:
-              'Biometric (Face ID / Fingerprint) permission is required for verification',
+              'Unable to check available biometrics',
           type: MessageType.error,
         );
       } else {

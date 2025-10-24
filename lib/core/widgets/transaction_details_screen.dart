@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 Widget buildDetailRow(
   String label,
@@ -32,7 +35,7 @@ Widget buildDetailRow(
   );
 }
 
-class ReuseableTransactionDetailsScreen extends StatefulWidget {
+class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
   final List<Widget> topTransactionsDetailsList;
   final String topTitleText;
   bool hasBottom;
@@ -53,27 +56,30 @@ class ReuseableTransactionDetailsScreen extends StatefulWidget {
   });
 
   @override
-  State<ReuseableTransactionDetailsScreen> createState() =>
+  ConsumerState<ReuseableTransactionDetailsScreen> createState() =>
       _ReuseableTransactionDetailsScreenState();
 }
 
 class _ReuseableTransactionDetailsScreenState
-    extends State<ReuseableTransactionDetailsScreen> {
+    extends ConsumerState<ReuseableTransactionDetailsScreen> {
   String selectedPaymentMethod = 'Vconnect Bank'; // Default selection
   bool saveBeneficiary = false; // Save beneficiary toggle state
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Get user data from provider
+    final user = ref.watch(userProvider);
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+    final accountNumber = wallet?.accountNumber ?? '0000000000';
+    final balance = wallet?.balance ?? 0.0;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.black : Colors.white,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -119,7 +125,7 @@ class _ReuseableTransactionDetailsScreenState
                 ),
 
               if (widget.showActions) ...[
-                const SizedBox(height: 40),
+                const SizedBox(height: 80),
 
                 // Pay Via section
                 Text(
@@ -139,25 +145,26 @@ class _ReuseableTransactionDetailsScreenState
                       // Payment methods
                       _buildPaymentMethod(
                         'Vconnect Bank',
-                        '0000000000',
+                        accountNumber,
+                        balance.toString(),
                         'assets/images/new_valapay.png',
                         isDark,
                       ),
-                      const SizedBox(height: 12),
-                      _buildPaymentMethod(
-                        'First Bank of Nigeria',
-                        '0000000000',
-                        'assets/images/firstbank.png',
-                        isDark,
-                      ),
+                      // const SizedBox(height: 12),
+                      // _buildPaymentMethod(
+                      //   'First Bank of Nigeria',
+                      //   '0000000000',
+                      //   'assets/images/firstbank.png',
+                      //   isDark,
+                      // ),
 
-                      const SizedBox(height: 12),
-                      _buildPaymentMethod(
-                        'Wema Bank',
-                        '0000000000',
-                        'assets/images/wema.png',
-                        isDark,
-                      ),
+                      // const SizedBox(height: 12),
+                      // _buildPaymentMethod(
+                      //   'Wema Bank',
+                      //   '0000000000',
+                      //   'assets/images/wema.png',
+                      //   isDark,
+                      // ),
                     ],
                   ),
                 ),
@@ -213,7 +220,8 @@ class _ReuseableTransactionDetailsScreenState
 
   Widget _buildPaymentMethod(
     String name,
-    String account,
+    String accountNumber,
+    String accountBalance,
     String imagePath,
     bool isDark,
   ) {
@@ -249,9 +257,17 @@ class _ReuseableTransactionDetailsScreenState
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    account,
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  Row(
+                    children: [
+                      Text(
+                        accountNumber,
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                      Text(
+                        currencyFormatter(accountBalance),
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -128,6 +128,8 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
     required String currency,
     required String description,
     required String pin,
+    required bool saveBeneficiary,
+    required String sessionId,
   }) async {
     print('💰 TransferNotifier.initiateTransfer called');
     print(
@@ -143,6 +145,8 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
         currency: currency,
         description: description,
         pin: pin,
+        saveBeneficiary: saveBeneficiary,
+        sessionId: sessionId,
       );
 
       print('📤 Calling repository.initiateTransfer...');

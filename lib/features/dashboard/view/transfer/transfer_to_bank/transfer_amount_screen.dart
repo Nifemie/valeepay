@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
@@ -9,6 +10,7 @@ import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class TransferAmountScreen extends ConsumerStatefulWidget {
   final Bank selectedBank;
@@ -128,6 +130,8 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
             currency: 'NGN',
             description: descriptionController.text.trim(),
             pin: pin,
+            saveBeneficiary: true,
+            sessionId: widget.accountDetails.sessionId
           );
 
       Navigator.pop(context); // Close loading
@@ -136,13 +140,23 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     } catch (e) {
       Navigator.pop(context); // Close loading
       print('❌ Transfer error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Transfer failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+     AppMessenger.show(
+        context,
+        message: 'Transfer failed: ${e.toString()}',
+        type: MessageType.error,
       );
     }
+  }
+
+  _checkBalanceLeft(String balance, String totalAmount) {
+    if (int.parse(balance) < int.parse(totalAmount)) {
+       AppMessenger.show(
+        context,
+        message: 'Insufficient account balance kindly topup andcontinue',
+        type: MessageType.error,
+      );
+    }
+    return;
   }
 
   @override
@@ -224,9 +238,12 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
           ),
         );
       } else if (next.message != null && !next.isDataAvailable) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.message!), backgroundColor: Colors.red),
-        );
+        AppMessenger.show(
+        context,
+        message: next.message!,
+        type: MessageType.error,
+      );
+        
       }
     });
 
@@ -235,6 +252,15 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     final totalAmount = amount + (transferFee?.fee ?? 0);
 
     _handleOnPressed() {
+      final user = ref.watch(userProvider);
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+    final balance = wallet?.balance ?? 0.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    _checkBalanceLeft(
+      balance.toString(),
+      totalAmount.toString(),
+    );
       Navigator.push(
         context,
         MaterialPageRoute(
