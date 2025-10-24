@@ -173,6 +173,8 @@ class _ResidentialAddressPageState extends ConsumerState<ResidentialAddressPage>
     required List<String> items,
     required Function(String?) onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -208,12 +210,13 @@ class _ResidentialAddressPageState extends ConsumerState<ResidentialAddressPage>
               border: InputBorder.none,
               isDense: true,
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'SF Pro',
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
             ),
+            dropdownColor: Theme.of(context).cardColor,
             isExpanded: true,
           ),
         ),
