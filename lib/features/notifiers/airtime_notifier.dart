@@ -5,6 +5,7 @@ import 'package:valarpay/features/models/network_provider.dart';
 import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/features/repositories/airtime_repository.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 /// Repository provider
 final airtimeRepositoryProvider = Provider<AirtimeRepository>((ref) {

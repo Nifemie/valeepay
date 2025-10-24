@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nigerian_states_and_lga/nigerian_states_and_lga.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
 
@@ -12,11 +13,18 @@ final lgaProvider = StateProvider<String>((ref) => '');
 final houseAddressProvider = StateProvider<String>((ref) => '');
 final landmarkProvider = StateProvider<String>((ref) => '');
 
-class ResidentialAddressPage extends ConsumerWidget {
+class ResidentialAddressPage extends ConsumerStatefulWidget {
   const ResidentialAddressPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _ResidentialAddressPageState createState() => _ResidentialAddressPageState();
+}
+
+class _ResidentialAddressPageState extends ConsumerState<ResidentialAddressPage> {
+  List<String> _lgas = [];
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(stateProvider);
     final lga = ref.watch(lgaProvider);
     final houseAddress = ref.watch(houseAddressProvider);
@@ -74,24 +82,34 @@ class ResidentialAddressPage extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
               // State Field
-              _buildInputField(
+              _buildDropdownField(
                 context,
                 ref,
                 label: 'State',
                 value: state,
+                items: NigerianStatesAndLGA.allStates,
                 onChanged: (value) {
-                  ref.read(stateProvider.notifier).state = value;
+                  if (value != null) {
+                    ref.read(stateProvider.notifier).state = value;
+                    ref.read(lgaProvider.notifier).state = '';
+                    setState(() {
+                      _lgas = NigerianStatesAndLGA.getStateLGAs(value);
+                    });
+                  }
                 },
               ),
               const SizedBox(height: 20),
               // LGA Field
-              _buildInputField(
+              _buildDropdownField(
                 context,
                 ref,
                 label: 'LGA',
                 value: lga,
+                items: _lgas,
                 onChanged: (value) {
-                  ref.read(lgaProvider.notifier).state = value;
+                  if (value != null) {
+                    ref.read(lgaProvider.notifier).state = value;
+                  }
                 },
               ),
               const SizedBox(height: 20),
@@ -144,6 +162,62 @@ class ResidentialAddressPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDropdownField(
+    BuildContext context,
+    WidgetRef ref, {
+    required String label,
+    required String value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF9CA3AF),
+            fontFamily: 'SF Pro',
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            height: 1.33,
+            letterSpacing: 0.06,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonFormField<String>(
+            value: value.isEmpty ? null : value,
+            items: items.map((String item) {
+              return DropdownMenuItem<String>(
+                value: item,
+                child: Text(item),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+            ),
+            style: const TextStyle(
+              fontFamily: 'SF Pro',
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.black,
+            ),
+            isExpanded: true,
+          ),
+        ),
+      ],
     );
   }
 

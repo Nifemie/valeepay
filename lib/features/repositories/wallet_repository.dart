@@ -15,6 +15,7 @@ class WalletRepository {
     String? status,
     String? dateFrom,
     String? dateTo,
+    String? userId,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -25,6 +26,7 @@ class WalletRepository {
       if (dateFrom != null && dateFrom.isNotEmpty)
         queryParams['dateFrom'] = dateFrom;
       if (dateTo != null && dateTo.isNotEmpty) queryParams['dateTo'] = dateTo;
+      if (userId != null && userId.isNotEmpty) queryParams['userId'] = userId;
 
       final response = await apiClient.get(
         ApiEndpoints.getTransactions,
