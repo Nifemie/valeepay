@@ -1,14 +1,32 @@
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
 import 'package:valarpay/features/models/transactions_response.dart';
-import '../../../core/network/api_client.dart';
+import 'package:valarpay/core/network/api_client.dart';
+import 'package:valarpay/features/models/api_response.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
 
 class WalletRepository {
   final ApiClient apiClient;
 
   WalletRepository(this.apiClient);
 
-  /// Get all transactions with optional filters
+  Future<ApiResponse> setupWallet(KycAddressRequest request) async {
+    try {
+      final response = await apiClient.post(
+        ApiEndpoints.validateBvn,
+        data: request.toJson(),
+      );
+      return ApiResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Failed to validate bvn',
+      );
+    } catch (e) {
+      throw Exception('Unexpected error during bvn validation: $e');
+    }
+  }
+
+  /// 💳 Get all transactions with optional filters
   Future<TransactionsResponse> getAllTransactions({
     int? page,
     int? limit,
@@ -41,7 +59,7 @@ class WalletRepository {
     }
   }
 
-  /// Get all banks
+  /// 🏦 Get all banks
   Future<Map<String, dynamic>> getBanks() async {
     try {
       final response = await apiClient.get(ApiEndpoints.getBanks);
@@ -51,7 +69,7 @@ class WalletRepository {
     }
   }
 
-  /// Get transfer fee
+  /// 💸 Get transfer fee
   Future<Map<String, dynamic>> getTransferFee({
     required double amount,
     required String transferType,
@@ -69,7 +87,7 @@ class WalletRepository {
     }
   }
 
-  /// Verify account
+  /// 🔍 Verify account
   Future<Map<String, dynamic>> verifyAccount({
     required String accountNumber,
     required String bankCode,
@@ -87,7 +105,7 @@ class WalletRepository {
     }
   }
 
-  /// Initiate transfer
+  /// 💰 Initiate transfer
   Future<Map<String, dynamic>> initiateTransfer({
     required String accountNumber,
     required String bankCode,

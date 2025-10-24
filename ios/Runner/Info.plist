@@ -51,5 +51,11 @@
 		<string>We need access to your camera for identity verification to keep your account secure.</string>
 		<key>NSCameraUsageDescription</key>
         <string>This app uses the camera to verify your identity.</string>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>LSSupportsOpeningDocumentsInPlace</key>
+		<true/>
+		<key>UIFileSharingEnabled</key>
+		<true/>
 	</dict>
 </plist>

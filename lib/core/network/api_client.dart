@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/services/session_service.dart';
 
@@ -34,8 +35,9 @@ class ApiClient {
             final data = response.data;
 
             // Skip validation for endpoints that return data directly (not wrapped in 'data' field)
-            final procedWithValidation =
-                response.requestOptions.path.contains('/verify-account');
+            final procedWithValidation = response.requestOptions.path.contains(
+              '/verify-account',
+            );
 
             if (procedWithValidation) {
               if (data is Map &&
@@ -77,7 +79,6 @@ class ApiClient {
     );
   }
 
-  /// Adds Authorization header if access token is available
   Future<void> _withAuth(Options options) async {
     final token = await SessionService.getAccessToken();
     if (token != null && token.isNotEmpty) {
@@ -86,7 +87,6 @@ class ApiClient {
     }
   }
 
-  /// POST Request
   Future<Response> post(String path, {Map<String, dynamic>? data}) async {
     final options = Options();
     await _withAuth(options);
@@ -95,9 +95,7 @@ class ApiClient {
 
   /// POST Request with FormData (for file uploads)
   Future<Response> postFormData(String path, {required FormData data}) async {
-    final options = Options(
-      contentType: 'multipart/form-data',
-    );
+    final options = Options(contentType: 'multipart/form-data');
     await _withAuth(options);
     return await dio.post(path, data: data, options: options);
   }
@@ -109,14 +107,12 @@ class ApiClient {
     return await dio.get(path, queryParameters: query, options: options);
   }
 
-  /// PUT Request
   Future<Response> put(String path, {Map<String, dynamic>? data}) async {
     final options = Options();
     await _withAuth(options);
     return await dio.put(path, data: data, options: options);
   }
 
-  /// DELETE Request
   Future<Response> delete(String path) async {
     final options = Options();
     await _withAuth(options);
