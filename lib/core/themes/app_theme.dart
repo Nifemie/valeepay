@@ -18,7 +18,7 @@ class AppTheme {
         surfaceTintColor: Colors.white,
       ),
       bottomAppBarTheme: const BottomAppBarTheme(color: Colors.white),
-      cardColor: Colors.grey,
+      cardColor: Colors.grey[200],
       textTheme: const TextTheme(
         labelSmall: TextStyle(color: Colors.black),
         labelMedium: TextStyle(
