@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 
 class AutoLogoutSettingsScreen extends StatefulWidget {
   const AutoLogoutSettingsScreen({super.key});
@@ -11,12 +12,29 @@ class AutoLogoutSettingsScreen extends StatefulWidget {
 
 class _AutoLogoutSettingsScreenState extends State<AutoLogoutSettingsScreen> {
   String selectedOption = '60 Minutes Password Free Log in';
+  bool _isLoading = true;
 
   final List<String> logoutOptions = [
     'Password Free Log in',
     '60 Minutes Password Free Log in',
     'Always Require Password to Log in',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedSettings();
+  }
+
+  Future<void> _loadSavedSettings() async {
+    final saved = await LocalStorageService.get('auto_logout_setting');
+    setState(() {
+      if (saved != null && logoutOptions.contains(saved)) {
+        selectedOption = saved;
+      }
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,21 +48,23 @@ class _AutoLogoutSettingsScreenState extends State<AutoLogoutSettingsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Choose the lock that suits you best',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontSize: 16,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Choose the lock that suits you best',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 16,
+                        ),
                   ),
-            ),
-            const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-            // Auto-logout options
-            ...logoutOptions.map((option) => Container(
+                  // Auto-logout options
+                  ...logoutOptions.map((option) => Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   child: GestureDetector(
                     onTap: () {
@@ -109,43 +129,45 @@ class _AutoLogoutSettingsScreenState extends State<AutoLogoutSettingsScreen> {
                       ),
                     ),
                   ),
-                )),
+                  )),
 
-            const Spacer(),
+                  const Spacer(),
 
-            // Save button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  _saveSettings();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  // Save button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _saveSettings();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: appTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Save Settings',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Save Settings',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
     );
   }
 
-  void _saveSettings() {
+  Future<void> _saveSettings() async {
+    // Save to local storage
+    await LocalStorageService.save('auto_logout_setting', selectedOption);
     showDialog(
       context: context,
       barrierDismissible: false,

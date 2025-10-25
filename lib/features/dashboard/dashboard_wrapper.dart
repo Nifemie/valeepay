@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
+import 'package:valarpay/core/services/inactivity_service.dart';
 import '/features/dashboard/widgets/navbar.dart';
 
 class DashboardWrapper extends ConsumerStatefulWidget {
@@ -18,15 +19,30 @@ class DashboardWrapper extends ConsumerStatefulWidget {
   ConsumerState<DashboardWrapper> createState() => _DashboardWrapperState();
 }
 
-class _DashboardWrapperState extends ConsumerState<DashboardWrapper> {
+class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with WidgetsBindingObserver {
   bool _hasShownPasscodePrompt = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowModals();
+      InactivityService.startMonitoring(context);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      InactivityService.recordActivity();
+    }
   }
 
   void _checkAndShowModals() {
@@ -94,9 +110,14 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: const CustomBottomNavBar(),
+    return GestureDetector(
+      onTap: () => InactivityService.recordActivity(),
+      onPanDown: (_) => InactivityService.recordActivity(),
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
+        body: widget.child,
+        bottomNavigationBar: const CustomBottomNavBar(),
+      ),
     );
   }
 }
