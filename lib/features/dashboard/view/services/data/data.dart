@@ -11,6 +11,8 @@ import 'package:valarpay/features/dashboard/widgets/services_widgets/mobile_data
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/notifiers/data_notifier.dart';
 import 'package:valarpay/features/models/data_models.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class DataScreen extends ConsumerStatefulWidget {
   const DataScreen({super.key});
@@ -43,6 +45,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
 
   @override
   Widget build(BuildContext context) {
+        final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final plansState = ref.watch(dataPlansNotifierProvider);
     final availablePlans = plansState.data ?? <DataPlanInfo>[];
 
@@ -105,21 +109,28 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: appTheme.primaryColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: appTheme.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       ),
-      body: SingleChildScrollView(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to purchase data',
+            )
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

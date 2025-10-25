@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/services/session_service.dart';
+import 'package:valarpay/core/services/secure_storage_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/device_utils.dart';
@@ -88,6 +89,11 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
               // Fallback to login response user if refresh fails
               ref.read(userProvider.notifier).setUser(loginResponse.user);
             }
+
+            // 🔐 Save passcode securely for biometric login
+            await SecureStorageService.savePasscode(_passcode);
+            await SecureStorageService.saveUsername(savedUsername);
+            print('🔐 [PasscodeLogin] Passcode saved securely for biometric login');
 
             AppMessenger.show(
               context,

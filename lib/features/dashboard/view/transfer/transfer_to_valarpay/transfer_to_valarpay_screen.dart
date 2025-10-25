@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class TransferToValarPayScreen extends ConsumerStatefulWidget {
   const TransferToValarPayScreen({super.key});
@@ -66,6 +68,9 @@ class _TransferToValarPayScreenState
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
+    
     final accountVerificationState =
         ref.watch(internalAccountVerificationNotifierProvider);
 
@@ -106,7 +111,12 @@ class _TransferToValarPayScreenState
         ),
         centerTitle: false,
       ),
-      body: SafeArea(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to transfer money to ValarPay accounts',
+            )
+          : SafeArea(
         child: Padding(
           padding: EdgeInsets.all(20.w),
           child: Column(

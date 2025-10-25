@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/routing/app_router.dart';
 
 class TermsAndConditionsWidget extends StatelessWidget {
   const TermsAndConditionsWidget({super.key});
@@ -20,7 +22,9 @@ class TermsAndConditionsWidget extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              context.push('/terms-and-conditions');
+            },
             child: Text(
               'Terms and Conditions',
               style: TextStyle(
@@ -38,7 +42,9 @@ class TermsAndConditionsWidget extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              context.push('/privacy-policy');
+            },
             child: Text(
               'Privacy Policy',
               style: TextStyle(

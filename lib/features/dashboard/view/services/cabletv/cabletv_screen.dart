@@ -10,6 +10,8 @@ import '../../../widgets/services_widgets/cabletv_widgets/cabletv_provider_selec
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_plan_selector_modal.dart';
 import 'package:valarpay/features/notifiers/cable_notifier.dart';
 import 'package:valarpay/features/models/cable_models.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class CableTvScreen extends ConsumerStatefulWidget {
   const CableTvScreen({super.key});
@@ -40,6 +42,8 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
 
   @override
   Widget build(BuildContext context) {
+        final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // cable plans are read when needed (e.g. in modal builders)
@@ -57,27 +61,35 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CableTvSavedBeneficiaryScreen(),
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const CableTvSavedBeneficiaryScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: Color(0xFFF76301),
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
+              ]
+            : null,
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to pay for cable TV subscriptions',
+            )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
