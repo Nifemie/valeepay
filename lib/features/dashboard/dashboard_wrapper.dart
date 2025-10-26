@@ -135,12 +135,17 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
     }
   }
 
-  void _checkAndShowModals() {
+  void _checkAndShowModals() async {
     if (_hasShownPasscodePrompt) return;
 
     final user = ref.read(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
     final hasPasscode = user?.isPasscodeSet ?? false;
+    
+    // Check if biometric is already enabled
+    final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
+    final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
+    final biometricEnabled = hasBiometric || hasFaceId;
 
     _hasShownPasscodePrompt = true;
 
@@ -160,6 +165,14 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
         }
       });
     }
+    // Priority 3: Show Biometric modal if passcode set but no biometric
+    else if (!biometricEnabled) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          _showBiometricSetupModal();
+        }
+      });
+    }
   }
 
   void _showKycVerificationModal() {
@@ -170,7 +183,7 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _KycVerificationModal(
-        onComplete: () {
+        onComplete: () async {
           Navigator.pop(context);
           // After KYC modal is closed, check if we need to show passcode modal
           final user = ref.read(userProvider);
@@ -181,6 +194,17 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
                 _showPasscodeSetupModal();
               }
             });
+          } else {
+            // Check if biometric is enabled
+            final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
+            final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
+            if (!hasBiometric && !hasFaceId) {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  _showBiometricSetupModal();
+                }
+              });
+            }
           }
         },
       ),
@@ -194,7 +218,32 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
       enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const _PasscodeSetupModal(),
+      builder: (context) => _PasscodeSetupModal(
+        onComplete: () async {
+          Navigator.pop(context);
+          // After passcode modal is closed, check if we need to show biometric modal
+          final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
+          final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
+          if (!hasBiometric && !hasFaceId) {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                _showBiometricSetupModal();
+              }
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  void _showBiometricSetupModal() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _BiometricSetupModal(),
     );
   }
 
@@ -388,7 +437,9 @@ class _KycBenefitItem extends StatelessWidget {
 
 /// ---------- Passcode Setup Modal ----------
 class _PasscodeSetupModal extends StatelessWidget {
-  const _PasscodeSetupModal({Key? key}) : super(key: key);
+  final VoidCallback? onComplete;
+  
+  const _PasscodeSetupModal({Key? key, this.onComplete}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -481,6 +532,135 @@ class _PasscodeSetupModal extends StatelessWidget {
                   ),
                   child: const Text(
                     'Set Up Passcode',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Skip Button
+              TextButton(
+                onPressed: () {
+                  if (onComplete != null) {
+                    onComplete!();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text(
+                  'Skip for now',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ---------- Biometric Setup Modal ----------
+class _BiometricSetupModal extends StatelessWidget {
+  const _BiometricSetupModal({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Fingerprint Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: appTheme.primaryColor.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.fingerprint,
+                  size: 40,
+                  color: appTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                'Enable Biometric Login',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Subtitle
+              Text(
+                'Use your fingerprint or Face ID for quick and secure access to your account',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Benefits List
+              _BenefitItem(
+                icon: Icons.check_circle,
+                text: 'Quick and convenient login',
+                isDark: isDark,
+              ),
+              const SizedBox(height: 12),
+              _BenefitItem(
+                icon: Icons.check_circle,
+                text: 'Enhanced security for your account',
+                isDark: isDark,
+              ),
+              const SizedBox(height: 12),
+              _BenefitItem(
+                icon: Icons.check_circle,
+                text: 'No need to remember passwords',
+                isDark: isDark,
+              ),
+              const SizedBox(height: 24),
+
+              // Enable Biometric Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/login-settings');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Enable Biometric',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

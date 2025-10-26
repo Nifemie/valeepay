@@ -10,6 +10,8 @@ class SessionService {
   static const String _userAccessToken = 'user_access_token';
   static const String _usernameKey = 'username';
   static const String _userFullnameKey = 'user_fullname';
+  static const String _userActualUsernameKey = 'user_actual_username';
+  static const String _userPhoneNumberKey = 'user_phone_number';
 
   // Save login session
   static Future<void> saveSession(LoginResponse response) async {
@@ -17,7 +19,8 @@ class SessionService {
     await prefs.setString(_userDetailsKey, jsonEncode(response.user.toJson()));
     await prefs.setString(_usernameKey, response.user.email);
     await prefs.setString(_userFullnameKey, response.user.fullname);
-    await prefs.setString(_userFullnameKey, response.user.fullname);
+    await prefs.setString(_userActualUsernameKey, response.user.username);
+    await prefs.setString(_userPhoneNumberKey, response.user.phoneNumber ?? '');
     //save token if any
     if (response.accessToken != null) {
       await prefs.setString(_userAccessToken, response.accessToken!);
@@ -43,6 +46,20 @@ class SessionService {
     final userFullname = prefs.getString(_userFullnameKey);
     if (userFullname == null) return null;
     return userFullname;
+  }
+
+  static Future<String?> getActualUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    final username = prefs.getString(_userActualUsernameKey);
+    if (username == null) return null;
+    return username;
+  }
+
+  static Future<String?> getPhoneNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    final phoneNumber = prefs.getString(_userPhoneNumberKey);
+    if (phoneNumber == null) return null;
+    return phoneNumber;
   }
 
   static Future<UserModel?> getUser() async {

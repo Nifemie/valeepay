@@ -48,21 +48,27 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
   Future<void> _loadUserSession() async {
     final user = await SessionService.getUser();
-    final savedUsername = await SessionService.getUsername();
+    final savedUsername = await SessionService.getActualUsername();
+    final savedFullname = await SessionService.getUserFullname();
+    final savedPhoneNumber = await SessionService.getPhoneNumber();
     
     setState(() {
-      // Use saved username if user is null (after logout)
+      // Use actual username for display (not email)
       _username = user?.username ?? savedUsername ?? 'User';
-      _fullname = user?.fullname ?? 'User';
-      _phoneNumber = user?.phoneNumber ?? '';
+      _fullname = user?.fullname ?? savedFullname ?? 'User';
+      _phoneNumber = user?.phoneNumber ?? savedPhoneNumber ?? '';
       _profileImageUrl = user?.profileImageUrl;
     });
   }
 
   /// Mask phone number to show only first 3 and last 3 digits
   String _maskPhoneNumber(String? phone) {
-    if (phone == null || phone.isEmpty || phone == 'N/A') {
-      return 'Loading...';
+    if (phone == null || phone.isEmpty) {
+      return ''; // Return empty string instead of "Loading..."
+    }
+    
+    if (phone == 'N/A') {
+      return '';
     }
     
     if (phone.length <= 6) {
