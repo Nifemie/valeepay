@@ -146,7 +146,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                           return const KYCWidget();
                         },
                       ),
-                      const KYCWidget(),
                       const SizedBox(height: 16),
                       Container(
                         width: MediaQuery.of(context).size.width,
