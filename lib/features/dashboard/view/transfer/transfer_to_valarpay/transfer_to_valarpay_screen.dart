@@ -113,7 +113,7 @@ class _TransferToValarPayScreenState
         ),
         centerTitle: false,
       ),
-      body: isBvnVerified
+      body: !isBvnVerified
           ? const KycNotSetWidget(
               title: 'KYC Not Completed',
               subtitle:
