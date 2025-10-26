@@ -33,12 +33,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _phoneNumber;
   String? _profileImageUrl;
 
-
   @override
   void initState() {
     super.initState();
     _loadUserSession();
-    
+
     // Automatically trigger biometric authentication when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestBiometricAndCameraPermissions();
@@ -47,7 +46,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
   Future<void> _loadUserSession() async {
     final user = await SessionService.getUser();
-    
+
     setState(() {
       _username = user?.username ?? 'N/A';
       _fullname = user?.fullname ?? 'User';
@@ -61,15 +60,15 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     if (phone == null || phone.isEmpty || phone == 'N/A') {
       return 'Loading...';
     }
-    
+
     if (phone.length <= 6) {
       return phone; // Too short to mask
     }
-    
+
     final first3 = phone.substring(0, 3);
     final last3 = phone.substring(phone.length - 3);
     final maskedMiddle = '*' * (phone.length - 6);
-    
+
     return '$first3$maskedMiddle$last3';
   }
 
@@ -82,14 +81,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       // Try to get stored passcode
       final storedPasscode = await SecureStorageService.getPasscode();
       final storedUsername = await SecureStorageService.getUsername();
-
-      print('🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}');
-      print('🔐 [BiometricLogin] Has stored username: ${storedUsername != null}');
-
       if (storedPasscode != null && storedUsername != null) {
-        // Use passcode login API
-        print('🔐 [BiometricLogin] Logging in with stored passcode...');
-        
         final ip = await DeviceUtils.getIpAddress();
         final deviceName = await DeviceUtils.getDeviceName();
         final os = await DeviceUtils.getDeviceOS();
@@ -106,21 +98,12 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         await notifier.loginWithPasscode(request);
         final state = ref.read(authNotifierProvider);
 
-        if (state.isDataAvailable && state.data != null) {
+        if (state.isDataAvailable && state.data != null && mounted) {
           final loginResponse = state.data!.first;
-          
-          // Save session
           await SessionService.saveSession(loginResponse);
-          
-          // Refresh user profile
-          final freshUser = await ref.read(userNotifierProvider.notifier).refreshUserProfile();
-          if (freshUser != null) {
-            ref.read(userProvider.notifier).setUser(freshUser);
-          } else {
-            ref.read(userProvider.notifier).setUser(loginResponse.user);
-          }
+          ref.read(userProvider.notifier).setUser(loginResponse.user);
+          await ref.read(userNotifierProvider.notifier).refreshUserProfile();
 
-          if (!context.mounted) return;
           AppMessenger.show(
             context,
             message: 'Welcome back, ${loginResponse.user.fullname}',
@@ -140,7 +123,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         // Fallback to session-based login
         print('🔐 [BiometricLogin] No stored passcode, checking session...');
         final userAccessToken = await SessionService.getAccessToken();
-        
+
         if (userAccessToken == null) {
           if (!context.mounted) return;
           AppMessenger.show(
@@ -416,25 +399,27 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
                     child: ClipOval(
-                      child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
-                          ? Image.network(
-                              _profileImageUrl!,
-                              width: 90.w,
-                              height: 90.w,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: appTheme.primaryColor,
-                                );
-                              },
-                            )
-                          : const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: appTheme.primaryColor,
-                            ),
+                      child:
+                          _profileImageUrl != null &&
+                                  _profileImageUrl!.isNotEmpty
+                              ? Image.network(
+                                _profileImageUrl!,
+                                width: 90.w,
+                                height: 90.w,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: appTheme.primaryColor,
+                                  );
+                                },
+                              )
+                              : const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: appTheme.primaryColor,
+                              ),
                     ),
                   ),
                   SizedBox(height: 18.h),

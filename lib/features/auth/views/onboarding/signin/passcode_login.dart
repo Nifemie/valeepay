@@ -7,9 +7,9 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
-import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
 class PasscodeLoginScreen extends ConsumerStatefulWidget {
@@ -53,55 +53,18 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
 
           if (state.isDataAvailable && mounted) {
             final loginResponse = state.data?.first;
-
-            // Save session with access token
             await SessionService.saveSession(loginResponse!);
+            ref.read(userProvider.notifier).setUser(loginResponse.user);
+            await ref.read(userNotifierProvider.notifier).refreshUserProfile();
 
-            // 🔥 FIX: Fetch fresh user data with wallet from /me endpoint
-            print('🔥 [PasscodeLogin] About to call refreshUserProfile...');
-            final freshUser =
-                await ref
-                    .read(userNotifierProvider.notifier)
-                    .refreshUserProfile();
-            print(
-              '🔥 [PasscodeLogin] refreshUserProfile returned: ${freshUser != null}',
-            );
-            if (freshUser != null) {
-              print(
-                '🔥 [PasscodeLogin] Fresh user has ${freshUser.wallets.length} wallets',
-              );
-            }
-
-            if (freshUser != null) {
-              // Update user provider with fresh data including wallet
-              ref.read(userProvider.notifier).setUser(freshUser);
-
-              // Update cached session with complete user data
-              await SessionService.saveSession(
-                LoginResponse(
-                  message: loginResponse.message,
-                  statusCode: loginResponse.statusCode,
-                  user: freshUser,
-                  accessToken: loginResponse.accessToken,
-                ),
-              );
-            } else {
-              // Fallback to login response user if refresh fails
-              ref.read(userProvider.notifier).setUser(loginResponse.user);
-            }
-
-            // 🔐 Save passcode securely for biometric login
             await SecureStorageService.savePasscode(_passcode);
             await SecureStorageService.saveUsername(savedUsername);
-            print('🔐 [PasscodeLogin] Passcode saved securely for biometric login');
-
+        
             AppMessenger.show(
               context,
               message: 'Welcome ${loginResponse.user.fullname}',
               type: MessageType.success,
             );
-
-            if (!mounted) return;
             setState(() => _isProcessing = false);
             // Navigate after the current frame to avoid duplicate key issues
             WidgetsBinding.instance.addPostFrameCallback((_) {
