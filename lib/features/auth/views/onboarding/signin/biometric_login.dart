@@ -48,14 +48,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   Future<void> _loadUserSession() async {
     final user = await SessionService.getUser();
     final savedUsername = await SessionService.getActualUsername();
-    final savedFullname = await SessionService.getUserFullname();
     final savedPhoneNumber = await SessionService.getPhoneNumber();
     
 
     setState(() {
-      // Use actual username for display (not email)
       _username = user?.username ?? savedUsername ?? 'User';
-      _fullname = user?.fullname ?? savedFullname ?? 'User';
       _phoneNumber = user?.phoneNumber ?? savedPhoneNumber ?? '';
       _profileImageUrl = user?.profileImageUrl;
     });
