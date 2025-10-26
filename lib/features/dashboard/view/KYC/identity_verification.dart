@@ -45,10 +45,11 @@ class _IdentityVerificationPageState
     _initializeCamera();
   }
 
-
   _setupWallet() async {
     try {
-      await ref.read(walletNotifierProvider.notifier).setupWallet(widget.request);
+      await ref
+          .read(walletNotifierProvider.notifier)
+          .setupWallet(widget.request);
       final userState = ref.read(walletNotifierProvider);
       if (userState.isDataAvailable && mounted) {
         AppMessenger.show(
@@ -164,16 +165,16 @@ class _IdentityVerificationPageState
       );
       final service = VerificationService();
       final response = await service.verifyBvnFace(requestBody);
-      if (response.summary?.faceVerificationCheck?.faceVerification != null) {
-       _setupWallet();
+      log("Response: ${response.toJson().toString()}");
+
+      if (response.metadata?.match == true) {
+        _setupWallet();
       } else {
         AppMessenger.show(
           context,
           type: MessageType.error,
-          message:
-              response.message ?? 'Face verification failed. Please retry.',
+          message: 'Face verification failed. Please retry.',
         );
-        _retake();
       }
     } catch (e) {
       AppMessenger.show(

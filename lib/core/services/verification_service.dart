@@ -53,8 +53,6 @@ class VerificationService {
           secret: '59ab112e8cc549829a66a84d0c550256',
         ),
       );
-
-      log("verifiing...");
       if (tokenResponse.accessToken != null) {
         final response = await _dio.post(
           _baseUrl,
@@ -67,6 +65,8 @@ class VerificationService {
             },
           ),
         );
+
+        log(response.toString());
         return QoreBvnFaceVerificationResponse.fromJson(response.data);
       } else {
         return QoreBvnFaceVerificationResponse(

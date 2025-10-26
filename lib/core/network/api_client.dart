@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/services/session_service.dart';
+import 'package:flutter/material.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://valar-pay-api.up.railway.app';
@@ -35,24 +36,24 @@ class ApiClient {
             final data = response.data;
 
             // Skip validation for endpoints that return data directly (not wrapped in 'data' field)
-            final procedWithValidation = response.requestOptions.path.contains(
+            final proceedWithValidation = response.requestOptions.path.contains(
               '/verify-account',
             );
 
-            if (procedWithValidation) {
+            if (proceedWithValidation) {
               if (data is Map &&
                   (data['data'] == null || data['data'].toString() == '{}')) {
-                // Throw a Dio error so it can be caught as an API failure
                 return handler.reject(
                   DioException(
                     requestOptions: response.requestOptions,
-                    error: "Invalid response returned server.",
+                    error: "Invalid response returned by server.",
                     type: DioExceptionType.badResponse,
                   ),
                 );
               }
             }
           }
+
           if (response.requestOptions.path.contains('/me')) {
             print('[API /me RESPONSE] => Status: ${response.statusCode}');
             print(
@@ -67,12 +68,19 @@ class ApiClient {
               );
             }
           }
-          print('[API RESPONSE] => ${response.statusCode} ${response.data}');
 
+          print('[API RESPONSE] => ${response.statusCode} ${response.data}');
           return handler.next(response);
         },
-        onError: (DioException e, handler) {
+        onError: (DioException e, handler) async {
           print('[API ERROR] => ${e.response?.statusCode} ${e.message}');
+
+          // ✅ Handle 401 Unauthorized
+          if (e.response?.statusCode == 401) {
+            print('[API ERROR] => Unauthorized! Logging out...');
+            // await _handleUnauthorized();
+          }
+
           return handler.next(e);
         },
       ),
@@ -93,21 +101,18 @@ class ApiClient {
     return await dio.post(path, data: data, options: options);
   }
 
-  /// POST Request with FormData (for file uploads)
   Future<Response> postFormData(String path, {required FormData data}) async {
     final options = Options(contentType: 'multipart/form-data');
     await _withAuth(options);
     return await dio.post(path, data: data, options: options);
   }
 
-  /// PUT Request with FormData (for file uploads using PUT)
   Future<Response> putFormData(String path, {required FormData data}) async {
     final options = Options(contentType: 'multipart/form-data');
     await _withAuth(options);
     return await dio.put(path, data: data, options: options);
   }
 
-  /// GET Request
   Future<Response> get(String path, {Map<String, dynamic>? query}) async {
     final options = Options();
     await _withAuth(options);

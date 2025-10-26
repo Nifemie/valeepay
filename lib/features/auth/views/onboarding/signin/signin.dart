@@ -8,6 +8,7 @@ import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/login.dart';
 import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../../../core/utils/platform_responsive.dart';
 import '../../../../../../features/auth/widgets/need_help_modal.dart';
@@ -58,6 +59,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           _hasStoredUsername = true;
           _hasIncorrectCred = false;
         });
+        await ref.read(userNotifierProvider.notifier).refreshUserProfile();
 
         if (loginResponse.accessToken != null) {
           // Don't call setState or show AppMessage after navigation

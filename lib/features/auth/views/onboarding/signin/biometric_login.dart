@@ -29,10 +29,9 @@ class BiometricLoginScreen extends ConsumerStatefulWidget {
 
 class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _username;
-  String? _fullname;
   String? _phoneNumber;
   String? _profileImageUrl;
-  bool _isLoading = false;
+  bool _isLoading=false;
 
 
   @override
@@ -67,7 +66,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     if (phone == null || phone.isEmpty) {
       return ''; // Return empty string instead of "Loading..."
     }
-    
+  
     if (phone == 'N/A') {
       return '';
     }
@@ -76,9 +75,11 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       return phone; // Too short to mask
     }
 
+
     final first3 = phone.substring(0, 3);
     final last3 = phone.substring(phone.length - 3);
     final maskedMiddle = '*' * (phone.length - 6);
+
 
     return '$first3$maskedMiddle$last3';
   }
@@ -93,9 +94,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final currentDeviceId = await DeviceUtils.getDeviceId();
       final isBiometricEnabledForDevice = await SecureStorageService.isBiometricEnabledForDevice(currentDeviceId);
       
-      print('🔐 [BiometricLogin] Current Device ID: $currentDeviceId');
-      print('🔐 [BiometricLogin] Biometric enabled for this device: $isBiometricEnabledForDevice');
-      
       if (!isBiometricEnabledForDevice) {
         if (!context.mounted) return;
         AppMessenger.show(
@@ -107,7 +105,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         return;
       }
       
-      // Try to get stored passcode
       final storedPasscode = await SecureStorageService.getPasscode();
       final storedUsername = await SecureStorageService.getUsername();
 
@@ -136,7 +133,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         await notifier.loginWithPasscode(request);
         final state = ref.read(authNotifierProvider);
 
-        if (state.isDataAvailable && state.data != null) {
+        if (state.isDataAvailable && state.data != null && mounted) {
           final loginResponse = state.data!.first;
 
           // Save session
@@ -152,7 +149,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
             ref.read(userProvider.notifier).setUser(loginResponse.user);
           }
 
-          if (!context.mounted) return;
           AppMessenger.show(
             context,
             message: 'Welcome back, ${loginResponse.user.fullname}',
@@ -172,6 +168,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         // Fallback to session-based login
         print('🔐 [BiometricLogin] No stored passcode, checking session...');
         final userAccessToken = await SessionService.getAccessToken();
+
 
         if (userAccessToken == null) {
           if (!context.mounted) return;
@@ -561,3 +558,4 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     );
   }
 }
+
