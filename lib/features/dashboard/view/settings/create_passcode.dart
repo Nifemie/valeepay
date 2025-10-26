@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/controller/passcode_controller.dart';
+import 'package:valarpay/core/services/secure_storage_service.dart';
+import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/models/create_passcode_request.dart';
@@ -33,6 +35,14 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
 
       if (mounted) {
         if (state.isDataAvailable) {
+          // 🔐 Save passcode securely for biometric login
+          await SecureStorageService.savePasscode(passcode);
+          final username = await SessionService.getUsername();
+          if (username != null) {
+            await SecureStorageService.saveUsername(username);
+          }
+          print('🔐 [CreatePasscode] Passcode saved securely for biometric login');
+
           AppMessenger.show(
             context,
             message: state.message ?? 'Passcode created successfully!',

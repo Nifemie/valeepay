@@ -4,6 +4,7 @@ import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 // app_messenger not used here
 import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
@@ -13,6 +14,7 @@ import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_ser
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/providers/airtime_providers.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/features/models/network_provider.dart';
 import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/features/notifiers/airtime_notifier.dart';
@@ -128,6 +130,9 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
+    
     final useCashback = ref.watch(airtimeUseCashbackProvider);
     final selectedNetwork = ref.watch(airtimeSelectedNetworkProvider);
     final selectedOperatorId = ref.watch(airtimeSelectedOperatorIdProvider);
@@ -193,7 +198,12 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
       ),
-      body: SafeArea(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to purchase airtime',
+            )
+          : SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(

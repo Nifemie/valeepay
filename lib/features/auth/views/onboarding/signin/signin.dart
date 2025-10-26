@@ -181,7 +181,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                           PlatformResponsive.sizedBoxW(6),
                           Text(
-                            'Valarpay',
+                            'ValarPay',
                             style: TextStyle(
                               fontSize: 24.rsp,
                               fontWeight: FontWeight.bold,

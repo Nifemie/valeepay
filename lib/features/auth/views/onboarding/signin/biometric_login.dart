@@ -7,12 +7,17 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/constants/enums/enums.dart';
 import 'package:valarpay/core/services/biometric_auth_service.dart';
 import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/services/secure_storage_service.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/platform_responsive.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/models/login.dart';
+import 'package:valarpay/features/notifiers/auth_notifier.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 class BiometricLoginScreen extends ConsumerStatefulWidget {
   const BiometricLoginScreen({super.key});
@@ -25,21 +30,47 @@ class BiometricLoginScreen extends ConsumerStatefulWidget {
 class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _username;
   String? _fullname;
+  String? _phoneNumber;
+  String? _profileImageUrl;
+
 
   @override
   void initState() {
     super.initState();
     _loadUserSession();
+    
+    // Automatically trigger biometric authentication when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestBiometricAndCameraPermissions();
+    });
   }
 
   Future<void> _loadUserSession() async {
-    final userFullName = await SessionService.getUserFullname();
-    final username = await SessionService.getUsername();
-
+    final user = await SessionService.getUser();
+    
     setState(() {
-      _username = username ?? 'N/A';
-      _fullname = userFullName ?? 'User';
+      _username = user?.username ?? 'N/A';
+      _fullname = user?.fullname ?? 'User';
+      _phoneNumber = user?.phoneNumber ?? 'N/A';
+      _profileImageUrl = user?.profileImageUrl;
     });
+  }
+
+  /// Mask phone number to show only first 3 and last 3 digits
+  String _maskPhoneNumber(String? phone) {
+    if (phone == null || phone.isEmpty || phone == 'N/A') {
+      return 'Loading...';
+    }
+    
+    if (phone.length <= 6) {
+      return phone; // Too short to mask
+    }
+    
+    final first3 = phone.substring(0, 3);
+    final last3 = phone.substring(phone.length - 3);
+    final maskedMiddle = '*' * (phone.length - 6);
+    
+    return '$first3$maskedMiddle$last3';
   }
 
   /// 🔒 Core login handler after biometric succeeds
@@ -48,43 +79,98 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     WidgetRef ref,
   ) async {
     try {
-      final userAccessToken = await SessionService.getAccessToken();
-      print('🔐 [BiometricLogin] Access token: $userAccessToken');
+      // Try to get stored passcode
+      final storedPasscode = await SecureStorageService.getPasscode();
+      final storedUsername = await SecureStorageService.getUsername();
 
-      if (userAccessToken == null) {
-        print('🔐 [BiometricLogin] No access token found.');
-        if (!context.mounted) return;
-        AppMessenger.show(
-          context,
-          message: 'Session expired. Please login with your password',
-          type: MessageType.warning,
-        );
-        context.go('/signin');
-        return;
-      }
+      print('🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}');
+      print('🔐 [BiometricLogin] Has stored username: ${storedUsername != null}');
 
-      final user = await SessionService.getUser();
-      print('🔐 [BiometricLogin] User: $user');
-      if (user != null) {
-        ref.read(userProvider.notifier).setUser(user);
-        if (!context.mounted) return;
-        AppMessenger.show(
-          context,
-          message: 'Welcome back, ${user.fullname}',
-          type: MessageType.success,
+      if (storedPasscode != null && storedUsername != null) {
+        // Use passcode login API
+        print('🔐 [BiometricLogin] Logging in with stored passcode...');
+        
+        final ip = await DeviceUtils.getIpAddress();
+        final deviceName = await DeviceUtils.getDeviceName();
+        final os = await DeviceUtils.getDeviceOS();
+
+        final request = PasscodeLoginRequest(
+          username: storedUsername,
+          passcode: storedPasscode,
+          ipAddress: ip,
+          deviceName: deviceName,
+          operatingSystem: os,
         );
-        print('🔐 [BiometricLogin] Navigating to home screen...');
-        // Use go instead of pushReplacement to clear the entire stack
-        context.go('/');
+
+        final notifier = ref.read(authNotifierProvider.notifier);
+        await notifier.loginWithPasscode(request);
+        final state = ref.read(authNotifierProvider);
+
+        if (state.isDataAvailable && state.data != null) {
+          final loginResponse = state.data!.first;
+          
+          // Save session
+          await SessionService.saveSession(loginResponse);
+          
+          // Refresh user profile
+          final freshUser = await ref.read(userNotifierProvider.notifier).refreshUserProfile();
+          if (freshUser != null) {
+            ref.read(userProvider.notifier).setUser(freshUser);
+          } else {
+            ref.read(userProvider.notifier).setUser(loginResponse.user);
+          }
+
+          if (!context.mounted) return;
+          AppMessenger.show(
+            context,
+            message: 'Welcome back, ${loginResponse.user.fullname}',
+            type: MessageType.success,
+          );
+          context.go('/');
+        } else {
+          if (!context.mounted) return;
+          AppMessenger.show(
+            context,
+            message: state.message ?? 'Login failed. Please try again',
+            type: MessageType.error,
+          );
+          context.go('/signin');
+        }
       } else {
-        print('🔐 [BiometricLogin] No user found.');
-        if (!context.mounted) return;
-        AppMessenger.show(
-          context,
-          message: 'Session expired. Please login with your password',
-          type: MessageType.warning,
-        );
-        context.go('/signin');
+        // Fallback to session-based login
+        print('🔐 [BiometricLogin] No stored passcode, checking session...');
+        final userAccessToken = await SessionService.getAccessToken();
+        
+        if (userAccessToken == null) {
+          if (!context.mounted) return;
+          AppMessenger.show(
+            context,
+            message: 'Session expired. Please login with your password',
+            type: MessageType.warning,
+          );
+          context.go('/signin');
+          return;
+        }
+
+        final user = await SessionService.getUser();
+        if (user != null) {
+          ref.read(userProvider.notifier).setUser(user);
+          if (!context.mounted) return;
+          AppMessenger.show(
+            context,
+            message: 'Welcome back, ${user.fullname}',
+            type: MessageType.success,
+          );
+          context.go('/');
+        } else {
+          if (!context.mounted) return;
+          AppMessenger.show(
+            context,
+            message: 'Session expired. Please login with your password',
+            type: MessageType.warning,
+          );
+          context.go('/signin');
+        }
       }
     } catch (e) {
       print('🔐 [BiometricLogin] Exception: $e');
@@ -329,15 +415,31 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   CircleAvatar(
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
+                    child: ClipOval(
+                      child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                          ? Image.network(
+                              _profileImageUrl!,
+                              width: 90.w,
+                              height: 90.w,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: appTheme.primaryColor,
+                                );
+                              },
+                            )
+                          : const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: appTheme.primaryColor,
+                            ),
                     ),
                   ),
                   SizedBox(height: 18.h),
                   Text(
-                    'Welcome back, ${_fullname ?? 'User'}',
+                    'Welcome back ${_username ?? 'User'}',
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w600,
@@ -346,7 +448,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    _username ?? 'Loading...',
+                    _maskPhoneNumber(_phoneNumber),
                     style: TextStyle(fontSize: 15.sp, color: Colors.grey[300]),
                   ),
                   SizedBox(height: 50.h),
