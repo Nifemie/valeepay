@@ -65,8 +65,8 @@ class InactivityService {
         print('🔔 [InactivityService] Timeout: 60 minutes');
         return const Duration(minutes: 60);
       case 'Always Require Password to Log in':
-        print('🔔 [InactivityService] Timeout: Immediate');
-        return const Duration(seconds: 1); // Immediate logout
+        print('🔔 [InactivityService] No timeout - Only logout on app background');
+        return null; // Don't auto-logout while using app, only on app resume
       default:
         print('🔔 [InactivityService] Timeout: Default 60 minutes');
         return const Duration(minutes: 60); // Default

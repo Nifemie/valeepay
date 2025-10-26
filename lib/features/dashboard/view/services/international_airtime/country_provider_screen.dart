@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -141,7 +141,7 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
                                 ],
                                 onButtonPressed: () async {
                                   final pin =
-                                      await TransactionPinModal.show(context);
+                                      await BiometricTransactionPinModal.show(context);
                                   if (pin != null &&
                                       pin.length == 4 &&
                                       mounted) {

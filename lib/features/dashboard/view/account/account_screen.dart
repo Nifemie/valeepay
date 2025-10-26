@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
@@ -32,6 +33,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   Widget build(BuildContext context) {
     // Get user data from provider
     final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final wallet =
         user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
 
@@ -59,7 +61,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
-      body: SingleChildScrollView(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle:
+                  'Complete your KYC verification to view your account details',
+            )
+          : SingleChildScrollView(
         padding: ResponsiveUtils.paddingAll16,
         child: Column(
           children: [
@@ -77,25 +85,35 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             ),
             SizedBox(height: 20.h),
 
+            // Get USD Account
+            _accountSetupCard(
+              flag: "assets/images/usflag.png",
+              title: "Get USD Account",
+              subtitle: "Open a secure dollar account",
+              onTap: () {
+                context.push('/account-setup', extra: 'USD');
+              },
+            ),
+            SizedBox(height: 12.h),
+
             // Get Euro Account
             _accountSetupCard(
               flag: "assets/images/euflag.png",
               title: "Get Euro Account",
               subtitle: "Open a secure euro account",
               onTap: () {
-                context.push('/account-setup');
+                context.push('/account-setup', extra: 'EUR');
               },
             ),
             SizedBox(height: 12.h),
 
             // Get Pound Account
             _accountSetupCard(
-              flag: "assets/images/usflag.png",
+              flag: "assets/images/gbpflag.png",
               title: "Get Pound Account",
               subtitle: "Open a secure pounds account",
               onTap: () {
-                // handle setup
-                context.push('/account-setup');
+                context.push('/account-setup', extra: 'GBP');
               },
             ),
           ],

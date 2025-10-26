@@ -6,7 +6,7 @@ import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
@@ -184,60 +184,75 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
 
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
         print('✅ Transfer successful, navigating to receipt');
-        // Transfer successful - navigate to receipt
-        final transferAmount =
-            double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TransactionReceiptWidget(
-              amount: currencyFormatter(transferAmount.toString()),
-              topDetails: [
-                TransactionDetail(
-                  label: 'Transaction ID',
-                  value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                  showCopyIcon: true,
-                ),
-                TransactionDetail(
-                  label: 'Recipient Name',
-                  value: widget.accountDetails.accountName,
-                ),
-                TransactionDetail(
-                  label: 'Recipient Account',
-                  value: widget.accountDetails.accountNumber,
-                ),
-                TransactionDetail(
-                  label: 'Bank',
-                  value: widget.selectedBank.name,
-                ),
-                TransactionDetail(
-                  label: 'Amount',
-                  value: currencyFormatter(transferAmount.toString()),
-                ),
-                if (transferFee != null)
+        if (!mounted) {
+          print('⚠️ Widget not mounted, skipping navigation');
+          return;
+        }
+
+        // Small delay to ensure any dialogs are closed
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!mounted) {
+            print('⚠️ Widget not mounted after delay, skipping navigation');
+            return;
+          }
+
+          print('🧾 Navigating to receipt screen');
+          // Transfer successful - navigate to receipt
+          final transferAmount =
+              double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TransactionReceiptWidget(
+                amount: currencyFormatter(transferAmount.toString()),
+                topDetails: [
                   TransactionDetail(
-                    label: 'Transfer Fee',
-                    value: currencyFormatter(transferFee!.fee.toString()),
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    showCopyIcon: true,
                   ),
-                if (transferFee != null)
                   TransactionDetail(
-                    label: 'Total',
-                    value: currencyFormatter(
-                      (transferAmount + transferFee!.fee).toString(),
+                    label: 'Recipient Name',
+                    value: widget.accountDetails.accountName,
+                  ),
+                  TransactionDetail(
+                    label: 'Recipient Account',
+                    value: widget.accountDetails.accountNumber,
+                  ),
+                  TransactionDetail(
+                    label: 'Bank',
+                    value: widget.selectedBank.name,
+                  ),
+                  TransactionDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(transferAmount.toString()),
+                  ),
+                  if (transferFee != null)
+                    TransactionDetail(
+                      label: 'Transfer Fee',
+                      value: currencyFormatter(transferFee!.fee.toString()),
                     ),
+                  if (transferFee != null)
+                    TransactionDetail(
+                      label: 'Total',
+                      value: currencyFormatter(
+                        (transferAmount + transferFee!.fee).toString(),
+                      ),
+                    ),
+                  TransactionDetail(
+                    label: 'Description',
+                    value: descriptionController.text.trim().isEmpty
+                        ? 'No description'
+                        : descriptionController.text.trim(),
                   ),
-                TransactionDetail(
-                  label: 'Description',
-                  value: descriptionController.text.trim().isEmpty
-                      ? 'No description'
-                      : descriptionController.text.trim(),
-                ),
-              ],
-              onShareReceipt: () {},
+                ],
+                onShareReceipt: () {},
+              ),
             ),
-          ),
-        );
+          );
+        });
       } else if (next.message != null && !next.isDataAvailable) {
         AppMessenger.show(
           context,
@@ -262,56 +277,63 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
 
       if (!hasEnoughBalance) return;
       Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ReuseableTransactionDetailsScreen(
-            hasBottom: false,
-            topTitleText: 'Transaction',
-            topTransactionsDetailsList: [
-              buildDetailRow(
-                'Account Name',
-                widget.accountDetails.accountName,
-                isDark,
-              ),
-              buildDetailRow('Bank', widget.selectedBank.name, isDark),
-              buildDetailRow(
-                'Account Number',
-                widget.accountDetails.accountNumber,
-                isDark,
-              ),
-              buildDetailRow(
-                'Amount',
-                currencyFormatter(amountController.text),
-                isDark,
-              ),
-              buildDetailRow(
-                'Fee',
-                currencyFormatter(transferFee?.fee.toString() ?? ''),
-                isDark,
-              ),
-              buildDetailRow(
-                'Total Amount',
-                currencyFormatter('$totalAmount'),
-                isDark,
-                isTotal: true,
-              ),
-            ],
-            onButtonPressed: () async {
-              print('🔘 Transfer button pressed, amount: $amount');
-              final pin = await TransactionPinModal.show(context);
-              print(
-                '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-              );
-              if (pin != null && pin.length == 4 && mounted) {
-                print('✅ PIN valid, calling _initiateTransfer');
-                _initiateTransfer(pin, amount);
-              } else {
-                print('❌ PIN invalid or cancelled');
-              }
-            },
-          ),
-        ),
-      );
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReuseableTransactionDetailsScreen(
+              hasBottom: false,
+              topTitleText: 'Transaction',
+              topTransactionsDetailsList: [
+                buildDetailRow(
+                  'Account Name',
+                  widget.accountDetails.accountName,
+                  isDark,
+                ),
+                buildDetailRow('Bank', widget.selectedBank.name, isDark),
+                buildDetailRow(
+                  'Account Number',
+                  widget.accountDetails.accountNumber,
+                  isDark,
+                ),
+                buildDetailRow(
+                  'Amount',
+                  currencyFormatter(amountController.text),
+                  isDark,
+                ),
+                buildDetailRow(
+                  'Fee',
+                  currencyFormatter(transferFee?.fee.toString() ?? ''),
+                  isDark,
+                ),
+                buildDetailRow(
+                  'Total Amount',
+                  currencyFormatter('$totalAmount'),
+                  isDark,
+                  isTotal: true,
+                ),
+              ],
+              onButtonPressed: () async {
+                print('🔘 Transfer button pressed, amount: $amount');
+                final pin = await BiometricTransactionPinModal.show(context);
+                print(
+                  '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
+                );
+
+                if (pin != null && pin.length == 4) {
+                  // Ensure PIN is a string
+                  final pinString = pin.toString();
+                  print(
+                      '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
+
+                  if (mounted) {
+                    print('✅ PIN valid, calling _initiateTransfer');
+                    _initiateTransfer(pinString, amount);
+                  }
+                } else {
+                  print('❌ PIN invalid or cancelled');
+                }
+              },
+            ),
+          ));
     }
 
     return Scaffold(

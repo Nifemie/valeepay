@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/reuseable_appbar_text_button.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import 'saved_beneficiary_screen.dart';
 import 'country_provider_screen.dart';
 
-class InternationalAirtimeScreen extends StatefulWidget {
+class InternationalAirtimeScreen extends ConsumerStatefulWidget {
   const InternationalAirtimeScreen({super.key});
 
   @override
-  State<InternationalAirtimeScreen> createState() =>
+  ConsumerState<InternationalAirtimeScreen> createState() =>
       _InternationalAirtimeScreenState();
 }
 
 class _InternationalAirtimeScreenState
-    extends State<InternationalAirtimeScreen> {
+    extends ConsumerState<InternationalAirtimeScreen> {
   String selectedCountry = '';
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -32,19 +37,27 @@ class _InternationalAirtimeScreenState
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          ReuseableAppbarTextButton(
-              onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const InternationalAirtimeSavedBeneficiaryScreen(),
-                    ),
-                  ),
-              text: 'Saved Beneficiary')
-        ],
+        actions: isBvnVerified
+            ? [
+                ReuseableAppbarTextButton(
+                    onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const InternationalAirtimeSavedBeneficiaryScreen(),
+                          ),
+                        ),
+                    text: 'Saved Beneficiary')
+              ]
+            : null,
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle:
+                  'Complete your KYC verification to purchase international airtime',
+            )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

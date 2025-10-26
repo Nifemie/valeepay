@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
@@ -518,7 +518,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
 
   // Handle PIN entry and purchase
   Future<void> _handlePinEntry() async {
-    final pin = await TransactionPinModal.show(context);
+    final pin = await BiometricTransactionPinModal.show(context);
     if (pin == null || pin.length != 4) return;
 
     if (!mounted) return;
@@ -543,58 +543,84 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         addBeneficiary: false,
       );
 
+      print('🔐 [Data] Initiating data purchase...');
       await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
+      print('📤 [Data] Data purchase request sent');
 
       // Use post frame callback to close dialog and navigate after frame completes
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
+          if (!mounted) {
+            print('⚠️ [Data] Widget not mounted in postFrameCallback');
+            return;
+          }
 
           // Close loading dialog
-          Navigator.pop(context);
-
-          // Check the state and navigate
-          final state = ref.read(dataPurchaseNotifierProvider);
-          if (state.isDataAvailable &&
-              state.data != null &&
-              state.data!.isNotEmpty) {
-            // Get description for selected amount
-            final dataVariations =
-                ref.read(dataVariationNotifierProvider).data ?? [];
-            final descriptions = dataVariations.isNotEmpty
-                ? dataVariations.first.fixedAmountsDescriptions
-                : <String, dynamic>{};
-            final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
-            final planDescription =
-                descriptions[amountKey] ?? '₦${amountController.text} Data';
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TransactionReceiptWidget(
-                  amount: '₦${amountController.text}',
-                  topDetails: [
-                    TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true),
-                    TransactionDetail(
-                        label: 'Recipient Number', value: _controller.text),
-                    TransactionDetail(
-                        label: 'Network', value: _selectedNetwork),
-                    TransactionDetail(
-                        label: 'Data Plan', value: planDescription),
-                    TransactionDetail(
-                        label: 'Amount', value: '₦${amountController.text}'),
-                  ],
-                  onShareReceipt: () {},
-                ),
-              ),
-            );
-          } else if (state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(state.message!), backgroundColor: Colors.red));
+          if (Navigator.canPop(context)) {
+            print('📤 [Data] Closing loading dialog');
+            Navigator.pop(context);
           }
+
+          // Small delay to ensure loading dialog is fully closed
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (!mounted) {
+              print('⚠️ [Data] Widget not mounted after delay');
+              return;
+            }
+
+            // Check the state and navigate
+            final state = ref.read(dataPurchaseNotifierProvider);
+            print('🎧 [Data] State check:');
+            print('   - isDataAvailable: ${state.isDataAvailable}');
+            print('   - message: ${state.message}');
+            print('   - data: ${state.data}');
+            
+            // Check for success via message (like airtime)
+            final isSuccessMessage = state.message != null && 
+                state.message!.toLowerCase().contains('success');
+            
+            if ((state.isDataAvailable &&
+                state.data != null &&
+                state.data!.isNotEmpty) || isSuccessMessage) {
+              print('✅ [Data] Purchase successful, navigating to receipt');
+              // Get description for selected amount
+              final dataVariations =
+                  ref.read(dataVariationNotifierProvider).data ?? [];
+              final descriptions = dataVariations.isNotEmpty
+                  ? dataVariations.first.fixedAmountsDescriptions
+                  : <String, dynamic>{};
+              final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
+              final planDescription =
+                  descriptions[amountKey] ?? '₦${amountController.text} Data';
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TransactionReceiptWidget(
+                    amount: '₦${amountController.text}',
+                    topDetails: [
+                      TransactionDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                          showCopyIcon: true),
+                      TransactionDetail(
+                          label: 'Recipient Number', value: _controller.text),
+                      TransactionDetail(
+                          label: 'Network', value: _selectedNetwork),
+                      TransactionDetail(
+                          label: 'Data Plan', value: planDescription),
+                      TransactionDetail(
+                          label: 'Amount', value: '₦${amountController.text}'),
+                    ],
+                    onShareReceipt: () {},
+                  ),
+                ),
+              );
+            } else if (state.message != null) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(state.message!), backgroundColor: Colors.red));
+            }
+          });
         });
       }
     } catch (e) {

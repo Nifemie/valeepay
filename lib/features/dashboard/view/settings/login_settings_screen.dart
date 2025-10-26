@@ -5,7 +5,9 @@ import 'package:local_auth/local_auth.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/services/biometric_auth_service.dart';
+import 'package:valarpay/core/services/secure_storage_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/device_utils.dart';
 import 'package:valarpay/core/constants/enums/enums.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
@@ -253,6 +255,19 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
                           activeTrackColor: appTheme.primaryColor,
 
                           onChanged: (value) async {
+                            // Check if passcode is set first
+                            if (value && !hasPasscodeCodeSet) {
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Please create a passcode first before enabling biometric login',
+                                type: MessageType.warning,
+                              );
+                              // Navigate to create passcode
+                              context.push('/create-passcode');
+                              return;
+                            }
+
                             // If device doesn't support fingerprint, don't attempt to enable
                             if (value && !hasFingerprintAvailable) {
                               AppMessenger.show(
@@ -272,6 +287,10 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
                                         'Verify fingerprint to enable',
                                   );
                               if (result == BiometricAuthResult.success) {
+                                // Save device ID to link biometric to this device
+                                final deviceId = await DeviceUtils.getDeviceId();
+                                await SecureStorageService.saveDeviceId(deviceId);
+                                
                                 setState(() {
                                   fingerprintEnabled = value;
                                 });
@@ -279,7 +298,7 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
                                 if (context.mounted) {
                                   AppMessenger.show(
                                     context,
-                                    message: 'Fingerprint login enabled',
+                                    message: 'Fingerprint login enabled for this device',
                                     type: MessageType.success,
                                   );
                                 }
@@ -371,6 +390,19 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
                                                     activeTrackColor: appTheme.primaryColor,
 
                           onChanged: (value) async {
+                            // Check if passcode is set first
+                            if (value && !hasPasscodeCodeSet) {
+                              AppMessenger.show(
+                                context,
+                                message:
+                                    'Please create a passcode first before enabling biometric login',
+                                type: MessageType.warning,
+                              );
+                              // Navigate to create passcode
+                              context.push('/create-passcode');
+                              return;
+                            }
+
                             // If enabling, ensure device has Face available
                             if (value && !hasFaceAvailable) {
                               AppMessenger.show(
@@ -389,6 +421,10 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
                                     promptMessage: 'Verify Face ID to enable',
                                   );
                               if (result == BiometricAuthResult.success) {
+                                // Save device ID to link biometric to this device
+                                final deviceId = await DeviceUtils.getDeviceId();
+                                await SecureStorageService.saveDeviceId(deviceId);
+                                
                                 setState(() {
                                   logInWithFaceId = value;
                                   faceIdEnabled = value;
@@ -397,7 +433,7 @@ class _LoginSettingsScreenState extends ConsumerState<LoginSettingsScreen> {
                                 if (context.mounted) {
                                   AppMessenger.show(
                                     context,
-                                    message: 'Face ID login enabled',
+                                    message: 'Face ID login enabled for this device',
                                     type: MessageType.success,
                                   );
                                 }
