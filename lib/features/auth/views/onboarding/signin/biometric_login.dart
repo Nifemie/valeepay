@@ -39,7 +39,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   void initState() {
     super.initState();
     _loadUserSession();
-    
+
     // Automatically trigger biometric authentication when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestBiometricAndCameraPermissions();
@@ -52,6 +52,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     final savedFullname = await SessionService.getUserFullname();
     final savedPhoneNumber = await SessionService.getPhoneNumber();
     
+
     setState(() {
       // Use actual username for display (not email)
       _username = user?.username ?? savedUsername ?? 'User';
@@ -70,15 +71,15 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     if (phone == 'N/A') {
       return '';
     }
-    
+
     if (phone.length <= 6) {
       return phone; // Too short to mask
     }
-    
+
     final first3 = phone.substring(0, 3);
     final last3 = phone.substring(phone.length - 3);
     final maskedMiddle = '*' * (phone.length - 6);
-    
+
     return '$first3$maskedMiddle$last3';
   }
 
@@ -110,13 +111,15 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final storedPasscode = await SecureStorageService.getPasscode();
       final storedUsername = await SecureStorageService.getUsername();
 
-      print('🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}');
-      print('🔐 [BiometricLogin] Has stored username: ${storedUsername != null}');
+      print(
+          '🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}');
+      print(
+          '🔐 [BiometricLogin] Has stored username: ${storedUsername != null}');
 
       if (storedPasscode != null && storedUsername != null) {
         // Use passcode login API
         print('🔐 [BiometricLogin] Logging in with stored passcode...');
-        
+
         final ip = await DeviceUtils.getIpAddress();
         final deviceName = await DeviceUtils.getDeviceName();
         final os = await DeviceUtils.getDeviceOS();
@@ -135,12 +138,14 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
         if (state.isDataAvailable && state.data != null) {
           final loginResponse = state.data!.first;
-          
+
           // Save session
           await SessionService.saveSession(loginResponse);
-          
+
           // Refresh user profile
-          final freshUser = await ref.read(userNotifierProvider.notifier).refreshUserProfile();
+          final freshUser = await ref
+              .read(userNotifierProvider.notifier)
+              .refreshUserProfile();
           if (freshUser != null) {
             ref.read(userProvider.notifier).setUser(freshUser);
           } else {
@@ -167,7 +172,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         // Fallback to session-based login
         print('🔐 [BiometricLogin] No stored passcode, checking session...');
         final userAccessToken = await SessionService.getAccessToken();
-        
+
         if (userAccessToken == null) {
           if (!context.mounted) return;
           AppMessenger.show(
@@ -318,6 +323,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -401,7 +407,8 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
                     child: ClipOval(
-                      child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                      child: _profileImageUrl != null &&
+                              _profileImageUrl!.isNotEmpty
                           ? Image.network(
                               _profileImageUrl!,
                               width: 90.w,

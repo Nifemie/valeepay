@@ -4,6 +4,7 @@ import 'package:valarpay/core/constants/enums/enums.dart';
 class BiometricAuthService {
   static final _auth = LocalAuthentication();
 
+
   static Future<BiometricAuthResult> authenticateWithFallback({
     String promptMessage = 'Authenticate to continue',
   }) async {
@@ -43,10 +44,12 @@ class BiometricAuthService {
       );
 
       final success = await _auth.authenticate(
-        localizedReason:
-            supportsFace
-                ? 'Use Face ID to authenticate'
-                : supportsFingerprint
+        authMessages: [
+          
+        ],
+        localizedReason: supportsFace
+            ? 'Use Face ID to authenticate'
+            : supportsFingerprint
                 ? 'Use fingerprint to authenticate'
                 : promptMessage,
         options: const AuthenticationOptions(

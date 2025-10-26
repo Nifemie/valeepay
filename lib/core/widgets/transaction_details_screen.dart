@@ -205,10 +205,9 @@ class _ReuseableTransactionDetailsScreenState
                 // Confirm Button
                 FullWidthButton(
                   text: 'Confirm',
-                  onPressed:
-                      (widget.onButtonPressed != null)
-                          ? widget.onButtonPressed!
-                          : () {},
+                  onPressed: (widget.onButtonPressed != null)
+                      ? widget.onButtonPressed!
+                      : () {},
                 ),
               ],
             ],
@@ -256,32 +255,36 @@ class _ReuseableTransactionDetailsScreenState
                     name,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         accountNumber,
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
                       ),
                       Text(
-                        '  •  ',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                      Text(
-                        currencyFormatter(accountBalance),
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                        'Balance: ${currencyFormatter(accountBalance)}',
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+            SizedBox(width: 12),
             Icon(
               isSelected
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
               color: isSelected ? const Color(0xFFF76301) : Colors.grey,
-              size: 24,
+              size: 20,
             ),
           ],
         ),

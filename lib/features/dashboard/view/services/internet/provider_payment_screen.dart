@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
@@ -141,8 +142,9 @@ class _InternetProviderPaymentScreenState
           FullWidthButton(
               text: 'Continue',
               onPressed: () {
-                if (accountController.text.isEmpty || selectedPlan.isEmpty)
+                if (accountController.text.isEmpty || selectedPlan.isEmpty) {
                   return;
+                }
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -170,16 +172,18 @@ class _InternetProviderPaymentScreenState
                               ],
                               onButtonPressed: () async {
                                 final pin =
-                                    await BiometricTransactionPinModal.show(context);
+                                    await BiometricTransactionPinModal.show(
+                                        context);
                                 if (pin == null || pin.length != 4) return;
 
                                 final variations = ref
                                     .read(internetVariationNotifierProvider)
                                     .data;
                                 if (variations == null || variations.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('Plan not available')));
+                                  AppMessenger.show(context,
+                                      message: 'Plan not available',
+                                      type: MessageType.error);
+
                                   return;
                                 }
                                 final selectedVar = variations.firstWhere(
@@ -234,9 +238,11 @@ class _InternetProviderPaymentScreenState
                                                 )));
                                   }
                                 } catch (e) {
-                                  if (mounted)
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(e.toString())));
+                                  if (mounted) {
+                                    AppMessenger.show(context,
+                                        message: e.toString(),
+                                        type: MessageType.error);
+                                  }
                                 }
                               },
                             )));

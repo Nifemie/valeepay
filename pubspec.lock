@@ -254,6 +254,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_contacts:
+    dependency: "direct main"
+    description:
+      name: flutter_contacts
+      sha256: "388d32cd33f16640ee169570128c933b45f3259bddbfae7a100bb49e5ffea9ae"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.9+2"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -384,6 +392,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.8.1"
+  google_mlkit_commons:
+    dependency: transitive
+    description:
+      name: google_mlkit_commons
+      sha256: "42c31500be3aba08bcc2cf45d5af648affc40e46684f437b8383084657e982cf"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0"
+  google_mlkit_text_recognition:
+    dependency: "direct main"
+    description:
+      name: google_mlkit_text_recognition
+      sha256: a3d30e8ba87c88fb9b7c3b7d81d524153ea32497ac37be490f4992f2902dbabb
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   html:
     dependency: transitive
     description:

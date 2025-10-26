@@ -8,7 +8,7 @@ class AppMessenger {
     BuildContext context, {
     required String message,
     MessageType type = MessageType.info,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = const Duration(seconds: 4),
   }) {
     Color background;
     IconData icon;

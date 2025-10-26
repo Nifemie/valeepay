@@ -8,6 +8,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_tools/qr_code_tools.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/generate_qr_screen.dart';
 import 'package:valarpay/features/notifiers/decode_qr_notifier.dart';
 import 'package:valarpay/features/dashboard/view/home/QRCode/decode_qr_result.dart';
@@ -149,46 +150,39 @@ class _DecodeQrCodeScreenState extends ConsumerState<DecodeQrCodeScreen> {
                 height: MediaQuery.of(context).size.height * 0.7,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child:
-                      _hasPermission
-                          ? MobileScanner(
-                            controller: _scannerController,
-                            onDetect: (BarcodeCapture capture) async {
-                              final barcode = capture.barcodes.first;
-                              if (_isProcessing) return;
-                              final raw = barcode.rawValue;
-                              if (raw == null || raw.isEmpty) return;
-                              await _processImageFile(null, qrString: raw);
-                            },
-                          )
-                          : Container(
-                            color: Colors.grey.shade200,
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text('Camera permission required'),
-                                  const SizedBox(height: 8),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      await openAppSettings();
-                                    },
-                                    child: const Text('Open settings'),
-                                  ),
-                                ],
-                              ),
+                  child: _hasPermission
+                      ? MobileScanner(
+                          controller: _scannerController,
+                          onDetect: (BarcodeCapture capture) async {
+                            final barcode = capture.barcodes.first;
+                            if (_isProcessing) return;
+                            final raw = barcode.rawValue;
+                            if (raw == null || raw.isEmpty) return;
+                            await _processImageFile(null, qrString: raw);
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey.shade200,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('Camera permission required'),
+                                const SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    await openAppSettings();
+                                  },
+                                  child: const Text('Open settings'),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _pickImage,
-                  icon: const Icon(Icons.image),
-                  label: const Text('Upload Image'),
-                ),
-              ),
+              FullWidthButton(text: 'Upload Image', onPressed: _pickImage),
               const SizedBox(height: 24),
               if (_pickedImage != null) ...[
                 Center(
@@ -197,7 +191,7 @@ class _DecodeQrCodeScreenState extends ConsumerState<DecodeQrCodeScreen> {
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Center(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -11,6 +14,8 @@ import 'package:valarpay/features/dashboard/widgets/services_widgets/mobile_data
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/notifiers/data_notifier.dart';
 import 'package:valarpay/features/models/data_models.dart';
+import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
+import 'package:valarpay/features/models/network_provider.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
@@ -33,7 +38,6 @@ class _DataScreenState extends ConsumerState<DataScreen> {
   @override
   void initState() {
     super.initState();
-    // Don't fetch providers on init - wait for phone number to be entered
   }
 
   @override
@@ -45,7 +49,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
 
   @override
   Widget build(BuildContext context) {
-        final user = ref.watch(userProvider);
+    final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
     final plansState = ref.watch(dataPlansNotifierProvider);
     final availablePlans = plansState.data ?? <DataPlanInfo>[];
@@ -60,8 +64,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
       if (next.message != null &&
           !next.isInitialLoading &&
           !next.isDataAvailable) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(next.message!), backgroundColor: Colors.red));
+        AppMessenger.show(context,
+            message: next.message!, type: MessageType.error);
       }
     });
 
@@ -89,8 +93,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
           next.message != null &&
           !next.isDataAvailable) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(next.message!), backgroundColor: Colors.red));
+          AppMessenger.show(context,
+              message: next.message!, type: MessageType.error);
         }
       }
     });
@@ -131,115 +135,118 @@ class _DataScreenState extends ConsumerState<DataScreen> {
               subtitle: 'Complete your KYC verification to purchase data',
             )
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Phone Number',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ReuseableTextFieldWithCountry(
-              controller: _controller,
-              hintText: "123 567 890",
-              countryCode: '+234',
-              flagImagePath: 'assets/images/ngflag.png',
-              isReadOnly: false,
-              textInputType: TextInputType.phone,
-              showCountryLabel: true,
-              onChanged: (value) {
-                // Auto-fetch plans when phone number is complete (10 digits)
-                if (value.length >= 10) {
-                  ref
-                      .read(dataPlansNotifierProvider.notifier)
-                      .getPlans(phone: value, currency: 'NGN');
-                }
-              },
-              suffixWidget: IconButton(
-                onPressed: _showContactAccessDialog,
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: appTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Network Provider Selection
-            _buildNetworkProviderSelector(
-                plansState, uniqueNetworks, availablePlans),
-            const SizedBox(height: 24),
-
-            // Data Amount Selection (from fixed amounts)
-            if (_selectedNetwork.isNotEmpty) ...[
-              _buildDataAmountSection(),
-              const SizedBox(height: 24),
-            ],
-
-            // Cashback Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Use Cashback',
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Phone Number',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      '₦50.00',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
+                  const SizedBox(height: 12),
+                  ReuseableTextFieldWithCountry(
+                    controller: _controller,
+                    hintText: "123 567 890",
+                    countryCode: '+234',
+                    flagImagePath: 'assets/images/ngflag.png',
+                    isReadOnly: false,
+                    textInputType: TextInputType.phone,
+                    showCountryLabel: true,
+                    onChanged: (value) {
+                      // Auto-fetch plans when phone number is complete (10 digits)
+                      if (value.length >= 10) {
+                        // setState(() {
+                        //   availablePlans = [];
+                        // });
+                        ref
+                            .read(dataPlansNotifierProvider.notifier)
+                            .getPlans(phone: value, currency: 'NGN');
+                      }
+                    },
+                    suffixWidget: IconButton(
+                      onPressed: _showContactAccessDialog,
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: appTheme.primaryColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: _useCashback,
-                      onChanged: (value) {
-                        setState(() {
-                          _useCashback = value;
-                        });
-                      },
-                      activeColor: appTheme.primaryColor,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
+                  ),
+                  const SizedBox(height: 24),
 
-            // Continue Button
-            FullWidthButton(
-              text: 'Continue',
-              onPressed: _handleContinue,
-              isEnabled: _isFormValid(),
+                  // Network Provider Selection
+                  _buildNetworkProviderSelector(
+                      plansState, uniqueNetworks, availablePlans),
+                  const SizedBox(height: 24),
+
+                  // Data Amount Selection (from fixed amounts)
+                  if (_selectedNetwork.isNotEmpty) ...[
+                    _buildDataAmountSection(),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Cashback Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Use Cashback',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            '₦50.00',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Switch(
+                            value: _useCashback,
+                            onChanged: (value) {
+                              setState(() {
+                                _useCashback = value;
+                              });
+                            },
+                            activeColor: appTheme.primaryColor,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Continue Button
+                  FullWidthButton(
+                    text: 'Continue',
+                    onPressed: _handleContinue,
+                    isEnabled: _isFormValid(),
+                  ),
+                  const SizedBox(height: 24),
+                  const DataServicesSection(),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-            const DataServicesSection(),
-          ],
-        ),
-      ),
     );
   }
 
@@ -250,6 +257,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
       builder: (context) => ContactAccessDialog(
         onAllow: () {
           Navigator.of(context).pop();
+          _pickContact();
         },
         onCancel: () {
           Navigator.of(context).pop();
@@ -258,10 +266,220 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     );
   }
 
+  Future<void> _pickContact() async {
+    try {
+      // 🔹 First, check permission status
+      final status = await Permission.contacts.status;
+
+      if (status.isDenied || status.isRestricted) {
+        final result = await Permission.contacts.request();
+        if (!result.isGranted) {
+          AppMessenger.show(
+            context,
+            message: 'Contacts permission denied',
+            type: MessageType.error,
+          );
+          return;
+        }
+      } else if (status.isPermanentlyDenied) {
+        AppMessenger.show(
+          context,
+          message:
+              'Contacts permission permanently denied. Please enable it in settings.',
+          type: MessageType.error,
+        );
+        await openAppSettings();
+        return;
+      }
+
+      // ✅ Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // ✅ Fetch contacts
+      final contacts = await FlutterContacts.getContacts(withProperties: true);
+
+      if (Navigator.canPop(context)) Navigator.pop(context); // close loading
+
+      final contactList = contacts
+          .where((c) => (c.phones.isNotEmpty) || (c.emails.isNotEmpty))
+          .toList();
+
+      if (contactList.isEmpty) {
+        AppMessenger.show(
+          context,
+          message: 'No contacts with phone numbers found',
+          type: MessageType.error,
+        );
+        return;
+      }
+
+      // ✅ Show searchable contact list
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Theme.of(context).cardColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) {
+          final TextEditingController searchController =
+              TextEditingController();
+          List<Contact> filteredContacts = List.from(contactList);
+
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              void _filterContacts(String query) {
+                query = query.toLowerCase();
+                setModalState(() {
+                  filteredContacts = contactList.where((c) {
+                    final name = c.displayName.toLowerCase();
+                    final phone = c.phones.isNotEmpty
+                        ? c.phones.first.number.toLowerCase()
+                        : '';
+                    return name.contains(query) || phone.contains(query);
+                  }).toList();
+                });
+              }
+
+              return SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                    top: 8,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          'Select contact',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      // 🔍 Search Field
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: TextField(
+                          controller: searchController,
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.search),
+                            hintText: 'Search contact...',
+                            filled: true,
+                            fillColor:
+                                Theme.of(context).cardColor.withOpacity(0.5),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          onChanged: _filterContacts,
+                        ),
+                      ),
+
+                      // Contact list
+                      SizedBox(
+                        height: 450,
+                        child: filteredContacts.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No contacts found',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: filteredContacts.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final c = filteredContacts[index];
+                                  final phone = c.phones.isNotEmpty
+                                      ? c.phones.first.number
+                                      : '';
+                                  final displayName = c.displayName.isNotEmpty
+                                      ? c.displayName
+                                      : phone;
+
+                                  return ListTile(
+                                    title: Text(displayName),
+                                    subtitle: Text(phone),
+                                    onTap: () async {
+                                      final formatted = _formatTo11(phone);
+                                      setState(() {
+                                        _controller.text = formatted;
+                                      });
+
+                                      final digitsOnly = formatted.replaceAll(
+                                          RegExp(r'\D'), '');
+                                      if (digitsOnly.length >= 10) {
+                                        await ref
+                                            .read(dataPlansNotifierProvider
+                                                .notifier)
+                                            .getPlans(
+                                                phone: formatted,
+                                                currency: 'NGN');
+                                      }
+
+                                      if (Navigator.canPop(context)) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      );
+    } catch (e) {
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      AppMessenger.show(
+        context,
+        message: 'Failed to load contacts',
+        type: MessageType.error,
+      );
+    }
+  }
+
+  String _formatTo11(String raw) {
+    if (raw.isEmpty) return raw;
+    var digits = raw.replaceAll(RegExp(r'\D'), '');
+
+    // If starts with country code '234', strip it
+    if (digits.startsWith('234')) {
+      final rest = digits.substring(3);
+      if (rest.length == 10) return '0$rest';
+      if (rest.length == 11 && rest.startsWith('0')) return rest;
+      // fallback to last 10 digits
+      if (rest.length > 10) return '0' + rest.substring(rest.length - 10);
+    }
+
+    // If starts with leading '+' (already stripped) or other
+    if (digits.length == 11 && digits.startsWith('0')) return digits;
+    if (digits.length == 10) return '0$digits';
+    if (digits.length > 11) return '0' + digits.substring(digits.length - 10);
+
+    // otherwise return as-is
+    return digits;
+  }
+
   Widget _buildNetworkProviderSelector(DataState<DataPlanInfo>? plansState,
       List<String> uniqueNetworks, List<DataPlanInfo> availablePlans) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     // Debug: Check if plans are loaded
     print('Available Plans Count: ${availablePlans.length}');
     print('Unique Networks: $uniqueNetworks');
@@ -318,51 +536,46 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             color: Theme.of(context).cardColor.withOpacity(0.4),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedNetwork.isEmpty ? null : _selectedNetwork,
-              hint: Text(
-                'Select Network Provider',
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey[600],
-                ),
-              ),
-              isExpanded: true,
-              dropdownColor: Theme.of(context).cardColor,
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-              items: uniqueNetworks.map((network) {
-                return DropdownMenuItem<String>(
-                  value: network,
-                  child: Text(
-                    network,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) async {
-                if (value != null) {
-                  // Find a plan from this network to get operatorId
-                  final networkPlan =
-                      availablePlans.firstWhere((p) => p.network == value);
-                  setState(() {
-                    _selectedNetwork = value;
-                    _selectedPlan = '';
-                    _selectedOperatorId = networkPlan.operatorId;
-                  });
+          child: (plansState?.isInitialLoading ?? false) &&
+                  availablePlans.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : Builder(builder: (context) {
+                  // Map DataPlanInfo to NetworkProvider for the selector
+                  final providerModels = availablePlans
+                      .map((p) => NetworkProvider(
+                            id: p.id,
+                            planName: p.planName,
+                            network: p.network,
+                            countryISOCode: p.countryISOCode,
+                            operatorId: p.operatorId,
+                            createdAt: p.createdAt,
+                            updatedAt: p.updatedAt,
+                          ))
+                      .toList();
 
-                  // Fetch variation to get fixed amounts
-                  await ref
-                      .read(dataVariationNotifierProvider.notifier)
-                      .getVariation(operatorId: networkPlan.operatorId);
-                }
-              },
-            ),
-          ),
+                  return NetworkProviderSelector(
+                    selectedNetwork: _selectedNetwork,
+                    providers: providerModels,
+                    onNetworkSelected: (value) async {
+                      if (value.isEmpty) return;
+                      try {
+                        final plan = availablePlans
+                            .firstWhere((p) => p.network == value);
+                        setState(() {
+                          _selectedNetwork = value;
+                          _selectedPlan = '';
+                          _selectedOperatorId = plan.operatorId;
+                        });
+
+                        await ref
+                            .read(dataVariationNotifierProvider.notifier)
+                            .getVariation(operatorId: plan.operatorId);
+                      } catch (e) {
+                        print('⚠️ [Data] Selected provider not found: $value');
+                      }
+                    },
+                  );
+                }),
         ),
       ],
     );
@@ -478,12 +691,9 @@ class _DataScreenState extends ConsumerState<DataScreen> {
   // Handle continue button press
   void _handleContinue() {
     if (!_isFormValid()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppMessenger.show(context,
+          message: 'Please fill all required fields', type: MessageType.error);
+
       return;
     }
 
@@ -574,14 +784,15 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             print('   - isDataAvailable: ${state.isDataAvailable}');
             print('   - message: ${state.message}');
             print('   - data: ${state.data}');
-            
+
             // Check for success via message (like airtime)
-            final isSuccessMessage = state.message != null && 
+            final isSuccessMessage = state.message != null &&
                 state.message!.toLowerCase().contains('success');
-            
+
             if ((state.isDataAvailable &&
-                state.data != null &&
-                state.data!.isNotEmpty) || isSuccessMessage) {
+                    state.data != null &&
+                    state.data!.isNotEmpty) ||
+                isSuccessMessage) {
               print('✅ [Data] Purchase successful, navigating to receipt');
               // Get description for selected amount
               final dataVariations =
@@ -617,8 +828,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                 ),
               );
             } else if (state.message != null) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(state.message!), backgroundColor: Colors.red));
+              AppMessenger.show(context,
+                  message: state.message!, type: MessageType.error);
             }
           });
         });
@@ -626,9 +837,9 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     } catch (e) {
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Purchase failed: ${e.toString()}'),
-            backgroundColor: Colors.red));
+        AppMessenger.show(context,
+            message: 'Purchase failed: ${e.toString()}',
+            type: MessageType.error);
       }
     }
   }

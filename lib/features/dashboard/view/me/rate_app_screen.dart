@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class RateAppScreen extends StatefulWidget {
@@ -45,12 +46,9 @@ class _RateAppScreenState extends State<RateAppScreen>
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open Play Store'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppMessenger.show(context,
+            message: 'Could not open Play Store', type: MessageType.error);
+       
       }
     }
   }

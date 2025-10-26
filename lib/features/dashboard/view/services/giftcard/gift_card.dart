@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
@@ -15,7 +16,6 @@ import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_
 import '/features/dashboard/view/services/giftcard/saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
-
 
 class GiftCardScreen extends ConsumerStatefulWidget {
   const GiftCardScreen({super.key});
@@ -55,11 +55,11 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
-    
+
     // Debug logging
     print('🎁 [GiftCard] User: ${user?.fullname}');
     print('🎁 [GiftCard] BVN Verified: $isBvnVerified');
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final giftCardState = ref.watch(giftCardNotifierProvider);
     final categoriesState = ref.watch(giftCardCategoriesNotifierProvider);
@@ -116,155 +116,166 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
       body: !isBvnVerified
           ? const KycNotSetWidget(
               title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to buy or sell giftcards',
+              subtitle:
+                  'Complete your KYC verification to buy or sell giftcards',
             )
           : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Buy/Sell Toggle
-              Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2B2725) : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Row(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => isBuySelected = true),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isBuySelected
-                                ? Colors.white
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Text(
-                            'Buy Giftcard',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: isBuySelected ? Colors.black : Colors.grey,
-                              fontWeight: FontWeight.w500,
+                    // Buy/Sell Toggle
+                    Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color:
+                            isDark ? const Color(0xFF2B2725) : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => isBuySelected = true),
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: isBuySelected
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Text(
+                                  'Buy Giftcard',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: isBuySelected
+                                        ? Colors.black
+                                        : Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => isBuySelected = false),
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: !isBuySelected
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Text(
+                                  'Sell Giftcard',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: !isBuySelected
+                                        ? Colors.black
+                                        : Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Select Giftcard Brand
+                    _buildSectionTitle('Select Giftcard Brand'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField(
+                      value: giftCardState.isInitialLoading
+                          ? 'Loading...'
+                          : selectedBrand,
+                      imagePath: selectedProduct?.logoUrls.isNotEmpty == true
+                          ? selectedProduct!.logoUrls.first
+                          : 'assets/images/POUNDS.png',
+                      onTap: giftCardState.isInitialLoading
+                          ? null
+                          : () => _showGiftCardBrandModal(),
+                      isLoading: giftCardState.isInitialLoading,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Select Country
+                    _buildSectionTitle('Select Country'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField(
+                      value: selectedCountry,
+                      imagePath: selectedProduct?.country.flagUrl ??
+                          'assets/images/POUNDS.png',
+                      onTap: selectedProduct != null
+                          ? () => _showCountryModal()
+                          : null,
+                      isLoading: false,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Amount
+                    _buildSectionTitle('Amount'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField(
+                      value: isLoadingRate ? 'Loading rate...' : selectedAmount,
+                      imagePath: 'assets/images/EURO.png',
+                      onTap: selectedProduct != null && !isLoadingRate
+                          ? () => _showAmountModal()
+                          : null,
+                      isLoading: isLoadingRate,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Enter Code (Optional)
+                    _buildSectionTitle('Enter Code (Optional)'),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        onChanged: (value) =>
+                            setState(() => codeOptional = value),
+                        decoration: InputDecoration(
+                          hintText: '1234',
+                          hintStyle: TextStyle(color: Colors.grey[500]),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => isBuySelected = false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: !isBuySelected
-                                ? Colors.white
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Text(
-                            'Sell Giftcard',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color:
-                                  !isBuySelected ? Colors.black : Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Price in Naira
+                    CurrentRateWidget(
+                        price: currentRate, text: 'Price in Naira'),
+
+                    const SizedBox(height: 45),
+
+                    // Continue Button
+                    FullWidthButton(
+                      text: 'Continue',
+                      onPressed: _canProceed() ? _handleContinue : () {},
+                    )
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Select Giftcard Brand
-              _buildSectionTitle('Select Giftcard Brand'),
-              const SizedBox(height: 8),
-              _buildDropdownField(
-                value: giftCardState.isInitialLoading
-                    ? 'Loading...'
-                    : selectedBrand,
-                imagePath: selectedProduct?.logoUrls.isNotEmpty == true
-                    ? selectedProduct!.logoUrls.first
-                    : 'assets/images/POUNDS.png',
-                onTap: giftCardState.isInitialLoading
-                    ? null
-                    : () => _showGiftCardBrandModal(),
-                isLoading: giftCardState.isInitialLoading,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Select Country
-              _buildSectionTitle('Select Country'),
-              const SizedBox(height: 8),
-              _buildDropdownField(
-                value: selectedCountry,
-                imagePath: selectedProduct?.country.flagUrl ??
-                    'assets/images/POUNDS.png',
-                onTap:
-                    selectedProduct != null ? () => _showCountryModal() : null,
-                isLoading: false,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Amount
-              _buildSectionTitle('Amount'),
-              const SizedBox(height: 8),
-              _buildDropdownField(
-                value: isLoadingRate ? 'Loading rate...' : selectedAmount,
-                imagePath: 'assets/images/EURO.png',
-                onTap: selectedProduct != null && !isLoadingRate
-                    ? () => _showAmountModal()
-                    : null,
-                isLoading: isLoadingRate,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Enter Code (Optional)
-              _buildSectionTitle('Enter Code (Optional)'),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextField(
-                  onChanged: (value) => setState(() => codeOptional = value),
-                  decoration: InputDecoration(
-                    hintText: '1234',
-                    hintStyle: TextStyle(color: Colors.grey[500]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Price in Naira
-              CurrentRateWidget(price: currentRate, text: 'Price in Naira'),
-
-              const SizedBox(height: 45),
-
-              // Continue Button
-              FullWidthButton(
-                text: 'Continue',
-                onPressed: _canProceed() ? _handleContinue : () {},
-              )
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -544,12 +555,9 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Payment failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppMessenger.show(context,
+            message: 'Purchase failed: ${e.toString()}',
+            type: MessageType.error);
       }
     }
   }
@@ -574,20 +582,19 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
 }
 
 String getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
-  }
-
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+  return months[month - 1];
+}

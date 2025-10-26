@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/features/dashboard/view/profile/profile.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
@@ -54,33 +56,33 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor:
-                          isDark
-                              ? const Color(0xFF374151)
-                              : const Color(0xFFF3F4F6),
-                      child: ClipOval(
-                        child:
-                            user?.profileImageUrl != null &&
-                                    user!.profileImageUrl!.isNotEmpty
-                                ? Image.network(
+                    InkWell(
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => ProfileScreen())),
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: isDark
+                            ? const Color(0xFF374151)
+                            : const Color(0xFFF3F4F6),
+                        child: ClipOval(
+                          child: user?.profileImageUrl != null &&
+                                  user!.profileImageUrl!.isNotEmpty
+                              ? Image.network(
                                   user.profileImageUrl!,
                                   width: 72,
                                   height: 72,
                                   fit: BoxFit.cover,
                                 )
-                                : Icon(
+                              : Icon(
                                   Icons.person,
                                   size: 36,
-                                  color:
-                                      isDark
-                                          ? const Color(0xFF9CA3AF)
-                                          : const Color(0xFF6B7280),
+                                  color: isDark
+                                      ? const Color(0xFF9CA3AF)
+                                      : const Color(0xFF6B7280),
                                 ),
+                        ),
                       ),
                     ),
-
                     SizedBox(width: ResponsiveUtils.spacing12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,18 +92,18 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                           style: Theme.of(
                             context,
                           ).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: ResponsiveUtils.fontSize16,
-                          ),
+                                fontWeight: FontWeight.w600,
+                                fontSize: ResponsiveUtils.fontSize16,
+                              ),
                         ),
                         Text(
                           'How can we help you?',
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                            fontSize: ResponsiveUtils.fontSize12,
-                          ),
+                                color: Colors.grey[600],
+                                fontSize: ResponsiveUtils.fontSize12,
+                              ),
                         ),
                       ],
                     ),
@@ -142,11 +144,10 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const CustomerServiceFormScreen(
-                                          title: 'Transfer Dispute',
-                                        ),
+                                builder: (context) =>
+                                    const CustomerServiceFormScreen(
+                                  title: 'Transfer Dispute',
+                                ),
                               ),
                             );
                           },
@@ -159,11 +160,10 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const CustomerServiceFormScreen(
-                                          title: 'Card Issue',
-                                        ),
+                                builder: (context) =>
+                                    const CustomerServiceFormScreen(
+                                  title: 'Card Issue',
+                                ),
                               ),
                             );
                           },
@@ -176,9 +176,8 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const ChangeMobileNumberScreen(),
+                                builder: (context) =>
+                                    const ChangeMobileNumberScreen(),
                               ),
                             );
                           },
@@ -204,9 +203,8 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const TransactionPinSettingsScreen(),
+                                builder: (context) =>
+                                    const TransactionPinSettingsScreen(),
                               ),
                             );
                           },
@@ -252,7 +250,12 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     // Start live support
-                    _showLiveSupportDialog(context);
+                    AppMessenger.show(
+                      context,
+                      type: MessageType.warning,
+                      message: 'Live Support coming soon!',
+                    );
+                    // _showLiveSupportDialog(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: appTheme.primaryColor,

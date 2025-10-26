@@ -60,7 +60,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         });
 
         if (loginResponse.accessToken != null) {
-          // Don't call setState or show snackbar after navigation
+          // Don't call setState or show AppMessage after navigation
           context.pushReplacement('/');
           return;
         } else {

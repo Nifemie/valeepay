@@ -7,6 +7,8 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/core/widgets/snap_and_send_money.dart';
+import 'package:valarpay/core/widgets/camera_scan_account_screen.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_valarpay/transfer_amount_screen.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
@@ -27,6 +29,7 @@ class _TransferToValarPayScreenState
   AccountDetails? verifiedAccount;
   bool isRecentTab = true;
   bool isVerifying = false;
+  bool hasError = false;
 
   Future<void> pasteFromClipboard() async {
     final clipboardData = await Clipboard.getData('text/plain');
@@ -48,6 +51,7 @@ class _TransferToValarPayScreenState
     setState(() {
       isVerifying = true;
       verifiedAccount = null;
+      hasError = false;
     });
 
     try {
@@ -58,6 +62,9 @@ class _TransferToValarPayScreenState
             bankCode: '090672',
           );
     } catch (e) {
+      setState(() {
+        hasError = true;
+      });
       // Error handling is done in the listener
     } finally {
       setState(() {
@@ -70,7 +77,7 @@ class _TransferToValarPayScreenState
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
-    
+
     final accountVerificationState =
         ref.watch(internalAccountVerificationNotifierProvider);
 
@@ -79,12 +86,14 @@ class _TransferToValarPayScreenState
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
         setState(() {
           verifiedAccount = next.data!.first;
+          hasError = false;
         });
       } else if (next.isDataAvailable &&
           (next.data == null || next.data!.isEmpty)) {
         // API returned success but no data - account verification failed
         setState(() {
           verifiedAccount = null;
+          hasError = true;
         });
       } else if (next.message != null && !next.isDataAvailable) {
         AppMessenger.show(context,
@@ -114,161 +123,192 @@ class _TransferToValarPayScreenState
       body: !isBvnVerified
           ? const KycNotSetWidget(
               title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to transfer money to ValarPay accounts',
+              subtitle:
+                  'Complete your KYC verification to transfer money to ValarPay accounts',
             )
           : SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              child: Padding(
+                padding: EdgeInsets.all(20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.bolt, color: Colors.blue, size: 18.sp),
-                    SizedBox(width: 6),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.bolt, color: Colors.blue, size: 18.sp),
+                          SizedBox(width: 6),
+                          Text(
+                            'Quick, Free, No-delays',
+                            style: TextStyle(
+                              color: Colors.blue[800],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    SnapAndSendMoneyCard(
+                      onPressed: () async {
+                        // Open camera scanner and await detected 10-digit account number
+                        final result = await Navigator.push<String?>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CameraScanScreen(),
+                          ),
+                        );
+
+                        if (result != null && result.isNotEmpty) {
+                          // populate account field and trigger matching
+                          setState(() {
+                            _accountController.text = result;
+                          });
+                          // directly trigger matching for immediate feedback
+                          if (_accountController.text.length == 10) {
+                            _verifyAccount();
+                          }
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20),
+
                     Text(
-                      'Quick, Free, No-delays',
+                      'Recipient Account Number',
                       style: TextStyle(
-                        color: Colors.blue[800],
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
                       ),
                     ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _accountController,
+                      onChanged: (value) {
+                        if (value.length == 10) {
+                          _verifyAccount();
+                        } else {
+                          setState(() {
+                            hasError = false;
+                          });
+                        }
+                      },
+                      keyboardType: TextInputType.number,
+                      maxLength: 10,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        hintText: 'Enter ValarPay account name/number',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 14,
+                        ),
+                        suffixIcon: _accountController.text.isEmpty
+                            ? IconButton(
+                                onPressed: () {
+                                  pasteFromClipboard();
+                                },
+                                icon: Icon(
+                                  Icons.content_paste,
+                                  color: Colors.grey[500],
+                                ))
+                            : null,
+                        filled: true,
+                        fillColor:
+                            Theme.of(context).cardColor.withValues(alpha: 0.5),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 14.h,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    // Selected Recipient
+                    if (isVerifying)
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  appTheme.primaryColor),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            "Verifying account...",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (verifiedAccount != null)
+                      Row(
+                        children: [
+                          Icon(Icons.check_circle,
+                              color: appTheme.primaryColor),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              verifiedAccount!.accountName,
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: appTheme.primaryColor),
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (_accountController.text.length == 10 &&
+                            !hasError ||
+                        accountVerificationState.data == null && !hasError)
+                      Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red),
+                          const SizedBox(width: 8),
+                          const Text(
+                            "Account verification failed",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 25),
+
+                    // Continue Button
+                    FullWidthButton(
+                        text: 'Continue',
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => InternalTransferAmountScreen(
+                                      accountDetails: verifiedAccount!)));
+                        },
+                        isEnabled: verifiedAccount != null),
+                    SizedBox(height: 25),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
-
-              Text(
-                'Recipient Account Number',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: _accountController,
-                onChanged: (value) {
-                  if (value.length == 10) {
-                    _verifyAccount();
-                  }
-                },
-                keyboardType: TextInputType.number,
-                maxLength: 10,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  hintText: 'Enter ValarPay account name/number',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 14,
-                  ),
-                  suffixIcon: _accountController.text.isEmpty
-                      ? IconButton(
-                          onPressed: () {
-                            pasteFromClipboard();
-                          },
-                          icon: Icon(
-                            Icons.content_paste,
-                            color: Colors.grey[500],
-                          ))
-                      : null,
-                  filled: true,
-                  fillColor: Theme.of(context).cardColor.withValues(alpha: 0.5),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14.w,
-                    vertical: 14.h,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20.h),
-
-              // Selected Recipient
-              if (isVerifying)
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            appTheme.primaryColor),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Verifying account...",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.orange,
-                      ),
-                    ),
-                  ],
-                )
-              else if (verifiedAccount != null)
-                Row(
-                  children: [
-                    Icon(Icons.check_circle, color: appTheme.primaryColor),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        verifiedAccount!.accountName,
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: appTheme.primaryColor),
-                      ),
-                    ),
-                  ],
-                )
-              else if (_accountController.text.length == 10 ||
-                  accountVerificationState.data == null)
-                Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Account verification failed",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-
-              const SizedBox(height: 25),
-
-              // Continue Button
-              FullWidthButton(
-                  text: 'Continue',
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => InternalTransferAmountScreen(
-                                accountDetails: verifiedAccount!)));
-                  },
-                  isEnabled: verifiedAccount != null),
-              SizedBox(height: 25),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/controller/passcode_controller.dart';
+import 'package:valarpay/core/services/secure_storage_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/features/notifiers/change_passcode_notifier.dart';
@@ -47,11 +48,11 @@ class _ChangePassCodeScreenState extends ConsumerState<ChangePassCodeScreen> {
       if (state.confirmNewPasscode.length < _passcodeLength) {
         controller.updateConfirmNewPasscode(state.confirmNewPasscode + number);
         if (state.confirmNewPasscode.length + 1 == _passcodeLength) {
-          final oldPin = state.passcode;
-          final newPin = state.confirmPasscode;
+          final oldPasscode = state.passcode;
+          final newPasscode = state.confirmPasscode;
           final confirm = state.confirmNewPasscode + number;
-          if (newPin == confirm) {
-            _submitChange(oldPin, newPin);
+          if (newPasscode == confirm) {
+            _submitChange(oldPasscode, newPasscode);
           } else {
             AppMessenger.show(context,
                 message: 'New passcodes do not match', type: MessageType.error);
@@ -86,16 +87,17 @@ class _ChangePassCodeScreenState extends ConsumerState<ChangePassCodeScreen> {
     }
   }
 
-  Future<void> _submitChange(String oldPin, String newPin) async {
-    if (oldPin.length != 6 || newPin.length != 6) return;
+  Future<void> _submitChange(String oldPasscode, String newPasscode) async {
+    if (oldPasscode.length != 6 || newPasscode.length != 6) return;
 
     setState(() => _isSaving = true);
     try {
       final notifier = ref.read(changePasscodeNotifierProvider.notifier);
-      await notifier.changePasscode(oldPasscode: oldPin, newPasscode: newPin);
+      await notifier.changePasscode(oldPasscode: oldPasscode, newPasscode: newPasscode);
 
       final state = ref.read(changePasscodeNotifierProvider);
       if (state.isDataAvailable) {
+        await SecureStorageService.savePasscode(newPasscode);
         AppMessenger.show(context,
             message: state.message ?? 'Passcode updated',
             type: MessageType.success);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
@@ -73,12 +74,8 @@ class _HomescreenState extends ConsumerState<Homescreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to refresh data'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        AppMessenger.show(context,
+            message: 'Failed to refresh data', type: MessageType.error);
       }
     }
   }
@@ -89,10 +86,9 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
     // Fallbacks for safety
     final firstName = (user?.fullname ?? 'Guest').split(' ').first;
-    final profileImageUrl =
-        user?.profileImageUrl?.isNotEmpty == true
-            ? user!.profileImageUrl!
-            : 'https://i.pravatar.cc/150?img=3';
+    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
+        ? user!.profileImageUrl!
+        : 'https://i.pravatar.cc/150?img=3';
 
     // Get wallet data
     final wallet =
@@ -122,10 +118,9 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                         balance: balance,
                         accountNumber: accountNumber,
                         isBalanceVisible: _isBalanceVisible,
-                        onToggleVisibility:
-                            () => setState(
-                              () => _isBalanceVisible = !_isBalanceVisible,
-                            ),
+                        onToggleVisibility: () => setState(
+                          () => _isBalanceVisible = !_isBalanceVisible,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       const PaymentWidget(),
@@ -137,7 +132,8 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                           final isWalletPinSet = user?.isWalletPinSet ?? false;
 
                           // Show KYC widget if BVN is not verified OR wallet PIN is not set
-                          final shouldShowKyc = !isBvnVerified || !isWalletPinSet;
+                          final shouldShowKyc =
+                              !isBvnVerified || !isWalletPinSet;
 
                           if (!shouldShowKyc) {
                             return const SizedBox.shrink();
@@ -175,7 +171,7 @@ class _HomeAppBar extends ConsumerStatefulWidget {
   final String greeting;
 
   const _HomeAppBar({Key? key, required this.firstName, required this.greeting})
-    : super(key: key);
+      : super(key: key);
 
   @override
   ConsumerState<_HomeAppBar> createState() => _HomeAppBarState();
@@ -201,23 +197,21 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               backgroundColor:
                   isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
               child: ClipOval(
-                child:
-                    user?.profileImageUrl != null &&
-                            user!.profileImageUrl!.isNotEmpty
-                        ? Image.network(
-                          user.profileImageUrl!,
-                          width: 72,
-                          height: 72,
-                          fit: BoxFit.cover,
-                        )
-                        : Icon(
-                          Icons.person,
-                          size: 36,
-                          color:
-                              isDark
-                                  ? const Color(0xFF9CA3AF)
-                                  : const Color(0xFF6B7280),
-                        ),
+                child: user?.profileImageUrl != null &&
+                        user!.profileImageUrl!.isNotEmpty
+                    ? Image.network(
+                        user.profileImageUrl!,
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                      )
+                    : Icon(
+                        Icons.person,
+                        size: 36,
+                        color: isDark
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF6B7280),
+                      ),
               ),
             ),
           ),
@@ -235,9 +229,9 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               subtitle: Text(
                 widget.greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.normal,
-                  color: appTheme.primaryColor,
-                ),
+                      fontWeight: FontWeight.normal,
+                      color: appTheme.primaryColor,
+                    ),
               ),
             ),
           ),
@@ -423,7 +417,7 @@ class _AddMoneyButton extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final buttonColor = isDark ? const Color(0xFF2B2725) : Colors.white;
     final iconColor = isDark ? Colors.white : appTheme.primaryColor;
-    
+
     return GestureDetector(
       onTap: () => context.push('/add-money'),
       child: Container(
@@ -448,5 +442,3 @@ class _AddMoneyButton extends StatelessWidget {
     );
   }
 }
-
-
