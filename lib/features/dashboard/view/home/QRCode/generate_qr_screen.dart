@@ -50,16 +50,16 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
   Future<void> _onGenerate() async {
     final text = _amountController.text.replaceAll(',', '').trim();
     if (text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter an amount')));
+      AppMessenger.show(context,
+          message: 'Please enter an amount', type: MessageType.warning);
+
       return;
     }
     final amount = double.tryParse(text);
     if (amount == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid amount')));
+      AppMessenger.show(context,
+          message: 'Invalid amount', type: MessageType.error);
+
       return;
     }
 
@@ -70,9 +70,9 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
         _generatedDataUri = state.data!.first.data;
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message ?? 'Failed to generate QR')),
-      );
+      AppMessenger.show(context,
+            message: state.message ?? 'Failed to generate QR', type: MessageType.error);
+      
     }
   }
 
@@ -177,7 +177,6 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen> {
                         onPressed: _saveToDevice,
                       ),
                     ],
-
                     FullWidthButton(
                       isEnabled: _amountController.text.isNotEmpty,
                       isLoading: isLoading,

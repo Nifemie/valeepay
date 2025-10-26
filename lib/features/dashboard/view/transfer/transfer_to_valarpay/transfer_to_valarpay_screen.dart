@@ -29,6 +29,7 @@ class _TransferToValarPayScreenState
   AccountDetails? verifiedAccount;
   bool isRecentTab = true;
   bool isVerifying = false;
+  bool hasError = false;
 
   Future<void> pasteFromClipboard() async {
     final clipboardData = await Clipboard.getData('text/plain');
@@ -50,6 +51,7 @@ class _TransferToValarPayScreenState
     setState(() {
       isVerifying = true;
       verifiedAccount = null;
+      hasError = false;
     });
 
     try {
@@ -60,6 +62,9 @@ class _TransferToValarPayScreenState
             bankCode: '090672',
           );
     } catch (e) {
+      setState(() {
+        hasError = true;
+      });
       // Error handling is done in the listener
     } finally {
       setState(() {
@@ -81,12 +86,14 @@ class _TransferToValarPayScreenState
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
         setState(() {
           verifiedAccount = next.data!.first;
+          hasError = false;
         });
       } else if (next.isDataAvailable &&
           (next.data == null || next.data!.isEmpty)) {
         // API returned success but no data - account verification failed
         setState(() {
           verifiedAccount = null;
+          hasError = true;
         });
       } else if (next.message != null && !next.isDataAvailable) {
         AppMessenger.show(context,
@@ -186,6 +193,10 @@ class _TransferToValarPayScreenState
                       onChanged: (value) {
                         if (value.length == 10) {
                           _verifyAccount();
+                        } else {
+                          setState(() {
+                            hasError = false;
+                          });
                         }
                       },
                       keyboardType: TextInputType.number,
@@ -220,7 +231,7 @@ class _TransferToValarPayScreenState
                         ),
                       ),
                     ),
-                    SizedBox(height: 20.h),
+                    SizedBox(height: 16.h),
                     // Selected Recipient
                     if (isVerifying)
                       Row(
@@ -262,8 +273,9 @@ class _TransferToValarPayScreenState
                           ),
                         ],
                       )
-                    else if (_accountController.text.length == 10 ||
-                        accountVerificationState.data == null)
+                    else if (_accountController.text.length == 10 &&
+                            !hasError ||
+                        accountVerificationState.data == null && !hasError)
                       Row(
                         children: [
                           const Icon(Icons.error_outline, color: Colors.red),

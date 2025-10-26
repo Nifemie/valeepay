@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'saved_beneficiary_screen.dart';
@@ -42,7 +43,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
 
   @override
   Widget build(BuildContext context) {
-        final user = ref.watch(userProvider);
+    final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -87,235 +88,253 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       body: !isBvnVerified
           ? const KycNotSetWidget(
               title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to pay for cable TV subscriptions',
+              subtitle:
+                  'Complete your KYC verification to pay for cable TV subscriptions',
             )
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Select Provider
-            Text(
-              'Select Provider',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => _showProviderSelector(context),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedProvider,
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Smartcard Number
-            Text(
-              'Smartcard Number',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ReuseableTextFieldWithCountry(
-                controller: smartcardController,
-                hintText: 'Smartcard Number ',
-                isReadOnly: false,
-                textInputType: TextInputType.number,
-                showCountryLabel: false),
-            const SizedBox(height: 24),
-
-            // Select Plan
-            Text(
-              'Select Plan',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => _showPlanSelector(context),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedPlan,
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Current Date
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: const Color(0xFFF76301),
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Select Provider
                   Text(
-                    '₦${planAmount}',
+                    'Select Provider',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _showProviderSelector(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedProvider,
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Smartcard Number
+                  Text(
+                    'Smartcard Number',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ReuseableTextFieldWithCountry(
+                      controller: smartcardController,
+                      hintText: 'Smartcard Number ',
+                      isReadOnly: false,
+                      textInputType: TextInputType.number,
+                      showCountryLabel: false),
+                  const SizedBox(height: 24),
+
+                  // Select Plan
+                  Text(
+                    'Select Plan',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _showPlanSelector(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedPlan,
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Current Date
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFF76301),
+                        width: 2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '₦${planAmount}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 60),
+
+                  // Pay Cable TV Button
+                  FullWidthButton(
+                      text: 'Pay Cable TV',
+                      onPressed: () async {
+                        if (smartcardController.text.isEmpty ||
+                            planAmount.isEmpty) {
+                          return;
+                        }
+
+                        // show details and ask for PIN
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ReuseableTransactionDetailsScreen(
+                              hasBottom: false,
+                              topTitleText: 'Transaction',
+                              topTransactionsDetailsList: [
+                                buildDetailRow(
+                                    'Provider', selectedProvider, isDark),
+                                buildDetailRow('Smartcard Number',
+                                    smartcardController.text, isDark),
+                                buildDetailRow('Plan', selectedPlan, isDark),
+                                buildDetailRow(
+                                    'Amount', '₦${planAmount}', isDark),
+                                const Divider(),
+                                buildDetailRow(
+                                    'Total Amount', '₦${planAmount}', isDark,
+                                    isTotal: true)
+                              ],
+                              onButtonPressed: () async {
+                                final pin =
+                                    await BiometricTransactionPinModal.show(
+                                        context);
+                                if (pin == null || pin.length != 4) return;
+
+                                // find selected variation
+                                final variations = ref
+                                    .read(cableVariationNotifierProvider)
+                                    .data;
+                                if (variations == null || variations.isEmpty) {
+                                  AppMessenger.show(context,
+                                      message: 'Selected plan not available',
+                                      type: MessageType.warning);
+
+                                  return;
+                                }
+                                final selectedVar = variations.firstWhere(
+                                    (v) => v.name == selectedPlan,
+                                    orElse: () => variations.first);
+
+                                try {
+                                  await ref
+                                      .read(
+                                          cablePaymentNotifierProvider.notifier)
+                                      .verifyNumber(
+                                        VerifyCableRequest(
+                                          itemCode: selectedVar.itemCode,
+                                          billerCode: selectedVar.billerCode,
+                                          billerNumber:
+                                              smartcardController.text,
+                                        ),
+                                      );
+
+                                  await ref
+                                      .read(
+                                          cablePaymentNotifierProvider.notifier)
+                                      .payCable(
+                                        CablePayRequest(
+                                          itemCode: selectedVar.itemCode,
+                                          billerCode: selectedVar.billerCode,
+                                          currency: 'NGN',
+                                          billerNumber:
+                                              smartcardController.text,
+                                          amount: selectedVar.payAmount ??
+                                              selectedVar.amount,
+                                        ),
+                                      );
+
+                                  if (mounted) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            TransactionReceiptWidget(
+                                          amount: planAmount,
+                                          topDetails: [
+                                            TransactionDetail(
+                                                label: 'Provider',
+                                                value: selectedProvider),
+                                            TransactionDetail(
+                                                label: 'Smartcard Number',
+                                                value:
+                                                    smartcardController.text),
+                                            TransactionDetail(
+                                                label: 'Plan',
+                                                value: selectedPlan),
+                                          ],
+                                          onShareReceipt: () {},
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    AppMessenger.show(context,
+                                        message: e.toString(),
+                                        type: MessageType.error);
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      })
                 ],
               ),
             ),
-
-            const SizedBox(height: 60),
-
-            // Pay Cable TV Button
-            FullWidthButton(
-                text: 'Pay Cable TV',
-                onPressed: () async {
-                  if (smartcardController.text.isEmpty || planAmount.isEmpty)
-                    return;
-
-                  // show details and ask for PIN
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ReuseableTransactionDetailsScreen(
-                        hasBottom: false,
-                        topTitleText: 'Transaction',
-                        topTransactionsDetailsList: [
-                          buildDetailRow('Provider', selectedProvider, isDark),
-                          buildDetailRow('Smartcard Number',
-                              smartcardController.text, isDark),
-                          buildDetailRow('Plan', selectedPlan, isDark),
-                          buildDetailRow('Amount', '₦${planAmount}', isDark),
-                          const Divider(),
-                          buildDetailRow(
-                              'Total Amount', '₦${planAmount}', isDark,
-                              isTotal: true)
-                        ],
-                        onButtonPressed: () async {
-                          final pin = await BiometricTransactionPinModal.show(context);
-                          if (pin == null || pin.length != 4) return;
-
-                          // find selected variation
-                          final variations =
-                              ref.read(cableVariationNotifierProvider).data;
-                          if (variations == null || variations.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Selected plan not available')));
-                            return;
-                          }
-                          final selectedVar = variations.firstWhere(
-                              (v) => v.name == selectedPlan,
-                              orElse: () => variations.first);
-
-                          try {
-                            await ref
-                                .read(cablePaymentNotifierProvider.notifier)
-                                .verifyNumber(
-                                  VerifyCableRequest(
-                                    itemCode: selectedVar.itemCode,
-                                    billerCode: selectedVar.billerCode,
-                                    billerNumber: smartcardController.text,
-                                  ),
-                                );
-
-                            await ref
-                                .read(cablePaymentNotifierProvider.notifier)
-                                .payCable(
-                                  CablePayRequest(
-                                    itemCode: selectedVar.itemCode,
-                                    billerCode: selectedVar.billerCode,
-                                    currency: 'NGN',
-                                    billerNumber: smartcardController.text,
-                                    amount: selectedVar.payAmount ??
-                                        selectedVar.amount,
-                                  ),
-                                );
-
-                            if (mounted) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      TransactionReceiptWidget(
-                                    amount: planAmount,
-                                    topDetails: [
-                                      TransactionDetail(
-                                          label: 'Provider',
-                                          value: selectedProvider),
-                                      TransactionDetail(
-                                          label: 'Smartcard Number',
-                                          value: smartcardController.text),
-                                      TransactionDetail(
-                                          label: 'Plan', value: selectedPlan),
-                                    ],
-                                    onShareReceipt: () {},
-                                  ),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(e.toString())));
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                })
-          ],
-        ),
-      ),
     );
   }
 

@@ -5,10 +5,13 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -165,7 +168,9 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
   @override
   Widget build(BuildContext context) {
     final transferState = ref.watch(transferNotifierProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final amount =
+        double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+    final totalAmount = amount + (transferFee?.fee ?? 0);
 
     // Listen to transfer fee state
     ref.listen(transferFeeNotifierProvider, (previous, next) {
@@ -175,6 +180,47 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
         });
       }
     });
+
+    _onShareTransactionReceiptPressed() {
+      final user = ref.read(userProvider);
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value: currencyFormatter(amount.toString())),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type',
+                          value: 'Inter-bank Transfer'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Sender Name', value: user?.fullname ?? ''),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Beneficiary Details',
+                          value:
+                              '${widget.accountDetails.accountName} \n${widget.accountDetails.accountNumber}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Beneficiary Bank',
+                          value: widget.selectedBank.name),
+                      if (descriptionController.text.isNotEmpty)
+                        ShareableTransactionReceiptDetail(
+                            label: 'Narration',
+                            value: descriptionController.text),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: widget.accountDetails.sessionId),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
 
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
@@ -248,7 +294,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                         : descriptionController.text.trim(),
                   ),
                 ],
-                onShareReceipt: () {},
+                onShareReceipt: _onShareTransactionReceiptPressed,
               ),
             ),
           );
@@ -261,10 +307,6 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
         );
       }
     });
-
-    final amount =
-        double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
-    final totalAmount = amount + (transferFee?.fee ?? 0);
 
     _handleOnPressed() {
       final user = ref.watch(userProvider);

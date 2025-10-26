@@ -223,7 +223,7 @@ class NeedHelpModal {
   static void _showComingSoon(BuildContext context, String feature) {
     AppMessenger.show(
       context,
-      type: MessageType.error,
+      type: MessageType.warning,
       message: '$feature coming soon!',
     );
   }

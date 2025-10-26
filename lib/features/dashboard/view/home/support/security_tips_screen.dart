@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -195,11 +196,9 @@ class SecurityTipsScreen extends StatelessWidget {
                     );
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Could not make phone call'),
-                        ),
-                      );
+                      AppMessenger.show(context,
+            message: 'Could not make phone call', type: MessageType.warning);
+                     
                     }
                   }
                 },

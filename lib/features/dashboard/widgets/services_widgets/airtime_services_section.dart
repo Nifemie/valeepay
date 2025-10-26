@@ -23,7 +23,8 @@ class AirtimeServicesSection extends StatelessWidget {
           title: 'Schedule Top-up',
           subtitle: 'Auto recharge, always ready',
           onTap: () {
-            context.push('/schedule-topup');
+            context.push('/coming-soon');
+            // context.push('/schedule-topup');
           },
         ),
         const SizedBox(height: 12),

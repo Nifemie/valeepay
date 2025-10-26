@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/features/auth/widgets/need_help_modal.dart';
 
 class FAQDetailScreen extends StatelessWidget {
   final String question;
@@ -143,7 +144,7 @@ class FAQDetailScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      // Handle contact support
+                      NeedHelpModal.show(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

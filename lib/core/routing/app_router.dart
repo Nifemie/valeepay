@@ -8,6 +8,7 @@ import 'package:valarpay/features/dashboard/view/me/rewards.dart';
 import 'package:valarpay/features/dashboard/view/me/rate_app_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/betting/betting.dart';
 import 'package:valarpay/features/dashboard/view/services/cabletv/cabletv_screen.dart';
+import 'package:valarpay/features/dashboard/view/services/data/data_ussd_enquiry.dart';
 import 'package:valarpay/features/dashboard/view/services/education/education.dart';
 import 'package:valarpay/features/dashboard/view/services/electricity/electricity_screen.dart';
 import 'package:valarpay/features/dashboard/view/services/flight/flight_selection_screen.dart';
@@ -339,6 +340,10 @@ final router = GoRouter(
     GoRoute(
       path: '/schedule-topup',
       builder: (context, state) => const ScheduleTopupScreen(),
+    ),
+    GoRoute(
+      path: '/data-ussd-section',
+      builder: (context, state) => const DataUSSDEnquiryScreen(),
     ),
     GoRoute(
       path: '/ussd-enquiry',

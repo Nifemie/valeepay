@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/features/notifiers/user_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class TransactionDetail {
   final String label;
@@ -16,7 +19,7 @@ class TransactionDetail {
   });
 }
 
-class TransactionReceiptWidget extends StatelessWidget {
+class TransactionReceiptWidget extends ConsumerStatefulWidget {
   final String amount;
   final List<TransactionDetail> topDetails;
   final List<TransactionDetail>? bottomDetails;
@@ -30,6 +33,13 @@ class TransactionReceiptWidget extends StatelessWidget {
     required this.onShareReceipt,
   }) : super(key: key);
 
+  @override
+  ConsumerState<TransactionReceiptWidget> createState() =>
+      _TransactionReceiptWidgetState();
+}
+
+class _TransactionReceiptWidgetState
+    extends ConsumerState<TransactionReceiptWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,7 +71,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 // Amount
                 Text(
-                  currencyFormatter(amount),
+                  currencyFormatter(widget.amount),
                   style: const TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: 32,
@@ -71,11 +81,11 @@ class TransactionReceiptWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 // Top Details Card
-                _buildDetailsCard(context, topDetails),
+                _buildDetailsCard(context, widget.topDetails),
                 const SizedBox(height: 16),
                 // Bottom Details Card
-                if (bottomDetails != null)
-                  _buildDetailsCard(context, bottomDetails ?? []),
+                if (widget.bottomDetails != null)
+                  _buildDetailsCard(context, widget.bottomDetails ?? []),
                 const SizedBox(height: 32),
                 // Share Receipt Button
                 Container(
@@ -86,7 +96,7 @@ class TransactionReceiptWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: TextButton(
-                    onPressed: onShareReceipt,
+                    onPressed: widget.onShareReceipt,
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.all(10),
                       shape: RoundedRectangleBorder(
@@ -125,7 +135,22 @@ class TransactionReceiptWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: TextButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+
+                    final freshedUser =  await ref
+                          .read(userNotifierProvider.notifier)
+                          .refreshUserProfile();
+          if (freshedUser != null) {
+            ref.read(userProvider.notifier).setUser(freshedUser);
+          }
+                      Navigator.pop(context);
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     style: TextButton.styleFrom(

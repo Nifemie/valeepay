@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
@@ -28,13 +29,8 @@ class _AddMoneyTransferScreenState
 
   void _copyToClipboard(String label, String value) {
     Clipboard.setData(ClipboardData(text: value));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("$label copied to clipboard"),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppMessenger.show(context,
+        message: '$label copied to clipboard', type: MessageType.success);
   }
 
   @override

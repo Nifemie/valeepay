@@ -106,33 +106,30 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
     }
 
     _onButtonPressed() async {
-       try {
-                          final file = await _controller!.takePicture();
-                          final path = file.path;
-                          final inputImage = InputImage.fromFilePath(path);
-                          final recognized =
-                              await _textRecognizer.processImage(inputImage);
-                          for (final block in recognized.blocks) {
-                            final text =
-                                block.text.replaceAll(RegExp(r'[^0-9]'), '');
-                            final match = RegExp(r'\d{10}').firstMatch(text);
-                            if (match != null) {
-                              final number = match.group(0);
-                              if (number != null) {
-                                await _controller?.stopImageStream();
-                                await _controller?.dispose();
-                                if (mounted) Navigator.of(context).pop(number);
-                                return;
-                              }
-                            }
-                          }
-                          AppMessenger.show(context,
-                              message: 'No 10-digit number found',
-                              type: MessageType.error);
-                          Navigator.of(context).pop();
-                        } catch (e) {
-                          // ignore
-                        }
+      try {
+        final file = await _controller!.takePicture();
+        final path = file.path;
+        final inputImage = InputImage.fromFilePath(path);
+        final recognized = await _textRecognizer.processImage(inputImage);
+        for (final block in recognized.blocks) {
+          final text = block.text.replaceAll(RegExp(r'[^0-9]'), '');
+          final match = RegExp(r'\d{10}').firstMatch(text);
+          if (match != null) {
+            final number = match.group(0);
+            if (number != null) {
+              await _controller?.stopImageStream();
+              await _controller?.dispose();
+              if (mounted) Navigator.of(context).pop(number);
+              return;
+            }
+          }
+        }
+        AppMessenger.show(context,
+            message: 'No 10-digit number found', type: MessageType.error);
+        Navigator.of(context).pop();
+      } catch (e) {
+        // ignore
+      }
     }
 
     return Scaffold(
@@ -152,16 +149,19 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
               ),
             ),
 
-            Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: FullWidthButton(
-                      text: 'Capture & Scan',
-                      onPressed: () async {
-                        _onButtonPressed();
-                      }),
-                )),
+            Container(
+              margin: EdgeInsets.only(bottom: 20),
+              child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: FullWidthButton(
+                        text: 'Capture & Scan',
+                        onPressed: () async {
+                          _onButtonPressed();
+                        }),
+                  )),
+            ),
           ],
         ),
       ),
