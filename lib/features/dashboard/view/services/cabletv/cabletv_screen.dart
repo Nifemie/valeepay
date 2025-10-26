@@ -4,7 +4,7 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_provider_selector_modal.dart';
 import '../../../widgets/services_widgets/cabletv_widgets/cabletv_plan_selector_modal.dart';
@@ -240,7 +240,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                               isTotal: true)
                         ],
                         onButtonPressed: () async {
-                          final pin = await TransactionPinModal.show(context);
+                          final pin = await BiometricTransactionPinModal.show(context);
                           if (pin == null || pin.length != 4) return;
 
                           // find selected variation

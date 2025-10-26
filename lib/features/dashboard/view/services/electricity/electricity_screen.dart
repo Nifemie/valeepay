@@ -4,14 +4,17 @@ import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/features/models/electricity.dart';
 import 'package:valarpay/features/notifiers/electricity_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../widgets/services_widgets/electricity_widgets/disco_selector_modal.dart';
 import '../../../widgets/services_widgets/electricity_widgets/meter_type_modal.dart';
 import 'saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+
 
 class ElectricityScreen extends ConsumerStatefulWidget {
   const ElectricityScreen({super.key});
@@ -41,6 +44,8 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final electricityState = ref.watch(electricityNotifierProvider);
     final billInfoState = ref.watch(electricityBillInfoNotifierProvider);
@@ -61,27 +66,34 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SavedBeneficiaryScreen(),
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SavedBeneficiaryScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: Color(0xFFF76301),
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
+              ]
+            : null,
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to pay electricity bills',
+            )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,7 +311,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                 isTotal: true)
                           ],
                           onButtonPressed: () async {
-                            final pin = await TransactionPinModal.show(context);
+                            final pin = await BiometricTransactionPinModal.show(context);
                             if (pin != null && pin.length == 4 && mounted) {
                               await _processPayment(pin);
                             }

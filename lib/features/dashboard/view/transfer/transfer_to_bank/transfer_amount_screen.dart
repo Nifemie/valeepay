@@ -5,7 +5,7 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
@@ -149,12 +149,20 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
   }
 
   _checkBalanceLeft(String balance, String totalAmount) {
-    if (int.parse(balance) < int.parse(totalAmount)) {
-       AppMessenger.show(
-        context,
-        message: 'Insufficient account balance kindly topup andcontinue',
-        type: MessageType.error,
-      );
+    try {
+      final balanceValue = double.tryParse(balance) ?? 0.0;
+      final totalAmountValue = double.tryParse(totalAmount) ?? 0.0;
+      
+      if (balanceValue < totalAmountValue) {
+        AppMessenger.show(
+          context,
+          message: 'Insufficient account balance kindly topup and continue',
+          type: MessageType.error,
+        );
+      }
+    } catch (e) {
+      print('❌ Error checking balance: $e');
+      print('   balance: $balance, totalAmount: $totalAmount');
     }
     return;
   }
@@ -181,15 +189,29 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
 
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
         print('✅ Transfer successful, navigating to receipt');
-        // Transfer successful - navigate to receipt
-        final transferAmount =
-            double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+        
+        if (!mounted) {
+          print('⚠️ Widget not mounted, skipping navigation');
+          return;
+        }
+        
+        // Small delay to ensure any dialogs are closed
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!mounted) {
+            print('⚠️ Widget not mounted after delay, skipping navigation');
+            return;
+          }
+          
+          print('🧾 Navigating to receipt screen');
+          // Transfer successful - navigate to receipt
+          final transferAmount =
+              double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => TransactionReceiptWidget(
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => TransactionReceiptWidget(
                   amount: currencyFormatter(transferAmount.toString()),
                   topDetails: [
                     TransactionDetail(
@@ -235,8 +257,9 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                   ],
                   onShareReceipt: () {},
                 ),
-          ),
-        );
+            ),
+          );
+        });
       } else if (next.message != null && !next.isDataAvailable) {
         AppMessenger.show(
         context,
@@ -299,13 +322,20 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                 ],
                 onButtonPressed: () async {
                   print('🔘 Transfer button pressed, amount: $amount');
-                  final pin = await TransactionPinModal.show(context);
+                  final pin = await BiometricTransactionPinModal.show(context);
                   print(
                     '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
                   );
-                  if (pin != null && pin.length == 4 && mounted) {
-                    print('✅ PIN valid, calling _initiateTransfer');
-                    _initiateTransfer(pin, amount);
+                  
+                  if (pin != null && pin.length == 4) {
+                    // Ensure PIN is a string
+                    final pinString = pin.toString();
+                    print('🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
+                    
+                    if (mounted) {
+                      print('✅ PIN valid, calling _initiateTransfer');
+                      _initiateTransfer(pinString, amount);
+                    }
                   } else {
                     print('❌ PIN invalid or cancelled');
                   }

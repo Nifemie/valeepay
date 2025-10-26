@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../widgets/services_widgets/flight_widgets/destination_selector_modal.dart';
 import '../../../widgets/services_widgets/flight_widgets/class_selector_modal.dart';
 // import 'saved_beneficiary_screen.dart';
 import 'passenger_details_screen.dart';
 
-class FlightScreen extends StatefulWidget {
+class FlightScreen extends ConsumerStatefulWidget {
   String flightName;
   FlightScreen({required this.flightName, super.key});
 
   @override
-  State<FlightScreen> createState() => _FlightScreenState();
+  ConsumerState<FlightScreen> createState() => _FlightScreenState();
 }
 
-class _FlightScreenState extends State<FlightScreen> {
+class _FlightScreenState extends ConsumerState<FlightScreen> {
   String selectedDeparture = 'Benin City';
   String selectedDestination = 'Abuja';
   String selectedClass = 'Economy';
@@ -28,6 +31,8 @@ class _FlightScreenState extends State<FlightScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -46,7 +51,12 @@ class _FlightScreenState extends State<FlightScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to book flights',
+            )
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

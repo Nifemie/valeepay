@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
-class AddMoneyScreen extends StatefulWidget {
+class AddMoneyScreen extends ConsumerStatefulWidget {
   const AddMoneyScreen({super.key});
 
   @override
-  State<AddMoneyScreen> createState() => _AddMoneyScreenState();
+  ConsumerState<AddMoneyScreen> createState() => _AddMoneyScreenState();
 }
 
-class _AddMoneyScreenState extends State<AddMoneyScreen> {
+class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
   final List<Map<String, dynamic>> addMoneyOptions = [
     {
       "id": 1,
@@ -45,6 +48,9 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -59,7 +65,12 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to add money to your wallet',
+            )
+          : Padding(
         padding: ResponsiveUtils.paddingAll16,
         child: Column(
           children: addMoneyOptions.map((option) {

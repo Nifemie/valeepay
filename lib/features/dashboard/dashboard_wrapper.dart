@@ -5,6 +5,8 @@ import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
 import 'package:valarpay/core/services/inactivity_service.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/services/biometric_transaction_tracker.dart';
 import '/features/dashboard/widgets/navbar.dart';
 
 class DashboardWrapper extends ConsumerStatefulWidget {
@@ -21,6 +23,14 @@ class DashboardWrapper extends ConsumerStatefulWidget {
 
 class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with WidgetsBindingObserver {
   bool _hasShownPasscodePrompt = false;
+  DateTime? _lastPausedTime;
+  static const _biometricGracePeriod = Duration(seconds: 5);
+  static bool _isBiometricInProgress = false;
+  
+  /// Call this before starting biometric authentication
+  static void setBiometricInProgress(bool inProgress) {
+    _isBiometricInProgress = inProgress;
+  }
 
   @override
   void initState() {
@@ -39,9 +49,89 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    print('🔄 [DashboardWrapper] App lifecycle state: $state');
+    print('🔐 [DashboardWrapper] Biometric in progress: $_isBiometricInProgress');
+    
+    if (state == AppLifecycleState.inactive) {
+      // App is inactive (biometric prompt, system dialog, etc.)
+      // Don't do anything, just log it
+      print('⏸️ [DashboardWrapper] App inactive (likely biometric prompt)');
+      return;
+    } else if (state == AppLifecycleState.paused) {
+      // Save activity time when app goes to background
+      _lastPausedTime = DateTime.now();
+      print('⏸️ [DashboardWrapper] App paused at: $_lastPausedTime');
       InactivityService.recordActivity();
+    } else if (state == AppLifecycleState.resumed) {
+      // PRIORITY 1: Check if transaction biometric is in progress
+      if (BiometricTransactionTracker.isInProgress()) {
+        print('🔐 [DashboardWrapper] Transaction biometric in progress, skipping logout check');
+        InactivityService.recordActivity();
+        return;
+      }
+      
+      // PRIORITY 2: Check if biometric authentication flag is set
+      if (_isBiometricInProgress) {
+        print('🔐 [DashboardWrapper] Biometric flag set, skipping logout check');
+        InactivityService.recordActivity();
+        _isBiometricInProgress = false; // Reset flag
+        return;
+      }
+      
+      // PRIORITY 3: Check if this is a quick resume (likely biometric authentication)
+      final now = DateTime.now();
+      final pauseDuration = _lastPausedTime != null 
+          ? now.difference(_lastPausedTime!) 
+          : null;
+      
+      print('▶️ [DashboardWrapper] App resumed. Pause duration: ${pauseDuration?.inSeconds ?? 'unknown'} seconds');
+      
+      final isQuickResume = pauseDuration != null && 
+          pauseDuration < _biometricGracePeriod;
+      
+      if (isQuickResume) {
+        // This is likely biometric authentication, don't logout
+        print('🔐 [DashboardWrapper] Quick resume detected (${pauseDuration.inSeconds}s < 5s), skipping logout check');
+        InactivityService.recordActivity();
+        return;
+      }
+      
+      print('⏱️ [DashboardWrapper] Long pause detected, checking logout settings...');
+      
+      // Check if user should be logged out based on settings
+      final shouldLogout = await InactivityService.shouldLogoutOnResume();
+      
+      if (shouldLogout && mounted) {
+        print('🚪 [DashboardWrapper] Auto-logout triggered on resume');
+        
+        // Wait a bit to ensure any ongoing operations complete
+        await Future.delayed(const Duration(milliseconds: 300));
+        
+        if (!mounted) return;
+        
+        // Close any open dialogs/modals before navigating
+        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+        
+        // Small delay after closing modals
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        if (!mounted) return;
+        
+        // Check if biometric is enabled
+        final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
+        final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
+        
+        if (hasBiometric || hasFaceId) {
+          context.go('/biometric-login');
+        } else {
+          context.go('/signin');
+        }
+      } else {
+        print('✅ [DashboardWrapper] No logout needed, recording activity');
+        // Just record activity if no logout needed
+        InactivityService.recordActivity();
+      }
     }
   }
 

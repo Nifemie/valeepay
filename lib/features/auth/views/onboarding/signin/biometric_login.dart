@@ -32,6 +32,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _fullname;
   String? _phoneNumber;
   String? _profileImageUrl;
+  bool _isLoading = false;
 
 
   @override
@@ -47,11 +48,13 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
   Future<void> _loadUserSession() async {
     final user = await SessionService.getUser();
+    final savedUsername = await SessionService.getUsername();
     
     setState(() {
-      _username = user?.username ?? 'N/A';
+      // Use saved username if user is null (after logout)
+      _username = user?.username ?? savedUsername ?? 'User';
       _fullname = user?.fullname ?? 'User';
-      _phoneNumber = user?.phoneNumber ?? 'N/A';
+      _phoneNumber = user?.phoneNumber ?? '';
       _profileImageUrl = user?.profileImageUrl;
     });
   }
@@ -79,6 +82,24 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     WidgetRef ref,
   ) async {
     try {
+      // Verify device ID first
+      final currentDeviceId = await DeviceUtils.getDeviceId();
+      final isBiometricEnabledForDevice = await SecureStorageService.isBiometricEnabledForDevice(currentDeviceId);
+      
+      print('🔐 [BiometricLogin] Current Device ID: $currentDeviceId');
+      print('🔐 [BiometricLogin] Biometric enabled for this device: $isBiometricEnabledForDevice');
+      
+      if (!isBiometricEnabledForDevice) {
+        if (!context.mounted) return;
+        AppMessenger.show(
+          context,
+          message: 'Biometric login not enabled on this device. Please login with password first.',
+          type: MessageType.warning,
+        );
+        context.go('/signin');
+        return;
+      }
+      
       // Try to get stored passcode
       final storedPasscode = await SecureStorageService.getPasscode();
       final storedUsername = await SecureStorageService.getUsername();
@@ -183,83 +204,41 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     }
   }
 
-  Future<void> _showBiometricBottomSheet(
+  /// Trigger biometric authentication directly
+  Future<void> _triggerBiometricAuth(
     BuildContext context,
     WidgetRef ref,
   ) async {
-    showModalBottomSheet(
-      context: context,
-      isDismissible: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        // start biometric auth right away
-        Future.microtask(() async {
-          final result = await BiometricAuthService.authenticateWithFallback(
-            promptMessage: 'Authenticate with Fingerprint or Face ID',
-          );
-
-          if (!ctx.mounted) return;
-
-          // Pop the bottom sheet first
-          Navigator.pop(ctx);
-
-          // Wait for bottom sheet animation to complete
-          await Future.delayed(const Duration(milliseconds: 300));
-
-          if (!context.mounted) return;
-
-          // Now handle navigation based on result
-          if (result == BiometricAuthResult.success) {
-            await _handleBiometricLogin(context, ref);
-          } else if (result == BiometricAuthResult.fallback) {
-            context.go('/passcode-login');
-          } else {
-            AppMessenger.show(
-              context,
-              message: 'Biometric authentication failed or cancelled.',
-              type: MessageType.error,
-            );
-          }
-        });
-
-        return Container(
-          height: 280,
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.fingerprint,
-                size: 60,
-                color: appTheme.primaryColor,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Authenticate to continue',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Use Face ID or Fingerprint',
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 36),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    final result = await BiometricAuthService.authenticateWithFallback(
+      promptMessage: 'Authenticate with Fingerprint or Face ID',
     );
+
+    if (!context.mounted) return;
+
+    // Handle navigation based on result
+    if (result == BiometricAuthResult.success) {
+      // Show loading indicator
+      setState(() {
+        _isLoading = true;
+      });
+      
+      await _handleBiometricLogin(context, ref);
+      
+      // Hide loading indicator (in case navigation fails)
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else if (result == BiometricAuthResult.fallback) {
+      context.go('/passcode-login');
+    } else {
+      AppMessenger.show(
+        context,
+        message: 'Biometric authentication failed or cancelled.',
+        type: MessageType.error,
+      );
+    }
   }
 
   /// Request biometric (Face ID / Fingerprint) and camera permission
@@ -299,7 +278,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
 
       if (cameraStatus.isGranted && canCheckBiometrics && isDeviceSupported ||
           canCheckBiometrics && isDeviceSupported) {
-        _showBiometricBottomSheet(context, ref);
+        _triggerBiometricAuth(context, ref);
       } else if (!cameraStatus.isGranted) {
         AppMessenger.show(
           context,
@@ -402,7 +381,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                       ),
                       PlatformResponsive.sizedBoxW(12),
                       Text(
-                        'Valarpay',
+                        'ValarPay',
                         style: TextStyle(
                           fontSize: 24.rsp,
                           fontWeight: FontWeight.bold,
@@ -452,42 +431,61 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                     style: TextStyle(fontSize: 15.sp, color: Colors.grey[300]),
                   ),
                   SizedBox(height: 50.h),
-                  GestureDetector(
-                    onTap: () => _requestBiometricAndCameraPermissions(),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 90.w,
-                          height: 90.w,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 6,
-                                offset: const Offset(0, 4),
+                  _isLoading
+                      ? Column(
+                          children: [
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                appTheme.primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'Logging in...',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        )
+                      : GestureDetector(
+                          onTap: () => _requestBiometricAndCameraPermissions(),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 90.w,
+                                height: 90.w,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.fingerprint,
+                                  size: 50.sp,
+                                  color: appTheme.primaryColor,
+                                ),
+                              ),
+                              SizedBox(height: 14.h),
+                              Text(
+                                'Tap fingerprint to login',
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.fingerprint,
-                            size: 50.sp,
-                            color: appTheme.primaryColor,
-                          ),
                         ),
-                        SizedBox(height: 14.h),
-                        Text(
-                          'Tap fingerprint to login',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   SizedBox(height: 50.h),
                   SizedBox(
                     width: double.infinity,
