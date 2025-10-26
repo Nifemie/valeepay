@@ -22,7 +22,7 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(banksNotifierProvider.notifier).fetchBanks(currency: 'NGN');
+      _checkIfBanksAvailable();
     });
     searchController.addListener(_filterBanks);
   }
@@ -31,6 +31,18 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  _checkIfBanksAvailable() {
+    final allBanksState = ref.read(banksNotifierProvider);
+    if (!allBanksState.isDataAvailable) {
+      ref.read(banksNotifierProvider.notifier).fetchBanks(currency: 'NGN');
+    } else {
+      setState(() {
+        allBanks = allBanksState.data!;
+        filteredBanks = allBanks;
+      });
+    }
   }
 
   void _filterBanks() {

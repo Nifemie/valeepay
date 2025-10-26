@@ -34,9 +34,9 @@ class UserActivityService {
     if (context.mounted) {
       String? username = await SessionService.getUsername();
       if (username != null) {
-        context.pushReplacement('/biometric-login');
+        context.go('/biometric-login');
       } else {
-        context.pushReplacement('/signin');
+        context.go('/signin');
       }
     }
   }

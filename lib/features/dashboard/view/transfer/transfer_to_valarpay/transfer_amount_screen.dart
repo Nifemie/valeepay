@@ -61,16 +61,22 @@ class _InternalTransferAmountScreenState
     });
   }
 
-  _checkBalanceLeft(String balance, String totalAmount) {
-    if (int.parse(balance) < int.parse(totalAmount)) {
-      AppMessenger.show(
-        context,
-        message: 'Insufficient account balance kindly topup andcontinue',
-        type: MessageType.error,
-      );
-      return;
-    }
+bool _checkBalanceLeft(String balance, String totalAmount) {
+  final doubleBalance = double.tryParse(balance.replaceAll(',', '')) ?? 0.0;
+  final doubleTotal = double.tryParse(totalAmount.replaceAll(',', '')) ?? 0.0;
+
+  if (doubleBalance < doubleTotal) {
+    AppMessenger.show(
+      context,
+      message: 'Insufficient account balance, kindly top up and continue',
+      type: MessageType.error,
+    );
+    return false;
   }
+
+  return true; 
+}
+
 
   void _initiateTransfer(String pin, double amount) async {
     Navigator.pop(context); // Close pin modal

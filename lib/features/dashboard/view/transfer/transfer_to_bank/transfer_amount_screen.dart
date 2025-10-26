@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -121,18 +122,15 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
 
       // Proceed with transfer (backend will validate PIN)
       // Use bankCode from accountDetails (returned from account verification) not from selectedBank
-      await ref
-          .read(transferNotifierProvider.notifier)
-          .initiateTransfer(
-            bankCode: widget.accountDetails.bankCode,
-            accountNumber: widget.accountDetails.accountNumber,
-            amount: amount,
-            currency: 'NGN',
-            description: descriptionController.text.trim(),
-            pin: pin,
-            saveBeneficiary: true,
-            sessionId: widget.accountDetails.sessionId
-          );
+      await ref.read(transferNotifierProvider.notifier).initiateTransfer(
+          bankCode: widget.accountDetails.bankCode,
+          accountNumber: widget.accountDetails.accountNumber,
+          amount: amount,
+          currency: 'NGN',
+          description: descriptionController.text.trim(),
+          pin: pin,
+          saveBeneficiary: true,
+          sessionId: widget.accountDetails.sessionId);
 
       Navigator.pop(context); // Close loading
 
@@ -140,7 +138,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     } catch (e) {
       Navigator.pop(context); // Close loading
       print('❌ Transfer error: $e');
-     AppMessenger.show(
+      AppMessenger.show(
         context,
         message: 'Transfer failed: ${e.toString()}',
         type: MessageType.error,
@@ -148,15 +146,20 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     }
   }
 
-  _checkBalanceLeft(String balance, String totalAmount) {
-    if (int.parse(balance) < int.parse(totalAmount)) {
-       AppMessenger.show(
+  bool _checkBalanceLeft(String balance, String totalAmount) {
+    final doubleBalance = double.tryParse(balance.replaceAll(',', '')) ?? 0.0;
+    final doubleTotal = double.tryParse(totalAmount.replaceAll(',', '')) ?? 0.0;
+
+    if (doubleBalance < doubleTotal) {
+      AppMessenger.show(
         context,
-        message: 'Insufficient account balance kindly topup andcontinue',
+        message: 'Insufficient account balance, kindly top up and continue',
         type: MessageType.error,
       );
+      return false;
     }
-    return;
+
+    return true;
   }
 
   @override
@@ -188,62 +191,59 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder:
-                (_) => TransactionReceiptWidget(
-                  amount: currencyFormatter(transferAmount.toString()),
-                  topDetails: [
-                    TransactionDetail(
-                      label: 'Transaction ID',
-                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                      showCopyIcon: true,
-                    ),
-                    TransactionDetail(
-                      label: 'Recipient Name',
-                      value: widget.accountDetails.accountName,
-                    ),
-                    TransactionDetail(
-                      label: 'Recipient Account',
-                      value: widget.accountDetails.accountNumber,
-                    ),
-                    TransactionDetail(
-                      label: 'Bank',
-                      value: widget.selectedBank.name,
-                    ),
-                    TransactionDetail(
-                      label: 'Amount',
-                      value: currencyFormatter(transferAmount.toString()),
-                    ),
-                    if (transferFee != null)
-                      TransactionDetail(
-                        label: 'Transfer Fee',
-                        value: currencyFormatter(transferFee!.fee.toString()),
-                      ),
-                    if (transferFee != null)
-                      TransactionDetail(
-                        label: 'Total',
-                        value: currencyFormatter(
-                          (transferAmount + transferFee!.fee).toString(),
-                        ),
-                      ),
-                    TransactionDetail(
-                      label: 'Description',
-                      value:
-                          descriptionController.text.trim().isEmpty
-                              ? 'No description'
-                              : descriptionController.text.trim(),
-                    ),
-                  ],
-                  onShareReceipt: () {},
+            builder: (_) => TransactionReceiptWidget(
+              amount: currencyFormatter(transferAmount.toString()),
+              topDetails: [
+                TransactionDetail(
+                  label: 'Transaction ID',
+                  value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                  showCopyIcon: true,
                 ),
+                TransactionDetail(
+                  label: 'Recipient Name',
+                  value: widget.accountDetails.accountName,
+                ),
+                TransactionDetail(
+                  label: 'Recipient Account',
+                  value: widget.accountDetails.accountNumber,
+                ),
+                TransactionDetail(
+                  label: 'Bank',
+                  value: widget.selectedBank.name,
+                ),
+                TransactionDetail(
+                  label: 'Amount',
+                  value: currencyFormatter(transferAmount.toString()),
+                ),
+                if (transferFee != null)
+                  TransactionDetail(
+                    label: 'Transfer Fee',
+                    value: currencyFormatter(transferFee!.fee.toString()),
+                  ),
+                if (transferFee != null)
+                  TransactionDetail(
+                    label: 'Total',
+                    value: currencyFormatter(
+                      (transferAmount + transferFee!.fee).toString(),
+                    ),
+                  ),
+                TransactionDetail(
+                  label: 'Description',
+                  value: descriptionController.text.trim().isEmpty
+                      ? 'No description'
+                      : descriptionController.text.trim(),
+                ),
+              ],
+              onShareReceipt: () {},
+            ),
           ),
         );
       } else if (next.message != null && !next.isDataAvailable) {
         AppMessenger.show(
-        context,
-        message: next.message!,
-        type: MessageType.error,
-      );
-        
+          context,
+          message: next.message!,
+          type: MessageType.error,
+        );
       }
     });
 
@@ -253,64 +253,63 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
 
     _handleOnPressed() {
       final user = ref.watch(userProvider);
-    final wallet =
-        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
-    final balance = wallet?.balance ?? 0.0;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    _checkBalanceLeft(
-      balance.toString(),
-      totalAmount.toString(),
-    );
+      final wallet =
+          user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+      final balance = wallet?.balance ?? 0.0;
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final hasEnoughBalance =
+          _checkBalanceLeft(balance.toString(), totalAmount.toString());
+
+      if (!hasEnoughBalance) return;
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder:
-              (context) => ReuseableTransactionDetailsScreen(
-                hasBottom: false,
-                topTitleText: 'Transaction',
-                topTransactionsDetailsList: [
-                  buildDetailRow(
-                    'Account Name',
-                    widget.accountDetails.accountName,
-                    isDark,
-                  ),
-                  buildDetailRow('Bank', widget.selectedBank.name, isDark),
-                  buildDetailRow(
-                    'Account Number',
-                    widget.accountDetails.accountNumber,
-                    isDark,
-                  ),
-                  buildDetailRow(
-                    'Amount',
-                    currencyFormatter(amountController.text),
-                    isDark,
-                  ),
-                  buildDetailRow(
-                    'Fee',
-                    currencyFormatter(transferFee?.fee.toString() ?? ''),
-                    isDark,
-                  ),
-                  buildDetailRow(
-                    'Total Amount',
-                    currencyFormatter('$totalAmount'),
-                    isDark,
-                    isTotal: true,
-                  ),
-                ],
-                onButtonPressed: () async {
-                  print('🔘 Transfer button pressed, amount: $amount');
-                  final pin = await TransactionPinModal.show(context);
-                  print(
-                    '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-                  );
-                  if (pin != null && pin.length == 4 && mounted) {
-                    print('✅ PIN valid, calling _initiateTransfer');
-                    _initiateTransfer(pin, amount);
-                  } else {
-                    print('❌ PIN invalid or cancelled');
-                  }
-                },
+          builder: (context) => ReuseableTransactionDetailsScreen(
+            hasBottom: false,
+            topTitleText: 'Transaction',
+            topTransactionsDetailsList: [
+              buildDetailRow(
+                'Account Name',
+                widget.accountDetails.accountName,
+                isDark,
               ),
+              buildDetailRow('Bank', widget.selectedBank.name, isDark),
+              buildDetailRow(
+                'Account Number',
+                widget.accountDetails.accountNumber,
+                isDark,
+              ),
+              buildDetailRow(
+                'Amount',
+                currencyFormatter(amountController.text),
+                isDark,
+              ),
+              buildDetailRow(
+                'Fee',
+                currencyFormatter(transferFee?.fee.toString() ?? ''),
+                isDark,
+              ),
+              buildDetailRow(
+                'Total Amount',
+                currencyFormatter('$totalAmount'),
+                isDark,
+                isTotal: true,
+              ),
+            ],
+            onButtonPressed: () async {
+              print('🔘 Transfer button pressed, amount: $amount');
+              final pin = await TransactionPinModal.show(context);
+              print(
+                '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
+              );
+              if (pin != null && pin.length == 4 && mounted) {
+                print('✅ PIN valid, calling _initiateTransfer');
+                _initiateTransfer(pin, amount);
+              } else {
+                print('❌ PIN invalid or cancelled');
+              }
+            },
+          ),
         ),
       );
     }
@@ -453,74 +452,11 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
             const SizedBox(height: 60),
 
             // Transfer Button
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      amount > 0 && transferFee != null
-                          ? appTheme.primaryColor
-                          : Colors.grey,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-                onPressed: () {
-                  _handleOnPressed();
-                },
-                child:
-                    transferState.isInitialLoading
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                        : const Text(
-                          "Transfer",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-              ),
-            ),
-
-            // SizedBox(
-            //   width: double.infinity,
-            //   height: 50,
-            //   child: ElevatedButton(
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: amount > 0 && transferFee != null
-            //           ? appTheme.primaryColor
-            //           : Colors.grey,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(25),
-            //       ),
-            //     ),
-            //     onPressed: transferState.isInitialLoading
-            //         ? null
-            //         : amount > 0 && transferFee != null
-            //             ? _showTransactionPinModal
-            //             : null,
-            //     child: transferState.isInitialLoading
-            //         ? const SizedBox(
-            //             width: 20,
-            //             height: 20,
-            //             child: CircularProgressIndicator(
-            //               strokeWidth: 2,
-            //               valueColor:
-            //                   AlwaysStoppedAnimation<Color>(Colors.white),
-            //             ),
-            //           )
-            //         : const Text(
-            //             "Transfer",
-            //             style: TextStyle(color: Colors.white, fontSize: 16),
-            //           ),
-            //   ),
-            // ),
+            FullWidthButton(
+                text: 'Transfer',
+                isEnabled: amount > 0 && transferFee != null,
+                isLoading: transferState.isInitialLoading,
+                onPressed: _handleOnPressed)
           ],
         ),
       ),
