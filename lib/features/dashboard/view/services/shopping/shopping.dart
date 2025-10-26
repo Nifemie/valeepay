@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import 'saved_beneficiary_screen.dart';
 import 'provider_payment_screen.dart';
 
-class ShoppingScreen extends StatefulWidget {
+class ShoppingScreen extends ConsumerStatefulWidget {
   const ShoppingScreen({super.key});
 
   @override
-  State<ShoppingScreen> createState() => _ShoppingScreenState();
+  ConsumerState<ShoppingScreen> createState() => _ShoppingScreenState();
 }
 
-class _ShoppingScreenState extends State<ShoppingScreen> {
+class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final shoppingProviders = [
@@ -25,8 +30,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-             ),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -36,27 +40,35 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ShoppingSavedBeneficiaryScreen(),
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ShoppingSavedBeneficiaryScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: Color(0xFFF76301),
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
+              ]
+            : null,
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to shop online',
+            )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [

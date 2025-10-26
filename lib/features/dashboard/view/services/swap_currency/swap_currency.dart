@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../../widgets/services_widgets/swap_currency_widgets/currency_selector_modal.dart';
 import 'transaction_details_screen.dart';
 
-class SwapCurrencyScreen extends StatefulWidget {
+class SwapCurrencyScreen extends ConsumerStatefulWidget {
   const SwapCurrencyScreen({super.key});
 
   @override
-  State<SwapCurrencyScreen> createState() => _SwapCurrencyScreenState();
+  ConsumerState<SwapCurrencyScreen> createState() =>
+      _SwapCurrencyScreenState();
 }
 
-class _SwapCurrencyScreenState extends State<SwapCurrencyScreen> {
+class _SwapCurrencyScreenState extends ConsumerState<SwapCurrencyScreen> {
   String fromCurrency = 'NGN';
   String toCurrency = 'USD';
   final TextEditingController fromAmountController = TextEditingController();
@@ -39,6 +43,8 @@ class _SwapCurrencyScreenState extends State<SwapCurrencyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -59,7 +65,12 @@ class _SwapCurrencyScreenState extends State<SwapCurrencyScreen> {
           ),
         ),
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to swap currency',
+            )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

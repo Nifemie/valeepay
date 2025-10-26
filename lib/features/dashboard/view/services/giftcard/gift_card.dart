@@ -13,6 +13,9 @@ import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_country_modal.dart';
 import '/features/dashboard/widgets/services_widgets/giftcard_widgets/gift_card_amount_modal.dart';
 import '/features/dashboard/view/services/giftcard/saved_beneficiary_screen.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
+
 
 class GiftCardScreen extends ConsumerStatefulWidget {
   const GiftCardScreen({super.key});
@@ -50,6 +53,13 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
+    
+    // Debug logging
+    print('🎁 [GiftCard] User: ${user?.fullname}');
+    print('🎁 [GiftCard] BVN Verified: $isBvnVerified');
+    
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final giftCardState = ref.watch(giftCardNotifierProvider);
     final categoriesState = ref.watch(giftCardCategoriesNotifierProvider);
@@ -80,28 +90,35 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SavedBeneficiaryScreen(),
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SavedBeneficiaryScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: AppColors.primaryColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
+              ]
+            : null,
       ),
-      body: SingleChildScrollView(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to buy or sell giftcards',
+            )
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
@@ -162,7 +162,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                                 isTotal: true)
                           ],
                           onButtonPressed: () async {
-                            final pin = await TransactionPinModal.show(context);
+                            final pin = await BiometricTransactionPinModal.show(context);
                             if (pin != null && pin.length == 4 && mounted) {
                               if (mounted) {
                                 Navigator.pushReplacement(

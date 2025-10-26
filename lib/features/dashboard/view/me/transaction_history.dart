@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/me_widgets/category.dart';
 import '../../widgets/me_widgets/status_selection.dart';
 import '../../widgets/me_widgets/modal/date_picker_modal.dart';
@@ -208,6 +210,8 @@ class _TransactionHistoryPageState
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final selectedMonth = ref.watch(selectedMonthProvider);
     final transactionState = ref.watch(transactionNotifierProvider);
     final transactions = transactionState.data ?? [];
@@ -291,9 +295,15 @@ class _TransactionHistoryPageState
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: Column(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle:
+                  'Complete your KYC verification to view transaction history',
+            )
+          : RefreshIndicator(
+              onRefresh: _handleRefresh,
+              child: Column(
           children: [
             // Header section with search and filters
             Padding(

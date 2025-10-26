@@ -3,7 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/services/biometric_auth_service.dart';
+import 'package:valarpay/core/services/secure_storage_service.dart';
+import 'package:valarpay/core/services/biometric_transaction_tracker.dart';
+import 'package:valarpay/core/utils/device_utils.dart';
+import 'package:valarpay/core/constants/enums/enums.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 // import 'change_pin_screen.dart';
 
 class TransactionPinSettingsScreen extends ConsumerStatefulWidget {
@@ -18,10 +25,28 @@ class _TransactionPinSettingsScreenState
     extends ConsumerState<TransactionPinSettingsScreen> {
   bool fingerprintEnabled = false;
   bool faceIdEnabled = false;
+  
+  static const _keyTransactionFingerprint = 'pref_transaction_fingerprint';
+  static const _keyTransactionFaceId = 'pref_transaction_faceid';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricPreferences();
+  }
+
+  Future<void> _loadBiometricPreferences() async {
+    final fp = await LocalStorageService.getBool(_keyTransactionFingerprint);
+    final face = await LocalStorageService.getBool(_keyTransactionFaceId);
+    setState(() {
+      fingerprintEnabled = fp ?? false;
+      faceIdEnabled = face ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.read(userProvider);
+    final user = ref.watch(userProvider);
     final hasPinSet = user?.isWalletPinSet ?? false;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -158,16 +183,11 @@ class _TransactionPinSettingsScreenState
                   ),
                   Switch(
                     value: fingerprintEnabled,
-                    onChanged: (value) {
-                      // setState(() {
-                      //   fingerprintEnabled = value;
-                      // });
-                      AppMessenger.show(
-                        context,
-                        message: 'Feature not available yet',
-                        type: MessageType.error,
-                      );
-                    },
+                    onChanged: hasPinSet
+                        ? (value) async {
+                            await _handleFingerprintToggle(value);
+                          }
+                        : null,
                     activeTrackColor: appTheme.primaryColor,
                   ),
                 ],
@@ -190,16 +210,11 @@ class _TransactionPinSettingsScreenState
                   ),
                   Switch(
                     value: faceIdEnabled,
-                    onChanged: (value) {
-                      // setState(() {
-                      //   faceIdEnabled = value;
-                      // });
-                      AppMessenger.show(
-                        context,
-                        message: 'Feature not available yet',
-                        type: MessageType.error,
-                      );
-                    },
+                    onChanged: hasPinSet
+                        ? (value) async {
+                            await _handleFaceIdToggle(value);
+                          }
+                        : null,
                     activeTrackColor: appTheme.primaryColor,
                   ),
                 ],
@@ -209,5 +224,171 @@ class _TransactionPinSettingsScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _handleFingerprintToggle(bool value) async {
+    if (value) {
+      // Enabling - ask for wallet PIN first, then verify biometric
+      final pin = await TransactionPinModal.show(context);
+      if (pin == null || pin.length != 4) {
+        AppMessenger.show(
+          context,
+          message: 'PIN entry cancelled',
+          type: MessageType.warning,
+        );
+        return;
+      }
+
+      // Mark biometric in progress
+      BiometricTransactionTracker.startTransactionBiometric();
+      
+      // Verify with biometric
+      final result = await BiometricAuthService.authenticateWithFallback(
+        promptMessage: 'Verify fingerprint to enable for transactions',
+      );
+      
+      // Clear flag
+      BiometricTransactionTracker.endTransactionBiometric();
+
+      if (result == BiometricAuthResult.success) {
+        // Store wallet PIN securely
+        await SecureStorageService.saveWalletPin(pin);
+        
+        // Save device ID
+        final deviceId = await DeviceUtils.getDeviceId();
+        await SecureStorageService.saveTransactionDeviceId(deviceId);
+        
+        // Save preference
+        await LocalStorageService.saveBool(_keyTransactionFingerprint, true);
+        
+        setState(() {
+          fingerprintEnabled = true;
+        });
+
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: 'Fingerprint enabled for transactions on this device',
+            type: MessageType.success,
+          );
+        }
+      } else {
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: 'Biometric verification failed',
+            type: MessageType.error,
+          );
+        }
+      }
+    } else {
+      // Disabling - verify with biometric first
+      BiometricTransactionTracker.startTransactionBiometric();
+      
+      final result = await BiometricAuthService.authenticateWithFallback(
+        promptMessage: 'Verify to disable fingerprint for transactions',
+      );
+      
+      BiometricTransactionTracker.endTransactionBiometric();
+
+      if (result == BiometricAuthResult.success) {
+        await LocalStorageService.saveBool(_keyTransactionFingerprint, false);
+        
+        setState(() {
+          fingerprintEnabled = false;
+        });
+
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: 'Fingerprint disabled for transactions',
+            type: MessageType.success,
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleFaceIdToggle(bool value) async {
+    if (value) {
+      // Enabling - ask for wallet PIN first, then verify biometric
+      final pin = await TransactionPinModal.show(context);
+      if (pin == null || pin.length != 4) {
+        AppMessenger.show(
+          context,
+          message: 'PIN entry cancelled',
+          type: MessageType.warning,
+        );
+        return;
+      }
+
+      // Mark biometric in progress
+      BiometricTransactionTracker.startTransactionBiometric();
+      
+      // Verify with biometric
+      final result = await BiometricAuthService.authenticateWithFallback(
+        promptMessage: 'Verify Face ID to enable for transactions',
+      );
+      
+      // Clear flag
+      BiometricTransactionTracker.endTransactionBiometric();
+
+      if (result == BiometricAuthResult.success) {
+        // Store wallet PIN securely
+        await SecureStorageService.saveWalletPin(pin);
+        
+        // Save device ID
+        final deviceId = await DeviceUtils.getDeviceId();
+        await SecureStorageService.saveTransactionDeviceId(deviceId);
+        
+        // Save preference
+        await LocalStorageService.saveBool(_keyTransactionFaceId, true);
+        
+        setState(() {
+          faceIdEnabled = true;
+        });
+
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: 'Face ID enabled for transactions on this device',
+            type: MessageType.success,
+          );
+        }
+      } else {
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: 'Biometric verification failed',
+            type: MessageType.error,
+          );
+        }
+      }
+    } else {
+      // Disabling - verify with biometric first
+      BiometricTransactionTracker.startTransactionBiometric();
+      
+      final result = await BiometricAuthService.authenticateWithFallback(
+        promptMessage: 'Verify to disable Face ID for transactions',
+      );
+      
+      BiometricTransactionTracker.endTransactionBiometric();
+
+      if (result == BiometricAuthResult.success) {
+        await LocalStorageService.saveBool(_keyTransactionFaceId, false);
+        
+        setState(() {
+          faceIdEnabled = false;
+        });
+
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: 'Face ID disabled for transactions',
+            type: MessageType.success,
+          );
+        }
+      }
+    }
   }
 }

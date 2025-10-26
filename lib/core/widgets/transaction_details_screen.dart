@@ -264,6 +264,10 @@ class _ReuseableTransactionDetailsScreenState
                         style: TextStyle(color: Colors.grey, fontSize: 13),
                       ),
                       Text(
+                        '  •  ',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                      Text(
                         currencyFormatter(accountBalance),
                         style: TextStyle(color: Colors.grey, fontSize: 13),
                       ),

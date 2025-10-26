@@ -5,7 +5,7 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 // app_messenger not used here
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
-import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -64,9 +64,23 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   }
 
   Future<void> _handlePinEntry() async {
-    final pin = await TransactionPinModal.show(context);
-    if (pin == null || pin.length != 4) return;
-    if (!mounted) return;
+    print('🔑 [Airtime] _handlePinEntry called');
+    final pin = await BiometricTransactionPinModal.show(context);
+    print('🔑 [Airtime] PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}');
+    
+    // Log first and last character for debugging (without exposing full PIN)
+    if (pin != null && pin.length == 4) {
+      print('🔑 [Airtime] PIN format check: starts with "${pin[0]}", ends with "${pin[3]}"');
+    }
+    
+    if (pin == null || pin.length != 4) {
+      print('⚠️ [Airtime] Invalid PIN, returning');
+      return;
+    }
+    if (!mounted) {
+      print('⚠️ [Airtime] Widget not mounted, returning');
+      return;
+    }
 
     // Close details screen first
     Navigator.pop(context);
@@ -80,8 +94,13 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
     try {
       final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
+      
+      // Ensure PIN is a string
+      final pinString = pin.toString();
+      print('🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
+      
       final request = AirtimePurchaseRequest(
-        walletPin: pin,
+        walletPin: pinString,
         amount: double.parse(_amountController.text),
         operatorId: operatorId,
         phone: _controller.text,
@@ -90,6 +109,8 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       );
 
       print('🔐 Initiating airtime purchase...');
+      print('🔐 Request details: amount=${request.amount}, operatorId=${request.operatorId}, phone=${request.phone}');
+      print('🔐 Request walletPin type: ${request.walletPin.runtimeType}, value: ${request.walletPin}');
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
@@ -142,47 +163,132 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
     // Listen to airtime purchase state
     ref.listen(airtimePurchaseNotifierProvider, (previous, next) {
-      if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
+      print('🎧 [Airtime Listener] State changed:');
+      print('   - isDataAvailable: ${next.isDataAvailable}');
+      print('   - isLoading: ${next.isInitialLoading}');
+      print('   - message: ${next.message}');
+      print('   - data: ${next.data}');
+      print('   - data length: ${next.data?.length}');
+      
+      if (!mounted) {
+        print('⚠️ [Airtime Listener] Widget not mounted, skipping');
+        return;
+      }
+      
+      // Check for success: either isDataAvailable is true OR data exists with success message
+      final hasData = next.data != null && next.data!.isNotEmpty;
+      final hasSuccessMessage = next.message != null && next.message!.toLowerCase().contains('success');
+      final isSuccess = (next.isDataAvailable && hasData) || (hasData && hasSuccessMessage);
+      
+      if (isSuccess) {
         // Purchase successful - close loading and navigate to receipt
-        print('✅ Airtime purchase successful');
-        Navigator.pop(context); // Close loading dialog
+        print('✅ [Airtime Listener] Purchase successful, navigating to receipt');
+        
+        // Close loading dialog
+        if (Navigator.canPop(context)) {
+          print('📤 [Airtime Listener] Closing loading dialog');
+          Navigator.pop(context);
+        }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => TransactionReceiptWidget(
-                  amount: '₦${_amountController.text}',
-                  topDetails: [
-                    TransactionDetail(
-                      label: 'Transaction ID',
-                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                      showCopyIcon: true,
-                    ),
-                    TransactionDetail(
-                      label: 'Recipient Number',
-                      value: _controller.text,
-                    ),
-                    TransactionDetail(label: 'Network', value: selectedNetwork),
-                    TransactionDetail(
-                      label: 'Amount',
-                      value: '₦${_amountController.text}',
-                    ),
-                  ],
-                  onShareReceipt: () {},
-                ),
-          ),
-        );
-      } else if (next.message != null &&
-          !next.isDataAvailable &&
-          !next.isInitialLoading) {
-        // Purchase failed
-        print('❌ Airtime purchase failed: ${next.message}');
-        Navigator.pop(context); // Close loading dialog
+        // Small delay to ensure loading dialog is closed
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!mounted) {
+            print('⚠️ [Airtime Listener] Widget not mounted after delay, skipping navigation');
+            return;
+          }
+          
+          print('🧾 [Airtime Listener] Navigating to receipt screen');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => TransactionReceiptWidget(
+                    amount: '₦${_amountController.text}',
+                    topDetails: [
+                      TransactionDetail(
+                        label: 'Transaction ID',
+                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                        showCopyIcon: true,
+                      ),
+                      TransactionDetail(
+                        label: 'Recipient Number',
+                        value: _controller.text,
+                      ),
+                      TransactionDetail(label: 'Network', value: selectedNetwork),
+                      TransactionDetail(
+                        label: 'Amount',
+                        value: '₦${_amountController.text}',
+                      ),
+                    ],
+                    onShareReceipt: () {},
+                  ),
+            ),
+          );
+        });
+      } else if (next.message != null && !next.isInitialLoading) {
+        // Check if message indicates success even if data is not available
+        final isSuccess = next.message!.toLowerCase().contains('success');
+        
+        if (isSuccess) {
+          // Purchase successful based on message
+          print('✅ [Airtime Listener] Purchase successful (via message), navigating to receipt');
+          
+          // Close loading dialog
+          if (Navigator.canPop(context)) {
+            print('📤 [Airtime Listener] Closing loading dialog');
+            Navigator.pop(context);
+          }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.message!), backgroundColor: Colors.red),
-        );
+          // Small delay to ensure loading dialog is closed
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (!mounted) {
+              print('⚠️ [Airtime Listener] Widget not mounted after delay, skipping navigation');
+              return;
+            }
+            
+            print('🧾 [Airtime Listener] Navigating to receipt screen');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (_) => TransactionReceiptWidget(
+                      amount: '₦${_amountController.text}',
+                      topDetails: [
+                        TransactionDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                          showCopyIcon: true,
+                        ),
+                        TransactionDetail(
+                          label: 'Recipient Number',
+                          value: _controller.text,
+                        ),
+                        TransactionDetail(label: 'Network', value: selectedNetwork),
+                        TransactionDetail(
+                          label: 'Amount',
+                          value: '₦${_amountController.text}',
+                        ),
+                      ],
+                      onShareReceipt: () {},
+                    ),
+              ),
+            );
+          });
+        } else if (!next.isDataAvailable) {
+          // Purchase failed
+          print('❌ [Airtime Listener] Purchase failed: ${next.message}');
+          
+          // Close loading dialog
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(next.message!), backgroundColor: Colors.red),
+            );
+          }
+        }
       }
     });
 

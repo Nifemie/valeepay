@@ -8,11 +8,11 @@ class AddressScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.read(userProvider);
+    final user = ref.watch(userProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Check if address is set
-    final hasAddress = user?.address != null && user!.address!.isNotEmpty;
+    // Check if address data exists (from getUserDetails endpoint after KYC)
+    final hasAddressData = user?.address != null && user!.address!.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +31,7 @@ class AddressScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: hasAddress
+      body: hasAddressData
           ? SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(

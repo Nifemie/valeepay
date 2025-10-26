@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
 
 class AccountSetupScreen extends StatefulWidget {
-  const AccountSetupScreen({super.key});
+  final String accountType;
+  
+  const AccountSetupScreen({super.key, this.accountType = 'USD'});
 
   @override
   State<AccountSetupScreen> createState() => _AccountSetupScreenState();
@@ -17,6 +19,32 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController dobController = TextEditingController();
   final TextEditingController referralController = TextEditingController();
+
+  String get accountTitle {
+    switch (widget.accountType) {
+      case 'USD':
+        return 'Get USD Account';
+      case 'EUR':
+        return 'Get Euro Account';
+      case 'GBP':
+        return 'Get Pound Account';
+      default:
+        return 'Get USD Account';
+    }
+  }
+
+  String get accountSubtitle {
+    switch (widget.accountType) {
+      case 'USD':
+        return 'Enter your required personal details to open a secure dollar account';
+      case 'EUR':
+        return 'Enter your required personal details to open a secure euro account';
+      case 'GBP':
+        return 'Enter your required personal details to open a secure pounds account';
+      default:
+        return 'Enter your required personal details to open a secure dollar account';
+    }
+  }
 
   Future<void> _pickDate() async {
     DateTime? picked = await showDatePicker(
@@ -53,7 +81,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Get USD Account",
+                accountTitle,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
@@ -61,7 +89,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
               ),
               SizedBox(height: 6.h),
               Text(
-                "Enter your required personal details to open a secure dollar account",
+                accountSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14.sp),
               ),
               SizedBox(height: 24.h),

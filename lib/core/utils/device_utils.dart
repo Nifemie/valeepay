@@ -38,4 +38,20 @@ class DeviceUtils {
       return Platform.operatingSystem;
     }
   }
+
+  /// Get unique device ID for device-specific biometric authentication
+  static Future<String> getDeviceId() async {
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final android = await deviceInfo.androidInfo;
+      // Use androidId as unique device identifier
+      return android.id;
+    } else if (Platform.isIOS) {
+      final ios = await deviceInfo.iosInfo;
+      // Use identifierForVendor as unique device identifier
+      return ios.identifierForVendor ?? 'unknown_ios_device';
+    } else {
+      return 'unknown_device';
+    }
+  }
 }

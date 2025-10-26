@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import 'saved_beneficiary_screen.dart';
 import 'insurance_provider_screen.dart';
 
-class InsuranceScreen extends StatefulWidget {
+class InsuranceScreen extends ConsumerStatefulWidget {
   const InsuranceScreen({super.key});
 
   @override
-  State<InsuranceScreen> createState() => _InsuranceScreenState();
+  ConsumerState<InsuranceScreen> createState() => _InsuranceScreenState();
 }
 
-class _InsuranceScreenState extends State<InsuranceScreen> {
+class _InsuranceScreenState extends ConsumerState<InsuranceScreen> {
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final insuranceProviders = [
@@ -27,8 +32,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              ),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -38,27 +42,35 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InsuranceSavedBeneficiaryScreen(),
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const InsuranceSavedBeneficiaryScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: Color(0xFFF76301),
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              );
-            },
-            child: const Text(
-              'Saved Beneficiary',
-              style: TextStyle(
-                color: Color(0xFFF76301),
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
+              ]
+            : null,
       ),
-      body: Padding(
+      body: !isBvnVerified
+          ? const KycNotSetWidget(
+              title: 'KYC Not Completed',
+              subtitle: 'Complete your KYC verification to pay insurance',
+            )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
