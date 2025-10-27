@@ -29,11 +29,11 @@ class BiometricLoginScreen extends ConsumerStatefulWidget {
 
 class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _username;
+  String? _capitalizedUsername;
   String? _phoneNumber;
   String? _profileImageUrl;
-  bool _isLoading=false;
+  bool _isLoading = false;
   String? _fullname;
-
 
   @override
   void initState() {
@@ -51,11 +51,16 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     final savedUsername = await SessionService.getActualUsername();
     final savedFullname = await SessionService.getUserFullname();
     final savedPhoneNumber = await SessionService.getPhoneNumber();
-    
 
     setState(() {
       // Use actual username for display (not email)
       _username = user?.username ?? savedUsername ?? 'User';
+      if (_username!.isNotEmpty) {
+    _capitalizedUsername =
+        _username![0].toUpperCase() + _username!.substring(1);
+  } else {
+    _capitalizedUsername = 'User';
+  }
       _fullname = user?.fullname ?? savedFullname ?? 'User';
       _phoneNumber = user?.phoneNumber ?? savedPhoneNumber ?? '';
       _profileImageUrl = user?.profileImageUrl;
@@ -67,7 +72,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     if (phone == null || phone.isEmpty) {
       return ''; // Return empty string instead of "Loading..."
     }
-  
+
     if (phone == 'N/A') {
       return '';
     }
@@ -76,11 +81,9 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       return phone; // Too short to mask
     }
 
-
     final first3 = phone.substring(0, 3);
     final last3 = phone.substring(phone.length - 3);
     final maskedMiddle = '*' * (phone.length - 6);
-
 
     return '$first3$maskedMiddle$last3';
   }
@@ -93,26 +96,32 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     try {
       // Verify device ID first
       final currentDeviceId = await DeviceUtils.getDeviceId();
-      final isBiometricEnabledForDevice = await SecureStorageService.isBiometricEnabledForDevice(currentDeviceId);
-      
+      final isBiometricEnabledForDevice =
+          await SecureStorageService.isBiometricEnabledForDevice(
+            currentDeviceId,
+          );
+
       if (!isBiometricEnabledForDevice) {
         if (!context.mounted) return;
         AppMessenger.show(
           context,
-          message: 'Biometric login not enabled on this device. Please login with password first.',
+          message:
+              'Biometric login not enabled on this device. Please login with password first.',
           type: MessageType.warning,
         );
         context.go('/signin');
         return;
       }
-      
+
       final storedPasscode = await SecureStorageService.getPasscode();
       final storedUsername = await SecureStorageService.getUsername();
 
       print(
-          '🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}');
+        '🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}',
+      );
       print(
-          '🔐 [BiometricLogin] Has stored username: ${storedUsername != null}');
+        '🔐 [BiometricLogin] Has stored username: ${storedUsername != null}',
+      );
 
       if (storedPasscode != null && storedUsername != null) {
         // Use passcode login API
@@ -141,9 +150,10 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
           await SessionService.saveSession(loginResponse);
 
           // Refresh user profile
-          final freshUser = await ref
-              .read(userNotifierProvider.notifier)
-              .refreshUserProfile();
+          final freshUser =
+              await ref
+                  .read(userNotifierProvider.notifier)
+                  .refreshUserProfile();
           if (freshUser != null) {
             ref.read(userProvider.notifier).setUser(freshUser);
           } else {
@@ -169,7 +179,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         // Fallback to session-based login
         print('🔐 [BiometricLogin] No stored passcode, checking session...');
         final userAccessToken = await SessionService.getAccessToken();
-
 
         if (userAccessToken == null) {
           if (!context.mounted) return;
@@ -230,9 +239,9 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       setState(() {
         _isLoading = true;
       });
-      
+
       await _handleBiometricLogin(context, ref);
-      
+
       // Hide loading indicator (in case navigation fails)
       if (mounted) {
         setState(() {
@@ -405,31 +414,32 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                     radius: 45.r,
                     backgroundColor: Colors.white.withOpacity(0.9),
                     child: ClipOval(
-                      child: _profileImageUrl != null &&
-                              _profileImageUrl!.isNotEmpty
-                          ? Image.network(
-                              _profileImageUrl!,
-                              width: 90.w,
-                              height: 90.w,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: appTheme.primaryColor,
-                                );
-                              },
-                            )
-                          : const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: appTheme.primaryColor,
-                            ),
+                      child:
+                          _profileImageUrl != null &&
+                                  _profileImageUrl!.isNotEmpty
+                              ? Image.network(
+                                _profileImageUrl!,
+                                width: 90.w,
+                                height: 90.w,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: appTheme.primaryColor,
+                                  );
+                                },
+                              )
+                              : const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: appTheme.primaryColor,
+                              ),
                     ),
                   ),
                   SizedBox(height: 18.h),
                   Text(
-                    'Welcome back ${_username ?? 'User'}',
+                    'Welcome back ${_capitalizedUsername ?? 'User'}',
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w600,
@@ -444,59 +454,59 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   SizedBox(height: 50.h),
                   _isLoading
                       ? Column(
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              appTheme.primaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Logging in...',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                      : GestureDetector(
+                        onTap: () => _requestBiometricAndCameraPermissions(),
+                        child: Column(
                           children: [
-                            CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                appTheme.primaryColor,
+                            Container(
+                              width: 90.w,
+                              height: 90.w,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.fingerprint,
+                                size: 50.sp,
+                                color: appTheme.primaryColor,
                               ),
                             ),
-                            SizedBox(height: 16.h),
+                            SizedBox(height: 14.h),
                             Text(
-                              'Logging in...',
+                              'Tap fingerprint to login',
                               style: TextStyle(
-                                fontSize: 16.sp,
+                                fontSize: 15.sp,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.white,
                               ),
                             ),
                           ],
-                        )
-                      : GestureDetector(
-                          onTap: () => _requestBiometricAndCameraPermissions(),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 90.w,
-                                height: 90.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.15),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  Icons.fingerprint,
-                                  size: 50.sp,
-                                  color: appTheme.primaryColor,
-                                ),
-                              ),
-                              SizedBox(height: 14.h),
-                              Text(
-                                'Tap fingerprint to login',
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
+                      ),
                   SizedBox(height: 50.h),
                   SizedBox(
                     width: double.infinity,
@@ -559,4 +569,3 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
     );
   }
 }
-
