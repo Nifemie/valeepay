@@ -31,8 +31,6 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(userProvider);
-    final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -51,12 +49,7 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
           ),
         ),
       ),
-      body: !isBvnVerified
-          ? const KycNotSetWidget(
-              title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to book flights',
-            )
-          : SingleChildScrollView(
+      body: 
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
