@@ -32,6 +32,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _phoneNumber;
   String? _profileImageUrl;
   bool _isLoading=false;
+  String? _fullname;
 
 
   @override

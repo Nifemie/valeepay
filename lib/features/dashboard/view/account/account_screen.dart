@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/utils/responsive_utils.dart';
@@ -110,7 +109,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
             // Get Pound Account
             _accountSetupCard(
-              flag: "assets/images/gbpflag.png",
+              flag: "assets/images/pounds2.png",
               title: "Get Pound Account",
               subtitle: "Open a secure pounds account",
               onTap: () {
@@ -233,9 +232,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               size: 18.sp, color: Theme.of(context).iconTheme.color),
           onPressed: () {
             Clipboard.setData(ClipboardData(text: value));
-            AppMessenger.show(context,
-            message: '$label copied to clipboard', type: MessageType.success);
-            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("$label copied to clipboard"),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
           },
         ),
       ],

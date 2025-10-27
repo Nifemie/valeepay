@@ -190,6 +190,13 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = ref.watch(userProvider);
+    
+    // Get wallet data for current user's account number
+    final wallet = user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+    final userAccountNumber = wallet?.accountNumber ?? '0000000000';
+    
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
       print(
@@ -285,8 +292,34 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
                 children: [
                   CircleAvatar(
                     radius: 24.r,
-                    backgroundImage: AssetImage(
-                      'assets/images/account_image.jpg',
+                    backgroundColor: isDark 
+                        ? const Color(0xFF374151) 
+                        : const Color(0xFFF3F4F6),
+                    child: ClipOval(
+                      child: user?.profileImageUrl != null &&
+                              user!.profileImageUrl!.isNotEmpty
+                          ? Image.network(
+                              user.profileImageUrl!,
+                              width: 48.r,
+                              height: 48.r,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.person,
+                                  size: 24.r,
+                                  color: isDark
+                                      ? const Color(0xFF9CA3AF)
+                                      : const Color(0xFF6B7280),
+                                );
+                              },
+                            )
+                          : Icon(
+                              Icons.person,
+                              size: 24.r,
+                              color: isDark
+                                  ? const Color(0xFF9CA3AF)
+                                  : const Color(0xFF6B7280),
+                            ),
                     ),
                   ),
                   SizedBox(width: 10.w),
@@ -302,7 +335,7 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        '0000000000   ValarPay',
+                        '$userAccountNumber   ValarPay',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13.sp,
