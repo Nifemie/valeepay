@@ -49,7 +49,8 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
           ),
         ),
       ),
-      body: 
+      body:
+          
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +151,6 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
                   );
                 })
           ],
-        ),
       ),
     );
   }
