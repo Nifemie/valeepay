@@ -439,7 +439,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   ),
                   SizedBox(height: 18.h),
                   Text(
-                    'Welcome back ${_capitalizedUsername ?? 'User'}',
+                    'Welcome Back, ${_capitalizedUsername ?? 'User'}',
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w600,
