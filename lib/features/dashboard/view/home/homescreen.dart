@@ -25,10 +25,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   Timer? _timer;
 
   final List<String> _bannerImages = const [
-    'assets\images\Banner1.png',
-    'assets\images\Banner2.png',
-    'assets\images\Banner3.png',
-    'assets\images\Banner4.png',
+    'assets/VALAR PAY NOTIFICATION11.png',
+    'assets/VALAR PAY NOTIFICATION 22.png',
+    'assets/VALAR PAY NOTIFICATION 33.png',
+    'assets/VALAR PAY NOTIFICATION 44.png',
   ];
 
   @override
