@@ -20,15 +20,15 @@ class Homescreen extends ConsumerStatefulWidget {
 }
 
 class _HomescreenState extends ConsumerState<Homescreen> {
-  bool _isBalanceVisible = false;
+  bool _isBalanceVisible = true;
   int _currentImageIndex = 0;
   Timer? _timer;
 
   final List<String> _bannerImages = const [
-    'assets/images/valarbanner.png',
-    'assets/images/valarbanner2.png',
-    'assets/images/valarbanner3.png',
-    'assets/images/valarbanner4.png',
+    'assets/images/VALAR PAY NOTIFICATION11.png',
+    'assets/images/VALAR PAY NOTIFICATION 22.png',
+    'assets/images/VALAR PAY NOTIFICATION 33.png',
+    'assets/images/VALAR PAY NOTIFICATION 44.png',
   ];
 
   @override
@@ -74,8 +74,11 @@ class _HomescreenState extends ConsumerState<Homescreen> {
       }
     } catch (e) {
       if (mounted) {
-        AppMessenger.show(context,
-            message: 'Failed to refresh data', type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: 'Failed to refresh data',
+          type: MessageType.error,
+        );
       }
     }
   }
@@ -85,10 +88,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     final user = ref.watch(userProvider);
 
     // Fallbacks for safety
+    final userName = user?.username ?? 'Guest';
+    final capitalizedUserName =
+        userName[0].toUpperCase() + userName.substring(1);
     final firstName = (user?.fullname ?? 'Guest').split(' ').first;
-    final profileImageUrl = user?.profileImageUrl?.isNotEmpty == true
-        ? user!.profileImageUrl!
-        : 'https://i.pravatar.cc/150?img=3';
 
     // Get wallet data
     final wallet =
@@ -104,7 +107,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: _HomeAppBar(firstName: firstName, greeting: greeting),
+              child: _HomeAppBar(firstName: capitalizedUserName, greeting: greeting),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -118,13 +121,13 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                         balance: balance,
                         accountNumber: accountNumber,
                         isBalanceVisible: _isBalanceVisible,
-                        onToggleVisibility: () => setState(
-                          () => _isBalanceVisible = !_isBalanceVisible,
-                        ),
+                        onToggleVisibility:
+                            () => setState(
+                              () => _isBalanceVisible = !_isBalanceVisible,
+                            ),
                       ),
                       const SizedBox(height: 16),
                       const PaymentWidget(),
-                      const SizedBox(height: 16),
                       Consumer(
                         builder: (context, ref, child) {
                           final user = ref.watch(userProvider);
@@ -136,21 +139,30 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                               !isBvnVerified || !isWalletPinSet;
 
                           if (!shouldShowKyc) {
-                            return const SizedBox.shrink();
+                            return const SizedBox(height: 12);
                           }
 
-                          return const KYCWidget();
+                          return Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              const KYCWidget(),
+                            ],
+                          );
                         },
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        child: Image.asset(
-                          _bannerImages[_currentImageIndex],
-                          fit: BoxFit.cover,
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: double.infinity,
+                          height: 200,
+                          child: Image.asset(
+                            _bannerImages[_currentImageIndex],
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       const OurServicesWidget(),
                       const SizedBox(height: 24),
                     ],
@@ -171,7 +183,7 @@ class _HomeAppBar extends ConsumerStatefulWidget {
   final String greeting;
 
   const _HomeAppBar({Key? key, required this.firstName, required this.greeting})
-      : super(key: key);
+    : super(key: key);
 
   @override
   ConsumerState<_HomeAppBar> createState() => _HomeAppBarState();
@@ -197,21 +209,23 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               backgroundColor:
                   isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
               child: ClipOval(
-                child: user?.profileImageUrl != null &&
-                        user!.profileImageUrl!.isNotEmpty
-                    ? Image.network(
-                        user.profileImageUrl!,
-                        width: 72,
-                        height: 72,
-                        fit: BoxFit.cover,
-                      )
-                    : Icon(
-                        Icons.person,
-                        size: 36,
-                        color: isDark
-                            ? const Color(0xFF9CA3AF)
-                            : const Color(0xFF6B7280),
-                      ),
+                child:
+                    user?.profileImageUrl != null &&
+                            user!.profileImageUrl!.isNotEmpty
+                        ? Image.network(
+                          user.profileImageUrl!,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        )
+                        : Icon(
+                          Icons.person,
+                          size: 36,
+                          color:
+                              isDark
+                                  ? const Color(0xFF9CA3AF)
+                                  : const Color(0xFF6B7280),
+                        ),
               ),
             ),
           ),
@@ -229,9 +243,9 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               subtitle: Text(
                 widget.greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.normal,
-                      color: appTheme.primaryColor,
-                    ),
+                  fontWeight: FontWeight.normal,
+                  color: appTheme.primaryColor,
+                ),
               ),
             ),
           ),

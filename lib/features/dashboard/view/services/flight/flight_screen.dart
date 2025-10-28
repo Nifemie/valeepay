@@ -49,8 +49,7 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
           ),
         ),
       ),
-      body:
-          
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,8 +150,8 @@ class _FlightScreenState extends ConsumerState<FlightScreen> {
                   );
                 })
           ],
-      ),
-    );
+        ),
+      ));
   }
 
   Widget _buildSectionTitle(String title, bool isDark) {
