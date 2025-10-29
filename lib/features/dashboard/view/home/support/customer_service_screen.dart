@@ -28,7 +28,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
-    final firstName = (user?.fullname ?? 'Hello').split(' ').first;
+    final username = (user?.username ?? 'Hello').split(' ').first;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -88,7 +88,7 @@ class _CustomerServiceScreenState extends ConsumerState<CustomerServiceScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello $firstName',
+                          'Hello, $username',
                           style: Theme.of(
                             context,
                           ).textTheme.bodyLarge?.copyWith(

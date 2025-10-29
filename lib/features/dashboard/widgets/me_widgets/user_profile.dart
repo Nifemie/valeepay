@@ -42,7 +42,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
     // Extract user data
     String userName = "Guest";
     if (user?.fullname != null && user!.fullname.isNotEmpty) {
-      userName = user.fullname.split(' ').first;
+      userName = user.username;
     } else if (user?.username != null) {
       userName = user!.username;
     }
@@ -120,7 +120,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Hello $userName",
+                      "Hello, $userName",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

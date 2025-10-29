@@ -25,10 +25,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   Timer? _timer;
 
   final List<String> _bannerImages = const [
-    'assets/VALAR PAY NOTIFICATION11.png',
-    'assets/VALAR PAY NOTIFICATION 22.png',
-    'assets/VALAR PAY NOTIFICATION 33.png',
-    'assets/VALAR PAY NOTIFICATION 44.png',
+    'assets/images/valar_ban1.png',
+    'assets/images/valar_ban2.png',
+    'assets/images/valar_ban3.png',
+    'assets/images/valar_ban4.png',
   ];
 
   @override
@@ -155,7 +155,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           width: double.infinity,
-                          height: 200,
+                          height: 60,
                           child: Image.asset(
                             _bannerImages[_currentImageIndex],
                             fit: BoxFit.cover,
@@ -235,7 +235,7 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Hello ${widget.firstName}',
+                'Hello, ${widget.firstName}',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),

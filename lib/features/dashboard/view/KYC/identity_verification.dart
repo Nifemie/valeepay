@@ -87,8 +87,9 @@ class _IdentityVerificationPageState
       );
       _controller = CameraController(
         frontCamera,
-        ResolutionPreset.medium,
+        ResolutionPreset.high, // Changed from medium to high for better quality
         enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg, // Ensure JPEG format
       );
 
       await _controller!.initialize();
@@ -158,25 +159,49 @@ class _IdentityVerificationPageState
   Future<void> _verifyCapturedImage(File capturedImage) async {
     try {
       setState(() => _isLoading = true);
+      
+      log("🔍 Starting face verification...");
+      log("📸 Image path: ${capturedImage.path}");
+      log("📏 Image size: ${await capturedImage.length()} bytes");
+      
       String? base64 = await convertFileToBase64Async(capturedImage);
+      log("✅ Base64 conversion complete, length: ${base64.length}");
+      
       final requestBody = QoreBvnFaceVerificationRequest(
         idNumber: widget.request.bvn.toString(),
         photoBase64: base64.toString(),
       );
+      log("📤 Sending request with BVN: ${widget.request.bvn}");
+      
       final service = VerificationService();
       final response = await service.verifyBvnFace(requestBody);
-      log("Response: ${response.toJson().toString()}");
+      
+      log("📥 Response received:");
+      log("   - Status Code: ${response.statusCode}");
+      log("   - Message: ${response.message}");
+      log("   - Match: ${response.metadata?.match}");
+      log("   - Match Score: ${response.metadata?.matchScore}");
+      log("   - Threshold: ${response.metadata?.matchingThreshold}");
+      log("   - Full Response: ${response.toJson().toString()}");
 
       if (response.metadata?.match == true) {
+        log("✅ Face verification successful!");
         _setupWallet();
       } else {
+        final errorMsg = response.message ?? 
+            'Face verification failed. Match: ${response.metadata?.match}, Score: ${response.metadata?.matchScore}';
+        log("❌ Face verification failed: $errorMsg");
+        
         AppMessenger.show(
           context,
           type: MessageType.error,
-          message: 'Face verification failed. Please retry.',
+          message: errorMsg,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      log("❌ Exception during face verification: $e");
+      log("Stack trace: $stackTrace");
+      
       AppMessenger.show(
         context,
         type: MessageType.error,
