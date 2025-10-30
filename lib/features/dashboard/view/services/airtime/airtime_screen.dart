@@ -347,7 +347,18 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                         showCountryLabel: true,
                         suffixWidget: IconButton(
                           onPressed: _showContactAccessDialog,
-                          icon: const Icon(Icons.person),
+                          icon: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: appTheme.primaryColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
                         ),
                         onChanged: (unnamed) => setState(() {})),
                     const SizedBox(height: 24),
@@ -422,40 +433,41 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                       hintText: '500',
                       onChanged: (unnamed) => setState(() {}),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Use Cashback',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              '₦50.00',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 14),
-                            ),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: useCashback,
-                              onChanged: (v) => ref
-                                  .read(airtimeUseCashbackProvider.notifier)
-                                  .state = v,
-                              activeTrackColor: appTheme.primaryColor,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    // const SizedBox(height: 24),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     const Expanded(
+                    //       child: Text(
+                    //         'Use Cashback',
+                    //         style: TextStyle(
+                    //           color: Colors.grey,
+                    //           fontSize: 14,
+                    //           fontWeight: FontWeight.w500,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     Row(
+                    //       mainAxisSize: MainAxisSize.min,
+                    //       children: [
+                    //         const Text(
+                    //           '₦50.00',
+                    //           style:
+                    //               TextStyle(color: Colors.grey, fontSize: 14),
+                    //         ),
+                    //         const SizedBox(width: 8),
+                    //         Switch(
+                    //           value: useCashback,
+                    //           onChanged: (v) => ref
+                    //               .read(airtimeUseCashbackProvider.notifier)
+                    //               .state = v,
+                    //           activeTrackColor: appTheme.primaryColor,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ],
+                    // ),
+
                     const SizedBox(height: 32),
                     FullWidthButton(
                       text: 'Continue',

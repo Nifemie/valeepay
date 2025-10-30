@@ -73,14 +73,16 @@ class ElectricityPaymentNotifier
   ElectricityPaymentNotifier(this._repository)
       : super(DataState<ElectricityPaymentResponse>.initial());
 
-  Future<void> verifyMeterNumber(VerifyMeterNumberRequest request) async {
+  Future<VerifyMeterNumberResponse?> verifyMeterNumber(
+      VerifyMeterNumberRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      await _repository.verifyMeterNumber(request);
+      final response = await _repository.verifyMeterNumber(request);
       state = state.copyWith(
         isInitialLoading: false,
-        message: 'Meter number verified successfully',
+        message: response.message,
       );
+      return response;
     } catch (e, stack) {
       log('[ElectricityPaymentNotifier verifyMeterNumber Error] $e\n$stack');
       state = state.copyWith(
@@ -88,6 +90,7 @@ class ElectricityPaymentNotifier
         isDataAvailable: false,
         message: e.toString(),
       );
+      return null;
     }
   }
 

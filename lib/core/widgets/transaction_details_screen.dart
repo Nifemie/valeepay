@@ -233,7 +233,7 @@ class _ReuseableTransactionDetailsScreenState
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.only(bottom: 12, top: 12),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
@@ -263,14 +263,14 @@ class _ReuseableTransactionDetailsScreenState
                         accountNumber,
                         style: TextStyle(
                           color: Colors.grey,
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                       Text(
                         'Balance: ${currencyFormatter(accountBalance)}',
                         style: TextStyle(
                             color: Colors.grey,
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold),
                       ),
                     ],

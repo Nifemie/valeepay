@@ -36,11 +36,24 @@ class CableRepository {
     }
   }
 
-  Future<void> verifyCableNumber(VerifyCableRequest request) async {
+  Future<VerifyCableResponse> verifyCableNumber(
+      VerifyCableRequest request) async {
     try {
-      await apiClient.post(
+      final response = await apiClient.post(
         ApiEndpoints.verifyCableNumber,
         data: request.toJson(),
+      );
+
+      if (response.data != null && response.data is Map<String, dynamic>) {
+        return VerifyCableResponse.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      // If API returned non-map data, return response without typed data
+      return VerifyCableResponse(
+        data: null,
+        message: response.statusMessage ?? 'Verification completed',
+        statusCode: response.statusCode ?? 200,
       );
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Verification failed');

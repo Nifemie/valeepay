@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
@@ -147,22 +148,6 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
         type: MessageType.error,
       );
     }
-  }
-
-  bool _checkBalanceLeft(String balance, String totalAmount) {
-    final doubleBalance = double.tryParse(balance.replaceAll(',', '')) ?? 0.0;
-    final doubleTotal = double.tryParse(totalAmount.replaceAll(',', '')) ?? 0.0;
-
-    if (doubleBalance < doubleTotal) {
-      AppMessenger.show(
-        context,
-        message: 'Insufficient account balance, kindly top up and continue',
-        type: MessageType.error,
-      );
-      return false;
-    }
-
-    return true;
   }
 
   @override
@@ -315,7 +300,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
       final balance = wallet?.balance ?? 0.0;
       final isDark = Theme.of(context).brightness == Brightness.dark;
       final hasEnoughBalance =
-          _checkBalanceLeft(balance.toString(), totalAmount.toString());
+          checkBalanceLeft(context, balance.toString(), totalAmount.toString());
 
       if (!hasEnoughBalance) return;
       Navigator.push(

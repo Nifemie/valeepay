@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
@@ -61,22 +62,6 @@ class _InternalTransferAmountScreenState
     });
   }
 
-bool _checkBalanceLeft(String balance, String totalAmount) {
-  final doubleBalance = double.tryParse(balance.replaceAll(',', '')) ?? 0.0;
-  final doubleTotal = double.tryParse(totalAmount.replaceAll(',', '')) ?? 0.0;
-
-  if (doubleBalance < doubleTotal) {
-    AppMessenger.show(
-      context,
-      message: 'Insufficient account balance, kindly top up and continue',
-      type: MessageType.error,
-    );
-    return false;
-  }
-
-  return true; 
-}
-
 
   void _initiateTransfer(String pin, double amount) async {
     Navigator.pop(context); // Close pin modal
@@ -96,9 +81,7 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
 
       // Proceed with internal transfer (backend will validate PIN)
       // For ValarPay to ValarPay, bankCode should be empty or null
-      await ref
-          .read(transferNotifierProvider.notifier)
-          .initiateTransfer(
+      await ref.read(transferNotifierProvider.notifier).initiateTransfer(
             bankCode: '', // Internal transfer doesn't need bank code
             accountNumber: widget.accountDetails.accountNumber,
             amount: amount,
@@ -129,61 +112,60 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
         user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
     final balance = wallet?.balance ?? 0.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    _checkBalanceLeft(
+    checkBalanceLeft(context,
       balance.toString(),
       amountController.text.replaceAll(',', ''),
     );
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => ReuseableTransactionDetailsScreen(
-              hasBottom: false,
-              topTitleText: 'Transaction',
-              topTransactionsDetailsList: [
-                buildDetailRow(
-                  'Name',
-                  widget.accountDetails.accountName,
-                  isDark,
-                ),
-                buildDetailRow(
-                  'Account Number',
-                  widget.accountDetails.accountNumber,
-                  isDark,
-                ),
-                buildDetailRow('Bank', 'ValarPay', isDark),
-                buildDetailRow(
-                  'Amount',
-                  currencyFormatter(amountController.text),
-                  isDark,
-                ),
-              ],
-              onButtonPressed: () async {
-                final amount =
-                    double.tryParse(
-                      amountController.text.replaceAll(',', ''),
-                    ) ??
-                    0;
-                print('🔘 ValarPay transfer button pressed, amount: $amount');
-                final pin = await BiometricTransactionPinModal.show(context);
-                print(
-                  '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-                );
-                
-                if (pin != null && pin.length == 4) {
-                  // Ensure PIN is a string
-                  final pinString = pin.toString();
-                  print('🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
-                  
-                  if (mounted) {
-                    print('✅ PIN valid, calling _initiateTransfer');
-                    _initiateTransfer(pinString, amount);
-                  }
-                } else {
-                  print('❌ PIN invalid or cancelled');
-                }
-              },
+        builder: (context) => ReuseableTransactionDetailsScreen(
+          hasBottom: false,
+          topTitleText: 'Transaction',
+          topTransactionsDetailsList: [
+            buildDetailRow(
+              'Name',
+              widget.accountDetails.accountName,
+              isDark,
             ),
+            buildDetailRow(
+              'Account Number',
+              widget.accountDetails.accountNumber,
+              isDark,
+            ),
+            buildDetailRow('Bank', 'ValarPay', isDark),
+            buildDetailRow(
+              'Amount',
+              currencyFormatter(amountController.text),
+              isDark,
+            ),
+          ],
+          onButtonPressed: () async {
+            final amount = double.tryParse(
+                  amountController.text.replaceAll(',', ''),
+                ) ??
+                0;
+            print('🔘 ValarPay transfer button pressed, amount: $amount');
+            final pin = await BiometricTransactionPinModal.show(context);
+            print(
+              '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
+            );
+
+            if (pin != null && pin.length == 4) {
+              // Ensure PIN is a string
+              final pinString = pin.toString();
+              print(
+                  '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
+
+              if (mounted) {
+                print('✅ PIN valid, calling _initiateTransfer');
+                _initiateTransfer(pinString, amount);
+              }
+            } else {
+              print('❌ PIN invalid or cancelled');
+            }
+          },
+        ),
       ),
     );
   }
@@ -192,11 +174,12 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = ref.watch(userProvider);
-    
+
     // Get wallet data for current user's account number
-    final wallet = user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+    final wallet =
+        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
     final userAccountNumber = wallet?.accountNumber ?? '0000000000';
-    
+
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
       print(
@@ -205,19 +188,19 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
 
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
         print('✅ ValarPay transfer successful, navigating to receipt');
-        
+
         if (!mounted) {
           print('⚠️ Widget not mounted, skipping navigation');
           return;
         }
-        
+
         // Small delay to ensure any dialogs are closed
         Future.delayed(const Duration(milliseconds: 100), () {
           if (!mounted) {
             print('⚠️ Widget not mounted after delay, skipping navigation');
             return;
           }
-          
+
           print('🧾 Navigating to receipt screen');
           // Transfer successful - navigate to receipt
           final transferAmount =
@@ -226,36 +209,35 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder:
-                  (_) => TransactionReceiptWidget(
-                  amount: currencyFormatter(transferAmount.toString()),
-                  topDetails: [
+              builder: (_) => TransactionReceiptWidget(
+                amount: currencyFormatter(transferAmount.toString()),
+                topDetails: [
+                  TransactionDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    showCopyIcon: true,
+                  ),
+                  TransactionDetail(
+                    label: 'Recipient Name',
+                    value: widget.accountDetails.accountName,
+                  ),
+                  TransactionDetail(
+                    label: 'Recipient Account',
+                    value: widget.accountDetails.accountNumber,
+                  ),
+                  TransactionDetail(label: 'Bank', value: 'ValarPay'),
+                  TransactionDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(transferAmount.toString()),
+                  ),
+                  if (narrationController.text.trim().isNotEmpty)
                     TransactionDetail(
-                      label: 'Transaction ID',
-                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                      showCopyIcon: true,
+                      label: 'Narration',
+                      value: narrationController.text.trim(),
                     ),
-                    TransactionDetail(
-                      label: 'Recipient Name',
-                      value: widget.accountDetails.accountName,
-                    ),
-                    TransactionDetail(
-                      label: 'Recipient Account',
-                      value: widget.accountDetails.accountNumber,
-                    ),
-                    TransactionDetail(label: 'Bank', value: 'ValarPay'),
-                    TransactionDetail(
-                      label: 'Amount',
-                      value: currencyFormatter(transferAmount.toString()),
-                    ),
-                    if (narrationController.text.trim().isNotEmpty)
-                      TransactionDetail(
-                        label: 'Narration',
-                        value: narrationController.text.trim(),
-                      ),
-                  ],
-                  onShareReceipt: () {},
-                ),
+                ],
+                onShareReceipt: () {},
+              ),
             ),
           );
         });
@@ -292,8 +274,8 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
                 children: [
                   CircleAvatar(
                     radius: 24.r,
-                    backgroundColor: isDark 
-                        ? const Color(0xFF374151) 
+                    backgroundColor: isDark
+                        ? const Color(0xFF374151)
                         : const Color(0xFFF3F4F6),
                     child: ClipOval(
                       child: user?.profileImageUrl != null &&
@@ -413,8 +395,7 @@ bool _checkBalanceLeft(String balance, String totalAmount) {
               // Continue Button
               FullWidthButton(
                 text: 'Continue',
-                isEnabled:
-                    amountController.text.isNotEmpty &&
+                isEnabled: amountController.text.isNotEmpty &&
                     int.parse(amountController.text.replaceAll(',', '')) >= 50,
                 onPressed: () {
                   _handleOnPressed();

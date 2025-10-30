@@ -127,12 +127,93 @@ class VerifyCableRequest {
       };
 }
 
+class VerifyCableData {
+  final String responseCode;
+  final String? address;
+  final String responseMessage;
+  final String name;
+  final String billerCode;
+  final String customer;
+  final String productCode;
+  final String? email;
+  final double fee;
+  final double maximum;
+  final double minimum;
+
+  VerifyCableData({
+    required this.responseCode,
+    this.address,
+    required this.responseMessage,
+    required this.name,
+    required this.billerCode,
+    required this.customer,
+    required this.productCode,
+    this.email,
+    required this.fee,
+    required this.maximum,
+    required this.minimum,
+  });
+
+  factory VerifyCableData.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
+    return VerifyCableData(
+      responseCode: json['response_code']?.toString() ??
+          json['responseCode']?.toString() ??
+          '',
+      address: json['address']?.toString(),
+      responseMessage: json['response_message']?.toString() ??
+          json['responseMessage']?.toString() ??
+          '',
+      name: json['name']?.toString() ?? '',
+      billerCode: json['biller_code']?.toString() ??
+          json['billerCode']?.toString() ??
+          '',
+      customer: json['customer']?.toString() ?? '',
+      productCode: json['product_code']?.toString() ??
+          json['productCode']?.toString() ??
+          '',
+      email: json['email']?.toString(),
+      fee: parseDouble(json['fee']),
+      maximum: parseDouble(json['maximum']),
+      minimum: parseDouble(json['minimum']),
+    );
+  }
+}
+
+class VerifyCableResponse {
+  final VerifyCableData? data;
+  final String message;
+  final int statusCode;
+
+  VerifyCableResponse(
+      {this.data, required this.message, required this.statusCode});
+
+  factory VerifyCableResponse.fromJson(Map<String, dynamic> json) {
+    VerifyCableData? data;
+    if (json['data'] != null && json['data'] is Map<String, dynamic>) {
+      data = VerifyCableData.fromJson(
+          Map<String, dynamic>.from(json['data'] as Map));
+    }
+    return VerifyCableResponse(
+      data: data,
+      message: json['message'] ?? 'Success',
+      statusCode: json['statusCode'] ?? 200,
+    );
+  }
+}
+
 class CablePayRequest {
   final String itemCode;
   final String billerCode;
   final String currency;
   final String billerNumber;
   final double amount;
+  final String walletPin;
 
   CablePayRequest({
     required this.itemCode,
@@ -140,6 +221,7 @@ class CablePayRequest {
     required this.currency,
     required this.billerNumber,
     required this.amount,
+    required this.walletPin
   });
 
   Map<String, dynamic> toJson() => {
@@ -148,6 +230,7 @@ class CablePayRequest {
         'currency': currency,
         'billerNumber': billerNumber,
         'amount': amount,
+        'walletPin': walletPin
       };
 }
 

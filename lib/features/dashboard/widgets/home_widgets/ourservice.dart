@@ -20,7 +20,7 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/betting.svg',
           label: 'Betting',
-          onTap: () => context.push('/betting')),
+          onTap: () => context.push('/coming-soon')),
       ServiceItem(
           icon: 'assets/images/service_icon/light.svg',
           label: 'Electricity',
@@ -32,7 +32,7 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/arrow-swap-horizontal.svg',
           label: 'Swap Currency',
-          onTap: () => context.push('/swap-currency')),
+          onTap: () => context.push('/coming-soon')),
       ServiceItem(
           icon: 'assets/images/service_icon/internet.svg',
           label: 'Internet',
@@ -48,15 +48,15 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/Education.svg',
           label: 'Education',
-          onTap: () => context.push('/education')),
+          onTap: () => context.push('/coming-soon')),
       ServiceItem(
           icon: 'assets/images/service_icon/shoping.svg',
           label: 'Shopping',
-          onTap: () => context.push('/shopping')),
+          onTap: () => context.push('/coming-soon')),
       ServiceItem(
           icon: 'assets/images/service_icon/Insurance.svg',
           label: 'Insurance',
-          onTap: () => context.push('/insurance')),
+          onTap: () => context.push('/coming-soon')),
       // ServiceItem(
       //     icon: 'assets/images/service_icon/flight.svg',
       //     label: 'Flight',

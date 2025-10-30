@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
@@ -22,10 +25,16 @@ class CableTvScreen extends ConsumerStatefulWidget {
 }
 
 class _CableTvScreenState extends ConsumerState<CableTvScreen> {
-  String selectedProvider = 'DStv';
+  String selectedProvider = 'Select a provider';
   final TextEditingController smartcardController = TextEditingController();
-  String selectedPlan = 'Plan A';
-  String planAmount = '6500'; // This will need to be dynamic later
+  String? selectedPlan;
+  String planAmount = ' Amount'; // This will need to be dynamic later
+  bool _showVerifyButton = false;
+  bool _isVerifying = false;
+  bool _hasError = false;
+  VerifyCableData? _verifyResponse;
+  String? _verifiedUserName;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -109,7 +118,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                     onTap: () => _showProviderSelector(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                          horizontal: 16, vertical: 20),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(8),
@@ -123,10 +132,18 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                               fontSize: 16,
                             ),
                           ),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                          ),
+                          ref.watch(cablePlansNotifierProvider).isInitialLoading
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                  ))
+                              : Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey[600],
+                                ),
                         ],
                       ),
                     ),
@@ -144,11 +161,148 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                   ),
                   const SizedBox(height: 8),
                   ReuseableTextFieldWithCountry(
-                      controller: smartcardController,
-                      hintText: 'Smartcard Number ',
-                      isReadOnly: false,
-                      textInputType: TextInputType.number,
-                      showCountryLabel: false),
+                    controller: smartcardController,
+                    hintText: 'Smartcard Number ',
+                    isReadOnly: selectedProvider == 'Select a provider' ,
+                    textInputType: TextInputType.number,
+                    showCountryLabel: false,
+                    onChanged: (value) async {
+                      // Show verify button when user starts typing and clear any previous response
+                      setState(() {
+                        _verifyResponse = null;
+                        _showVerifyButton = value.isNotEmpty;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Verify Button / Response
+                  if (_showVerifyButton && _verifyResponse == null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isVerifying
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _isVerifying = true;
+                                  _hasError = false;
+                                  _verifyResponse = null;
+                                  _errorMessage = null;
+                                });
+
+                                final variations = ref
+                                    .read(cableVariationNotifierProvider)
+                                    .data;
+                                if (variations == null || variations.isEmpty) {
+                                  if (mounted) {
+                                    AppMessenger.show(context,
+                                        message: 'Selected plan not available',
+                                        type: MessageType.warning);
+                                  }
+                                  setState(() {
+                                    _isVerifying = false;
+                                  });
+                                  return;
+                                }
+
+                                final selectedVar = variations.firstWhere(
+                                    (v) => v.name == selectedPlan,
+                                    orElse: () => variations.first);
+
+                                try {
+                                  final res = await ref
+                                      .read(
+                                          cablePaymentNotifierProvider.notifier)
+                                      .verifyNumber(
+                                        VerifyCableRequest(
+                                          itemCode: selectedVar.itemCode,
+                                          billerCode: selectedVar.billerCode,
+                                          billerNumber:
+                                              smartcardController.text,
+                                        ),
+                                      );
+
+                                  setState(() {
+                                    // success path: store typed response and clear error
+                                    _verifyResponse = res.data;
+                                    _errorMessage = null;
+                                    _verifiedUserName = _verifyResponse?.name;
+                                    _showVerifyButton =
+                                        false; // remove button once response displays
+                                    _hasError = false;
+                                    _isVerifying = false;
+                                    _errorMessage = res.message;
+                                  });
+                                } catch (e) {
+                                  setState(() {
+                                    _verifyResponse = null;
+                                    _verifiedUserName = null;
+                                    _showVerifyButton = false;
+                                    _hasError = true;
+                                    _isVerifying = false;
+                                    _errorMessage = e.toString();
+                                  });
+                                }
+                              },
+                        child: _isVerifying
+                            ? SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Verify'),
+                      ),
+                    ),
+
+                  if (_verifyResponse != null || _errorMessage != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _verifiedUserName != null && _hasError == false
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _verifiedUserName != null && _hasError == false
+                              ? Colors.green
+                              : Colors.red,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _verifiedUserName != null
+                                ? Icons.check_circle
+                                : Icons.info,
+                            color: _verifiedUserName != null
+                                ? Colors.green
+                                : Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _verifiedUserName != null && _hasError == false
+                                  ? 'Account Name: $_verifiedUserName'
+                                  : _errorMessage ?? '',
+                              style: TextStyle(
+                                color: _verifiedUserName != null &&
+                                        _hasError == false
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
 
                   // Select Plan
@@ -161,10 +315,12 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                   ),
                   const SizedBox(height: 8),
                   GestureDetector(
-                    onTap: () => _showPlanSelector(context),
+                    onTap: selectedProvider == 'Select a provider'
+                        ? null
+                        : () => _showPlanSelector(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                          horizontal: 16, vertical: 20),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(8),
@@ -173,15 +329,26 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            selectedPlan,
+                            selectedPlan ?? 'Select a plan',
                             style: TextStyle(
                               fontSize: 16,
                             ),
                           ),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                          ),
+                          ref
+                                  .watch(cableVariationNotifierProvider)
+                                  .isInitialLoading
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ))
+                              : Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey[600],
+                                ),
                         ],
                       ),
                     ),
@@ -192,12 +359,12 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                   // Current Date
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                        horizontal: 16, vertical: 20),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFFF76301),
+                        color: const Color(0xFFF76301).withOpacity(0.3),
                         width: 2,
                       ),
                     ),
@@ -205,7 +372,9 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '₦${planAmount}',
+                          planAmount == ' Amount'
+                              ? planAmount
+                              : currencyFormatter(planAmount),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -222,9 +391,14 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                       text: 'Pay Cable TV',
                       onPressed: () async {
                         if (smartcardController.text.isEmpty ||
-                            planAmount.isEmpty) {
+                            planAmount.isEmpty ||
+                            _verifyResponse == null) {
                           return;
                         }
+                        final totalAmount = (int.parse(planAmount) +
+                                double.parse(
+                                    _verifyResponse?.fee.toString() ?? '0.0'))
+                            .toString();
 
                         // show details and ask for PIN
                         Navigator.push(
@@ -235,19 +409,33 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                               hasBottom: false,
                               topTitleText: 'Transaction',
                               topTransactionsDetailsList: [
-                                buildDetailRow(
-                                    'Provider', selectedProvider, isDark),
                                 buildDetailRow('Smartcard Number',
                                     smartcardController.text, isDark),
-                                buildDetailRow('Plan', selectedPlan, isDark),
                                 buildDetailRow(
-                                    'Amount', '₦${planAmount}', isDark),
+                                    'Provider', selectedProvider, isDark),
+                                buildDetailRow(
+                                    'Package', selectedPlan ?? '', isDark),
+                                buildDetailRow('Amount',
+                                    currencyFormatter(planAmount), isDark),
+                                buildDetailRow(
+                                    'Fee',
+                                    currencyFormatter(
+                                        _verifyResponse?.fee.toString() ??
+                                            '0.0'),
+                                    isDark),
                                 const Divider(),
-                                buildDetailRow(
-                                    'Total Amount', '₦${planAmount}', isDark,
+                                buildDetailRow('Total Amount',
+                                    currencyFormatter(totalAmount), isDark,
                                     isTotal: true)
                               ],
                               onButtonPressed: () async {
+                                final hasEnoughBalance = checkBalanceLeft(
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    totalAmount);
+
+                                if (!hasEnoughBalance) return;
                                 final pin =
                                     await BiometricTransactionPinModal.show(
                                         context);
@@ -269,34 +457,32 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                     orElse: () => variations.first);
 
                                 try {
-                                  await ref
-                                      .read(
-                                          cablePaymentNotifierProvider.notifier)
-                                      .verifyNumber(
-                                        VerifyCableRequest(
-                                          itemCode: selectedVar.itemCode,
-                                          billerCode: selectedVar.billerCode,
-                                          billerNumber:
-                                              smartcardController.text,
-                                        ),
-                                      );
-
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
                                   await ref
                                       .read(
                                           cablePaymentNotifierProvider.notifier)
                                       .payCable(
                                         CablePayRequest(
-                                          itemCode: selectedVar.itemCode,
-                                          billerCode: selectedVar.billerCode,
-                                          currency: 'NGN',
-                                          billerNumber:
-                                              smartcardController.text,
-                                          amount: selectedVar.payAmount ??
-                                              selectedVar.amount,
-                                        ),
+                                            itemCode: selectedVar.itemCode,
+                                            billerCode: selectedVar.billerCode,
+                                            currency: 'NGN',
+                                            billerNumber:
+                                                smartcardController.text,
+                                            amount: selectedVar.payAmount ??
+                                                selectedVar.amount,
+                                            walletPin: pin),
                                       );
+                                  Navigator.pop(context);
 
-                                  if (mounted) {
+                                  final paymentState =
+                                      ref.read(cablePaymentNotifierProvider);
+                                  if (paymentState.isDataAvailable && mounted) {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
@@ -305,6 +491,25 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                           amount: planAmount,
                                           topDetails: [
                                             TransactionDetail(
+                                                label: 'Plan',
+                                                value: selectedPlan ?? ''),
+                                            TransactionDetail(
+                                                label: 'Amount',
+                                                value: currencyFormatter(
+                                                    planAmount)),
+                                            TransactionDetail(
+                                                label: 'Fee',
+                                                value: currencyFormatter(
+                                                    _verifyResponse?.fee
+                                                            .toString() ??
+                                                        '0.0')),
+                                            TransactionDetail(
+                                                label: 'Total Debit',
+                                                value: currencyFormatter(
+                                                    totalAmount)),
+                                          ],
+                                          bottomDetails: [
+                                            TransactionDetail(
                                                 label: 'Provider',
                                                 value: selectedProvider),
                                             TransactionDetail(
@@ -312,13 +517,30 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                                 value:
                                                     smartcardController.text),
                                             TransactionDetail(
-                                                label: 'Plan',
-                                                value: selectedPlan),
+                                              label: 'Transaction ID',
+                                              value:
+                                                  'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                              showCopyIcon: true,
+                                            ),
+                                            TransactionDetail(
+                                              label: 'Payment Source',
+                                              value: 'ValarPay Account',
+                                            ),
+                                            TransactionDetail(
+                                              label: 'Date & Time',
+                                              value:
+                                                  '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                                            ),
                                           ],
                                           onShareReceipt: () {},
                                         ),
                                       ),
                                     );
+                                  } else {
+                                    AppMessenger.show(context,
+                                        message: paymentState.message ??
+                                            'An error has occured',
+                                        type: MessageType.error);
                                   }
                                 } catch (e) {
                                   if (mounted) {
@@ -346,7 +568,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
         final plans = ref.read(cablePlansNotifierProvider).data;
         final providers = plans != null && plans.isNotEmpty
             ? plans.map((e) => e.planName).toSet().toList()
-            : ['DStv', 'GOtv', 'Startimes'];
+            : [''];
         return CableTvProviderSelectorModal(
           selectedProvider: selectedProvider,
           providers: providers,
@@ -375,7 +597,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => CableTvPlanSelectorModal(
-        selectedPlan: selectedPlan,
+        selectedPlan: selectedPlan ?? '',
         plans: planNames,
         onPlanSelected: (plan) {
           setState(() {

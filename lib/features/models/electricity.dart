@@ -236,6 +236,104 @@ class VerifyMeterNumberRequest {
   }
 }
 
+class VerifyMeterNumberResponse {
+  final String message;
+  final int statusCode;
+  final VerifyMeterNumberData? data;
+
+  VerifyMeterNumberResponse({
+    required this.message,
+    required this.statusCode,
+    this.data,
+  });
+
+  factory VerifyMeterNumberResponse.fromJson(Map<String, dynamic> json) {
+    return VerifyMeterNumberResponse(
+      message: json['message'] ?? '',
+      statusCode: json['statusCode'] ?? 0,
+      data: json['data'] != null
+          ? VerifyMeterNumberData.fromJson(json['data'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'statusCode': statusCode,
+      'data': data?.toJson(),
+    };
+  }
+}
+
+class VerifyMeterNumberData {
+  final String responseCode;
+  final String address;
+  final String responseMessage;
+  final String name;
+  final String billerCode;
+  final String customer;
+  final String productCode;
+  final String? email;
+  final double fee;
+  final double maximum;
+  final double minimum;
+
+  VerifyMeterNumberData({
+    required this.responseCode,
+    required this.address,
+    required this.responseMessage,
+    required this.name,
+    required this.billerCode,
+    required this.customer,
+    required this.productCode,
+    this.email,
+    required this.fee,
+    required this.maximum,
+    required this.minimum,
+  });
+
+  factory VerifyMeterNumberData.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic v) {
+      if (v == null) return 0.0;
+      if (v is double) return v;
+      if (v is int) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0.0;
+      return 0.0;
+    }
+
+    return VerifyMeterNumberData(
+      responseCode: json['response_code']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      responseMessage: json['response_message']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      billerCode: json['biller_code']?.toString() ?? '',
+      customer: json['customer']?.toString() ?? '',
+      productCode: json['product_code']?.toString() ?? '',
+      email: json['email']?.toString(),
+      fee: parseDouble(json['fee']),
+      maximum: parseDouble(json['maximum']),
+      minimum: parseDouble(json['minimum']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'response_code': responseCode,
+      'address': address,
+      'response_message': responseMessage,
+      'name': name,
+      'biller_code': billerCode,
+      'customer': customer,
+      'product_code': productCode,
+      'email': email,
+      'fee': fee,
+      'maximum': maximum,
+      'minimum': minimum,
+    };
+  }
+}
+
 class ElectricityPaymentRequest {
   final String walletPin;
   final String itemCode;
