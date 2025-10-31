@@ -348,7 +348,12 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   }
 
   void _showGiftCardBrandModal() {
-    if (availableProducts.isEmpty) return;
+    if (availableProducts.isEmpty) {
+      AppMessenger.show(context,
+          message: 'No gift card products available at the moment.',
+          type: MessageType.info);
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -364,6 +369,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
           selectedAmount = 'Select Amount';
           selectedAmountValue = null;
           currentRate = '₦0';
+          setState(() {});
           Navigator.pop(context);
         },
       ),
