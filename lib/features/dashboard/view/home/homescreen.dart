@@ -25,10 +25,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   Timer? _timer;
 
   final List<String> _bannerImages = const [
-    'assets/images/VALAR PAY NOTIFICATION11.png',
-    'assets/images/VALAR PAY NOTIFICATION 22.png',
-    'assets/images/VALAR PAY NOTIFICATION 33.png',
-    'assets/images/VALAR PAY NOTIFICATION 44.png',
+    'assets\images\Banner1.png',
+    'assets\images\Banner2.png',
+    'assets\images\Banner3.png',
+    'assets\images\Banner4.png',
   ];
 
   @override
@@ -128,7 +128,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                       ),
                       const SizedBox(height: 16),
                       const PaymentWidget(),
-                      const SizedBox(height: 16),
                       Consumer(
                         builder: (context, ref, child) {
                           final user = ref.watch(userProvider);
@@ -140,21 +139,30 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                               !isBvnVerified || !isWalletPinSet;
 
                           if (!shouldShowKyc) {
-                            return const SizedBox.shrink();
+                            return const SizedBox(height: 12);
                           }
 
-                          return const KYCWidget();
+                          return Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              const KYCWidget(),
+                            ],
+                          );
                         },
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        child: Image.asset(
-                          _bannerImages[_currentImageIndex],
-                          fit: BoxFit.cover,
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: double.infinity,
+                          height: 200,
+                          child: Image.asset(
+                            _bannerImages[_currentImageIndex],
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       const OurServicesWidget(),
                       const SizedBox(height: 24),
                     ],
