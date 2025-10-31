@@ -1,0 +1,391 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
+
+class Tier3Card extends StatefulWidget {
+  final bool isExpanded;
+  final VoidCallback onToggle;
+  final bool isNinVerified;
+  final bool isAddressSubmitted;
+
+  const Tier3Card({
+    Key? key,
+    this.isExpanded = false,
+    required this.onToggle,
+    this.isNinVerified = false,
+    this.isAddressSubmitted = false,
+  }) : super(key: key);
+
+  @override
+  State<Tier3Card> createState() => _Tier3CardState();
+}
+
+class _Tier3CardState extends State<Tier3Card> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 335.w,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border.all(
+          color: const Color(0xFFFFEEE3),
+          width: 6,
+        ),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // View Review Progress Button (shown when address is submitted)
+          if (widget.isAddressSubmitted)
+            GestureDetector(
+              onTap: () {
+                // Navigate to review progress page
+                context.push('/kyc-review-progress');
+              },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF4ED),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.r),
+                    topRight: Radius.circular(20.r),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'View Review Progress',
+                      style: TextStyle(
+                        color: const Color(0xFFF76301),
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: const Color(0xFFF76301),
+                          size: 16.sp,
+                        ),
+                        SizedBox(width: 8.w),
+                        Container(
+                          width: 24.w,
+                          height: 24.h,
+                          decoration: const BoxDecoration(
+                            color: Colors.black,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          
+          // Header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Clickable upgrade text
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      // TODO: TESTING MODE - Validation temporarily disabled
+                      // Check if NIN is verified before allowing navigation
+                      // if (!widget.isNinVerified) {
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     const SnackBar(
+                      //       content: Text(
+                      //         'Please complete KYC Tier 2 (NIN Verification) before upgrading to Tier 3',
+                      //       ),
+                      //       backgroundColor: Colors.red,
+                      //     ),
+                      //   );
+                      //   return;
+                      // }
+                      // Navigate to residential address page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ResidentialAddressPage(),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          widget.isNinVerified ? 'Tier 3' : 'Upgrade to Tier 3',
+                          style: TextStyle(
+                            color: widget.isNinVerified
+                                ? const Color(0xFF9CA3AF)
+                                : const Color(0xFFF76301),
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (!widget.isNinVerified) ...[
+                          SizedBox(width: 4.w),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            color: const Color(0xFFF76301),
+                            size: 14.sp,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                // Clickable dropdown icon
+                GestureDetector(
+                  onTap: widget.onToggle,
+                  child: Container(
+                    width: 24.w,
+                    height: 24.h,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      widget.isExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: Colors.white,
+                      size: 16.sp,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Requirements Section (always visible)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(8.w, 12.h, 20.w, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                Text(
+                  'Requirements',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : const Color(0xFF9CA3AF),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Address',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : const Color(0xFF111827),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Address Verification',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : const Color(0xFF111827),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ),
+
+          // Limits Section (shown when expanded)
+          if (widget.isExpanded)
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Dashed Line
+                  Container(
+                    width: 295.w,
+                    height: 2.h,
+                    child: CustomPaint(
+                      painter: DashedLinePainter(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[600]!
+                            : const Color(0xFF111827),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // Limits Section - Two Columns
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left Column - Credit Limits
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Single Credit Limit',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF9CA3AF),
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Unlimited',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'Daily Credit Limit',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF9CA3AF),
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Unlimited',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Right Column - Debit Limits
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Single Debit Limit',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF9CA3AF),
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Unlimited',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'Daily Debit Limit',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF9CA3AF),
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Unlimited',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(height: 12.h), // Add spacing when collapsed
+        ],
+      ),
+    );
+  }
+}
+
+// Custom painter for dashed line
+class DashedLinePainter extends CustomPainter {
+  final Color color;
+
+  DashedLinePainter({this.color = const Color(0xFF111827)});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + dashWidth, 0),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

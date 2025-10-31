@@ -165,14 +165,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   ),
                 ],
               ),
-              Text(
-                "Tier ${tierLevel == 'one' ? '1' : tierLevel.toUpperCase()}",
-                style: TextStyle(
-                  color: appTheme.primaryColor,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              _buildTierUpgradeButton(tierLevel),
             ],
           ),
           SizedBox(height: 4.h),
@@ -242,6 +235,71 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           },
         ),
       ],
+    );
+  }
+
+  // Build tier upgrade button based on current tier
+  Widget _buildTierUpgradeButton(String tierLevel) {
+    String displayText;
+    String nextTier;
+
+    switch (tierLevel.toLowerCase()) {
+      case 'one':
+      case '1':
+        displayText = 'Upgrade to Tier 2';
+        nextTier = '2';
+        break;
+      case 'two':
+      case '2':
+        displayText = 'Upgrade to Tier 3';
+        nextTier = '3';
+        break;
+      case 'three':
+      case '3':
+        displayText = 'Tier 3';
+        nextTier = '3';
+        break;
+      default:
+        displayText = 'Tier ${tierLevel.toUpperCase()}';
+        nextTier = '1';
+    }
+
+    // If already at Tier 3, just show the tier level
+    if (tierLevel.toLowerCase() == 'three' || tierLevel == '3') {
+      return Text(
+        displayText,
+        style: TextStyle(
+          color: appTheme.primaryColor,
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+
+    // Otherwise, show clickable upgrade link
+    return GestureDetector(
+      onTap: () {
+        context.push('/upgrade-kyc');
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            displayText,
+            style: TextStyle(
+              color: appTheme.primaryColor,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(width: 4.w),
+          Icon(
+            Icons.arrow_forward_ios,
+            color: appTheme.primaryColor,
+            size: 12.sp,
+          ),
+        ],
+      ),
     );
   }
 
