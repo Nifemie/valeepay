@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:developer';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/features/notifiers/airtime_notifier.dart';
+import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
@@ -7,7 +12,7 @@ import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 
-class CountryProviderScreen extends StatefulWidget {
+class CountryProviderScreen extends ConsumerStatefulWidget {
   final String countryProvider;
 
   const CountryProviderScreen({
@@ -16,10 +21,11 @@ class CountryProviderScreen extends StatefulWidget {
   });
 
   @override
-  State<CountryProviderScreen> createState() => _CountryProviderScreenState();
+  ConsumerState<CountryProviderScreen> createState() =>
+      _CountryProviderScreenState();
 }
 
-class _CountryProviderScreenState extends State<CountryProviderScreen> {
+class _CountryProviderScreenState extends ConsumerState<CountryProviderScreen> {
   final TextEditingController controller = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   String selectedAmount = '';
@@ -86,7 +92,7 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
             ReuseableAmountTextfield(
                 amountController: amountController,
                 prefixText: '\$',
-                hintText: '1000'),
+                hintText: '1,000'),
 
             const SizedBox(height: 24),
 
@@ -118,75 +124,144 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
             // Continue Button
             FullWidthButton(
                 text: 'Continue',
-                onPressed: () {
-                  if (controller.text.isNotEmpty &&
-                      (amountController.text.isNotEmpty ||
-                          selectedAmount.isNotEmpty)) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              ReuseableTransactionDetailsScreen(
-                                hasBottom: false,
-                                topTitleText: 'Transacton',
-                                topTransactionsDetailsList: [
-                                  buildDetailRow('Recipient Number',
-                                      '$countryCode${controller.text}', isDark),
-                                  buildDetailRow('Provider',
-                                      widget.countryProvider, isDark),
-                                  buildDetailRow(
-                                      'Amount',
-                                      currencyFormatter(amountController.text),
-                                      isDark),
-                                ],
-                                onButtonPressed: () async {
-                                  final pin =
-                                      await BiometricTransactionPinModal.show(context);
-                                  if (pin != null &&
-                                      pin.length == 4 &&
-                                      mounted) {
-                                    if (mounted) Navigator.pop(context);
-                                    if (mounted) {
-                                      Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TransactionReceiptWidget(
-                                                    amount:
-                                                        amountController.text,
-                                                    topDetails: [
-                                                      TransactionDetail(
-                                                          label:
-                                                              'Transaction ID',
-                                                          value:
-                                                              'TXN${DateTime.now().millisecondsSinceEpoch}',
-                                                          showCopyIcon: true),
-                                                      TransactionDetail(
-                                                          label:
-                                                              'Recipient Mobile',
-                                                          value:
-                                                              '$countryCode${controller.text}'),
-                                                      TransactionDetail(
-                                                          label: 'Provider',
-                                                          value: widget
-                                                              .countryProvider),
-                                                      TransactionDetail(
-                                                          label:
-                                                              'Payment Source',
-                                                          value:
-                                                              'ValarPay Account'),
-                                                      TransactionDetail(
-                                                          label: 'Date & Time',
-                                                          value:
-                                                              '29 Sep 2025 | 8:15 pm')
-                                                    ],
-                                                    onShareReceipt: () {},
-                                                  )));
-                                    }
-                                  }
-                                },
-                              )),
+                onPressed: () async {
+                  if (controller.text.isEmpty ||
+                      (amountController.text.isEmpty &&
+                          selectedAmount.isEmpty)) {
+                    AppMessenger.show(context,
+                        message: 'Please enter phone and amount',
+                        type: MessageType.error);
+                    return;
+                  }
+
+                  final countryCode = _getCountryCode(widget.countryProvider);
+                  final fullPhone = '$countryCode${controller.text}';
+                  final rawAmount = (amountController.text.isNotEmpty
+                          ? amountController.text
+                          : selectedAmount)
+                      .replaceAll(',', '');
+                  double amount;
+                  try {
+                    amount = double.parse(rawAmount);
+                  } catch (e) {
+                    AppMessenger.show(context,
+                        message: 'Invalid amount', type: MessageType.error);
+                    return;
+                  }
+
+                  // Show loading
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) =>
+                          const Center(child: CircularProgressIndicator()));
+
+                  try {
+                    // 1) Get international plan for phone
+                    await ref
+                        .read(airtimePlanNotifierProvider.notifier)
+                        .getInternationalPlan(phone: fullPhone);
+
+                    final planState = ref.read(airtimePlanNotifierProvider);
+                    if (!(planState.isDataAvailable &&
+                        (planState.data?.isNotEmpty ?? false))) {
+                      if (Navigator.canPop(context)) Navigator.pop(context);
+                      AppMessenger.show(context,
+                          message: planState.message ?? 'Failed to get plan',
+                          type: MessageType.error);
+                      return;
+                    }
+
+                    final plan = planState.data!.first;
+                    final operatorId = plan.operatorId;
+
+                    // 2) Get FX rate
+                    await ref
+                        .read(internationalFxNotifierProvider.notifier)
+                        .getFxRate(amount: amount, operatorId: operatorId);
+
+                    final fxState = ref.read(internationalFxNotifierProvider);
+                    if (!(fxState.isDataAvailable &&
+                        (fxState.data?.isNotEmpty ?? false))) {
+                      if (Navigator.canPop(context)) Navigator.pop(context);
+                      AppMessenger.show(context,
+                          message: fxState.message ?? 'Failed to get FX rate',
+                          type: MessageType.error);
+                      return;
+                    }
+
+                    // 3) Ask for PIN
+                    final pin =
+                        await BiometricTransactionPinModal.show(context);
+                    if (pin == null || pin.length != 4) {
+                      if (Navigator.canPop(context)) Navigator.pop(context);
+                      AppMessenger.show(context,
+                          message: 'Invalid PIN', type: MessageType.error);
+                      return;
+                    }
+
+                    // 4) Pay for international airtime
+                    final request = AirtimePurchaseRequest(
+                      walletPin: pin,
+                      amount: amount,
+                      operatorId: operatorId,
+                      phone: fullPhone,
+                      currency: 'NGN',
+                      addBeneficiary: false,
                     );
+
+                    await ref
+                        .read(internationalPurchaseNotifierProvider.notifier)
+                        .purchase(request);
+
+                    final purchaseState =
+                        ref.read(internationalPurchaseNotifierProvider);
+                    // Close loading
+                    if (Navigator.canPop(context)) Navigator.pop(context);
+
+                    if (purchaseState.isDataAvailable &&
+                        (purchaseState.data?.isNotEmpty ?? false)) {
+                      // Navigate to receipt
+                      if (mounted) {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TransactionReceiptWidget(
+                                      amount: currencyFormatter(rawAmount),
+                                      topDetails: [
+                                        TransactionDetail(
+                                            label: 'Transaction ID',
+                                            value:
+                                                'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                            showCopyIcon: true),
+                                        TransactionDetail(
+                                            label: 'Recipient Mobile',
+                                            value: fullPhone),
+                                        TransactionDetail(
+                                            label: 'Provider',
+                                            value: widget.countryProvider),
+                                        TransactionDetail(
+                                            label: 'Payment Source',
+                                            value: 'ValarPay Account'),
+                                        TransactionDetail(
+                                            label: 'Date & Time',
+                                            value:
+                                                '${DateTime.now().day} ${DateTime.now().month}/${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}')
+                                      ],
+                                      onShareReceipt: () {},
+                                    )));
+                      }
+                    } else {
+                      AppMessenger.show(context,
+                          message: purchaseState.message ?? 'Purchase failed',
+                          type: MessageType.error);
+                    }
+                  } catch (e, st) {
+                    log('[International Purchase Flow] $e\n$st');
+                    if (Navigator.canPop(context)) Navigator.pop(context);
+                    AppMessenger.show(context,
+                        message: 'Error: ${e.toString()}',
+                        type: MessageType.error);
                   }
                 }),
           ],
@@ -238,13 +313,5 @@ class _CountryProviderScreenState extends State<CountryProviderScreen> {
     if (provider.contains('Kenya')) return '+254';
     if (provider.contains('Senegal')) return '+221';
     return '+233'; // Default
-  }
-
-  Color _getFlagColor(String provider) {
-    if (provider.contains('Ghana')) return Colors.red;
-    if (provider.contains('Canada')) return Colors.red;
-    if (provider.contains('Kenya')) return Colors.green;
-    if (provider.contains('Senegal')) return Colors.green;
-    return Colors.red; // Default
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/reuseable_appbar_text_button.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
+import 'package:valarpay/features/notifiers/airtime_notifier.dart';
+import 'package:valarpay/features/models/network_provider.dart';
 import 'saved_beneficiary_screen.dart';
 import 'country_provider_screen.dart';
 
@@ -17,6 +19,15 @@ class InternationalAirtimeScreen extends ConsumerStatefulWidget {
 class _InternationalAirtimeScreenState
     extends ConsumerState<InternationalAirtimeScreen> {
   String selectedCountry = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // fetch network providers to show dynamically
+      ref.read(airtimeProvidersNotifierProvider.notifier).fetchProviders();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,31 +69,52 @@ class _InternationalAirtimeScreenState
                   'Complete your KYC verification to purchase international airtime',
             )
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Countries/Providers List
-            Expanded(
-              child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildCountryTile('MTN Ghana', isDark),
-                  _buildCountryTile('AirtelTigo Ghana', isDark),
-                  _buildCountryTile('Titus Canada', isDark),
-                  _buildCountryTile('Safaricom Kenya', isDark),
-                  _buildCountryTile('Airtel Kenya', isDark),
-                  _buildCountryTile('Moor Africa', isDark),
-                  _buildCountryTile('Orange Senegal', isDark),
+                  // Countries/Providers List (dynamic)
+                  Expanded(
+                    child: Consumer(builder: (context, ref, _) {
+                      final providersState =
+                          ref.watch(airtimeProvidersNotifierProvider);
+                      final providers =
+                          providersState.data ?? <NetworkProvider>[];
+
+                      if (providersState.isInitialLoading &&
+                          providers.isEmpty) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (!providersState.isDataAvailable &&
+                          providers.isEmpty) {
+                        return Center(
+                          child: Text(
+                            providersState.message ?? 'No providers available',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: providers.length,
+                        itemBuilder: (context, index) {
+                          final p = providers[index];
+                          return _buildCountryTile(p, isDark);
+                        },
+                      );
+                    }),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildCountryTile(String countryProvider, bool isDark) {
+  Widget _buildCountryTile(NetworkProvider provider, bool isDark) {
+    final displayName =
+        '${provider.network} ${_mapIsoToCountry(provider.countryISOCode)}';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -92,8 +124,8 @@ class _InternationalAirtimeScreenState
           borderRadius: BorderRadius.circular(8),
         ),
         title: Text(
-          countryProvider,
-          style: TextStyle(
+          displayName,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -108,12 +140,29 @@ class _InternationalAirtimeScreenState
             context,
             MaterialPageRoute(
               builder: (context) => CountryProviderScreen(
-                countryProvider: countryProvider,
+                countryProvider: displayName,
               ),
             ),
           );
         },
       ),
     );
+  }
+
+  String _mapIsoToCountry(String iso) {
+    final code = iso.toUpperCase();
+    switch (code) {
+      case 'GH':
+        return 'Ghana';
+      case 'CA':
+      case 'CAN':
+        return 'Canada';
+      case 'KE':
+        return 'Kenya';
+      case 'SN':
+        return 'Senegal';
+      default:
+        return iso;
+    }
   }
 }
