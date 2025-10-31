@@ -51,6 +51,7 @@ class _ReceiptShareScreenState extends State<ReceiptShareScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        // onPressed: ( ) {},
         onPressed: _captureAndShare,
         label: const Text("Share Receipt"),
         icon: const Icon(Icons.share),

@@ -25,10 +25,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   Timer? _timer;
 
   final List<String> _bannerImages = const [
-    'assets\images\Banner1.png',
-    'assets\images\Banner2.png',
-    'assets\images\Banner3.png',
-    'assets\images\Banner4.png',
+    'assets/images/valar_ban1.png',
+    'assets/images/valar_ban2.png',
+    'assets/images/valar_ban3.png',
+    'assets/images/valar_ban4.png',
   ];
 
   @override
@@ -107,7 +107,8 @@ class _HomescreenState extends ConsumerState<Homescreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: _HomeAppBar(firstName: capitalizedUserName, greeting: greeting),
+              child: _HomeAppBar(
+                  firstName: capitalizedUserName, greeting: greeting),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -121,10 +122,9 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                         balance: balance,
                         accountNumber: accountNumber,
                         isBalanceVisible: _isBalanceVisible,
-                        onToggleVisibility:
-                            () => setState(
-                              () => _isBalanceVisible = !_isBalanceVisible,
-                            ),
+                        onToggleVisibility: () => setState(
+                          () => _isBalanceVisible = !_isBalanceVisible,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       const PaymentWidget(),
@@ -150,19 +150,19 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                           );
                         },
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 18),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           width: double.infinity,
-                          height: 200,
+                          // height: 60,
                           child: Image.asset(
                             _bannerImages[_currentImageIndex],
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 24),
                       const OurServicesWidget(),
                       const SizedBox(height: 24),
                     ],
@@ -183,7 +183,7 @@ class _HomeAppBar extends ConsumerStatefulWidget {
   final String greeting;
 
   const _HomeAppBar({Key? key, required this.firstName, required this.greeting})
-    : super(key: key);
+      : super(key: key);
 
   @override
   ConsumerState<_HomeAppBar> createState() => _HomeAppBarState();
@@ -209,23 +209,21 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               backgroundColor:
                   isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
               child: ClipOval(
-                child:
-                    user?.profileImageUrl != null &&
-                            user!.profileImageUrl!.isNotEmpty
-                        ? Image.network(
-                          user.profileImageUrl!,
-                          width: 72,
-                          height: 72,
-                          fit: BoxFit.cover,
-                        )
-                        : Icon(
-                          Icons.person,
-                          size: 36,
-                          color:
-                              isDark
-                                  ? const Color(0xFF9CA3AF)
-                                  : const Color(0xFF6B7280),
-                        ),
+                child: user?.profileImageUrl != null &&
+                        user!.profileImageUrl!.isNotEmpty
+                    ? Image.network(
+                        user.profileImageUrl!,
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                      )
+                    : Icon(
+                        Icons.person,
+                        size: 36,
+                        color: isDark
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF6B7280),
+                      ),
               ),
             ),
           ),
@@ -235,7 +233,7 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Hello ${widget.firstName}',
+                'Hello, ${widget.firstName}',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -243,9 +241,9 @@ class _HomeAppBarState extends ConsumerState<_HomeAppBar> {
               subtitle: Text(
                 widget.greeting,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.normal,
-                  color: appTheme.primaryColor,
-                ),
+                      fontWeight: FontWeight.normal,
+                      color: appTheme.primaryColor,
+                    ),
               ),
             ),
           ),

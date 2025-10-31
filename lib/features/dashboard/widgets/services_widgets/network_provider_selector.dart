@@ -18,7 +18,7 @@ class NetworkProviderSelector extends StatelessWidget {
     final n = network.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     if (n.contains('mtn')) return 'assets/images/mtn.png';
     if (n.contains('airtel')) return 'assets/images/airtel.png';
-    if (n.contains('9') || n.contains('9mobile') || n.contains('nine'))
+    if (n.contains('9mobile') || n.contains('etisalat') || n.contains('nine'))
       return 'assets/images/9mobile.png';
     if (n.contains('glo')) return 'assets/images/glo.png';
     // fallback

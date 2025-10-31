@@ -44,7 +44,13 @@ class ShareableTransactionReceipt extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset('assets/images/logo.png', height: 24),
+                    ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          height: 24,
+                          fit: BoxFit.cover,
+                        )),
                     const Text(
                       "Beyond Banking",
                       style: TextStyle(fontWeight: FontWeight.w600),

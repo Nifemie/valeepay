@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/notifiers/internet_notifier.dart';
 import 'package:valarpay/features/models/internet_models.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/cabletv_widgets/provider_selector_modal.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/cabletv_widgets/plan_selector_modal.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class InternetProviderPaymentScreen extends ConsumerStatefulWidget {
-  final String providerName;
+  String providerName;
 
-  const InternetProviderPaymentScreen({super.key, required this.providerName});
+  InternetProviderPaymentScreen({super.key, required this.providerName});
 
   @override
   ConsumerState<InternetProviderPaymentScreen> createState() =>
@@ -62,6 +67,39 @@ class _InternetProviderPaymentScreenState
 
     final planNames = variationsState.data?.map((v) => v.name).toList() ?? [];
 
+    _onShareTransactionReceiptPressed() {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value: currencyFormatter(
+                              amountController.text..replaceAll(',', ''))),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type',
+                          value: 'Internet Purchase'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Provider', value: selectedProvider),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Account Number',
+                          value: accountController.text.trim()),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -87,7 +125,7 @@ class _InternetProviderPaymentScreenState
           GestureDetector(
             onTap: () => _showProviderSelector(context),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
                   color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8)),
@@ -121,7 +159,7 @@ class _InternetProviderPaymentScreenState
           GestureDetector(
             onTap: () => _showPlanSelector(context, planNames),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
                   color: Theme.of(context).cardColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8)),
@@ -129,15 +167,20 @@ class _InternetProviderPaymentScreenState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(selectedPlan.isEmpty ? 'Select Plan' : selectedPlan),
-                    Icon(Icons.keyboard_arrow_down,
-                        color: isDark ? Colors.white70 : Colors.grey[600])
+                    variationsState.isInitialLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(Icons.keyboard_arrow_down,
+                            color: isDark ? Colors.white70 : Colors.grey[600])
                   ]),
             ),
           ),
           const SizedBox(height: 24),
           CurrentRateWidget(
-              price: currencyFormatter(amountController.text),
-              text: 'Current Rate'),
+              price: amountController.text.trim(), text: 'Current Rate'),
           const SizedBox(height: 60),
           FullWidthButton(
               text: 'Continue',
@@ -171,6 +214,16 @@ class _InternetProviderPaymentScreenState
                                     isTotal: true),
                               ],
                               onButtonPressed: () async {
+                                final totalAmount =
+                                    int.parse(amountController.text) +
+                                        int.parse(serviceFee);
+                                final user = ref.read(userProvider);
+                                final hasEnoughBalance = checkBalanceLeft(
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    totalAmount.toString());
+                                if (!hasEnoughBalance) return;
                                 final pin =
                                     await BiometricTransactionPinModal.show(
                                         context);
@@ -186,6 +239,14 @@ class _InternetProviderPaymentScreenState
 
                                   return;
                                 }
+
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
                                 final selectedVar = variations.firstWhere(
                                     (v) => v.name == selectedPlan,
                                     orElse: () => variations.first);
@@ -205,9 +266,16 @@ class _InternetProviderPaymentScreenState
                                           billerNumber: accountController.text,
                                         ),
                                       );
+                                  final state =
+                                      ref.read(internetPaymentNotifierProvider);
 
-                                  if (mounted) {
-                                    Navigator.pushReplacement(
+                                  if (state.isDataAvailable &&
+                                      state.data != null &&
+                                      state.data!.isNotEmpty &&
+                                      mounted) {
+                                    Navigator.pop(
+                                        context); // Close the loading dialog
+                                    Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
@@ -221,6 +289,10 @@ class _InternetProviderPaymentScreenState
                                                         label: 'Plan',
                                                         value: selectedPlan),
                                                     TransactionDetail(
+                                                        label: 'Provider',
+                                                        value:
+                                                            selectedProvider),
+                                                    TransactionDetail(
                                                         label: 'Amount',
                                                         value:
                                                             currencyFormatter(
@@ -229,13 +301,34 @@ class _InternetProviderPaymentScreenState
                                                   ],
                                                   bottomDetails: [
                                                     TransactionDetail(
-                                                        label:
-                                                            'Smartcard Number',
+                                                      label: 'Transaction ID',
+                                                      value:
+                                                          'TXN${DateTime.now().millisecondsSinceEpoch}',
+                                                      showCopyIcon: true,
+                                                    ),
+                                                    TransactionDetail(
+                                                        label: 'Account Number',
                                                         value: accountController
-                                                            .text)
+                                                            .text),
+                                                    TransactionDetail(
+                                                      label: 'Payment Source',
+                                                      value: 'ValarPay Account',
+                                                    ),
+                                                    TransactionDetail(
+                                                      label: 'Date & Time',
+                                                      value:
+                                                          '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                                                    ),
                                                   ],
-                                                  onShareReceipt: () {},
+                                                  onShareReceipt:
+                                                      _onShareTransactionReceiptPressed,
                                                 )));
+                                  } else {
+                                    Navigator.pop(context); // Close the dialog
+                                    AppMessenger.show(context,
+                                        message:
+                                            state.message ?? 'Payment failed',
+                                        type: MessageType.error);
                                   }
                                 } catch (e) {
                                   if (mounted) {
@@ -264,6 +357,7 @@ class _InternetProviderPaymentScreenState
             onProviderSelected: (provider) {
               setState(() {
                 selectedProvider = provider;
+                widget.providerName = provider;
               });
               final match = plans.firstWhere((p) => p.planName == provider,
                   orElse: () => plans.first);
@@ -294,7 +388,6 @@ class _InternetProviderPaymentScreenState
                           .toStringAsFixed(0);
                 }
               });
-              Navigator.pop(context);
             }));
   }
 }

@@ -36,12 +36,14 @@ class ElectricityRepository {
     }
   }
 
-  Future<void> verifyMeterNumber(VerifyMeterNumberRequest request) async {
+  Future<VerifyMeterNumberResponse> verifyMeterNumber(
+      VerifyMeterNumberRequest request) async {
     try {
-      await apiClient.post(
+      final response = await apiClient.post(
         ApiEndpoints.verifyMeterNumber,
         data: request.toJson(),
       );
+      return VerifyMeterNumberResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Invalid meter number');
     }

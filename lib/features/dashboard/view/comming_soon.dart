@@ -21,11 +21,11 @@ class ComingSoonScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon:
+              Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
         ),
         title: Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
         ),
         centerTitle: true,
       ),
@@ -86,10 +86,10 @@ class ComingSoonScreen extends StatelessWidget {
                     vertical: 14.h,
                   ),
                 ),
-                onPressed: () => context.push("/"),
+                onPressed: () => context.pop(),
                 icon: const Icon(Icons.home, color: Colors.white),
                 label: Text(
-                  "Back to Home",
+                  "Go back",
                   style: TextStyle(color: Colors.white, fontSize: 16.sp),
                 ),
               ),

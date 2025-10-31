@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/electricity.dart';
 import 'package:valarpay/features/notifiers/electricity_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -14,7 +20,6 @@ import 'saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
-
 
 class ElectricityScreen extends ConsumerStatefulWidget {
   const ElectricityScreen({super.key});
@@ -28,9 +33,14 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
   ElectricityBillInfo? selectedMeterType;
   final TextEditingController meterNumberController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  final NumberFormat formatter = NumberFormat('#,###');
+
+  VerifyMeterNumberData? verifyMeterNumberData;
   String serviceFee = '500';
   String customerName = '';
   bool isMeterVerified = false;
+  bool hasError = false;
+  bool isNotMinimumAmount = false;
 
   @override
   void initState() {
@@ -39,6 +49,29 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       ref
           .read(electricityNotifierProvider.notifier)
           .getElectricityPlans(currency: 'NGN');
+    });
+    amountController.addListener(() {
+      final text = amountController.text.replaceAll(',', '');
+      if (text.isEmpty) return;
+
+      // Prevent recursive updates
+      final newText = formatter.format(int.parse(text));
+      if (newText != amountController.text) {
+        final cursorPos = newText.length;
+        amountController.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: cursorPos),
+        );
+      }
+      if (double.parse(text) < verifyMeterNumberData!.minimum) {
+        setState(() {
+          isNotMinimumAmount = true;
+        });
+      } else {
+        setState(() {
+          isNotMinimumAmount = false;
+        });
+      }
     });
   }
 
@@ -91,239 +124,311 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       body: !isBvnVerified
           ? const KycNotSetWidget(
               title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to pay electricity bills',
+              subtitle:
+                  'Complete your KYC verification to pay electricity bills',
             )
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Select Disco
-            Text(
-              'Select Disco',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: electricityState.isDataAvailable
-                  ? () => _showDiscoSelector(context)
-                  : null,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedDisco?.planName ?? 'Select Disco',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: selectedDisco == null ? Colors.grey : null,
-                      ),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Select Disco
+                  Text(
+                    'Select Disco',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
                     ),
-                    electricityState.isInitialLoading
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            Icons.keyboard_arrow_down,
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                          ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Meter Number
-            Text(
-              'Meter Number',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ReuseableTextFieldWithCountry(
-                controller: meterNumberController,
-                hintText: 'Enter Meter Number',
-                isReadOnly: false,
-                textInputType: TextInputType.number,
-                showCountryLabel: false,
-                onChanged: (value) {
-                  if (value.length >= 10 && selectedMeterType != null) {
-                    _verifyMeterNumber();
-                  } else {
-                    setState(() {
-                      isMeterVerified = false;
-                      customerName = '';
-                    });
-                  }
-                }),
-            const SizedBox(height: 24),
-
-            // Meter Type
-            Text(
-              'Meter Type',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: billInfoState.isDataAvailable
-                  ? () => _showMeterTypeModal(context)
-                  : null,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedMeterType?.name ?? 'Select Meter Type',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: selectedMeterType == null ? Colors.grey : null,
-                      ),
-                    ),
-                    billInfoState.isInitialLoading
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            Icons.keyboard_arrow_down,
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                          ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Meter verification status
-            if (meterNumberController.text.isNotEmpty &&
-                selectedMeterType != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isMeterVerified
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isMeterVerified ? Colors.green : Colors.orange,
-                    width: 1,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      isMeterVerified ? Icons.check_circle : Icons.info,
-                      color: isMeterVerified ? Colors.green : Colors.orange,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        isMeterVerified
-                            ? 'Meter verified: $customerName'
-                            : paymentState.isInitialLoading
-                                ? 'Verifying meter number...'
-                                : 'Enter valid meter number to verify',
-                        style: TextStyle(
-                          color: isMeterVerified ? Colors.green : Colors.orange,
-                          fontSize: 14,
-                        ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: electricityState.isDataAvailable
+                        ? () => _showDiscoSelector(context)
+                        : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedDisco?.planName ?? 'Select Disco',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: selectedDisco == null ? Colors.grey : null,
+                            ),
+                          ),
+                          electricityState.isInitialLoading
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey[600],
+                                ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-            const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-            // Amount
-            Text(
-              'Amount',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 14,
+                  // Meter Type
+                  Text(
+                    'Meter Type',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: billInfoState.isDataAvailable
+                        ? () => _showMeterTypeModal(context)
+                        : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedMeterType?.name ?? 'Select Meter Type',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: selectedMeterType == null
+                                  ? Colors.grey
+                                  : null,
+                            ),
+                          ),
+                          billInfoState.isInitialLoading
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey[600],
+                                ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Meter Number
+                  Text(
+                    'Meter Number',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ReuseableTextFieldWithCountry(
+                      controller: meterNumberController,
+                      hintText: 'Enter Meter Number',
+                      isReadOnly:
+                          selectedDisco == null || selectedMeterType == null,
+                      textInputType: TextInputType.number,
+                      showCountryLabel: false,
+                      onChanged: (value) {
+                        if (value.length >= 10 && selectedMeterType != null) {
+                          _verifyMeterNumber();
+                        } else {
+                          setState(() {
+                            isMeterVerified = false;
+                            customerName = '';
+                            hasError = false;
+                          });
+                        }
+                      }),
+                  const SizedBox(height: 24),
+
+                  // Meter verification status
+                  if (meterNumberController.text.isNotEmpty &&
+                      selectedMeterType != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isMeterVerified
+                            ? Colors.green.withOpacity(0.1)
+                            : hasError
+                                ? Colors.red.withOpacity(0.1)
+                                : Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isMeterVerified
+                              ? Colors.green
+                              : hasError
+                                  ? Colors.red
+                                  : Colors.orange,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isMeterVerified ? Icons.check_circle : Icons.info,
+                            color: isMeterVerified
+                                ? Colors.green
+                                : hasError
+                                    ? Colors.red
+                                    : Colors.orange,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              isMeterVerified
+                                  ? 'Account Name: $customerName \nMinimum: ${currencyFormatter(verifyMeterNumberData?.minimum.toString() ?? '')} \nAddress: ${verifyMeterNumberData?.address}'
+                                  : paymentState.isInitialLoading
+                                      ? 'Verifying meter number...'
+                                      : hasError
+                                          ? 'Error verifying meter number'
+                                          : 'Enter valid meter number to verify',
+                              style: TextStyle(
+                                color: isMeterVerified
+                                    ? Colors.green
+                                    : hasError
+                                        ? Colors.red
+                                        : Colors.orange,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
+
+                  // Amount
+                  Text(
+                    'Amount',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ReuseableAmountTextfield(
+                      amountController: amountController,
+                      prefixText: '₦',
+                      hintText: '10,000'),
+                  if (isNotMinimumAmount) SizedBox(height: 12),
+                  if (isNotMinimumAmount)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.red,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Please enter a value greater or equal to ${currencyFormatter(verifyMeterNumberData!.minimum.toString())}',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 60),
+
+                  // Continue Button
+                  FullWidthButton(
+                      text: 'Continue',
+                      isEnabled: _canProceed(),
+                      onPressed: () {
+                        if (_canProceed()) {
+                          final totalAmount =
+                              '${int.parse(amountController.text.replaceAll(',', '')) + int.parse(serviceFee)}';
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ReuseableTransactionDetailsScreen(
+                                hasBottom: false,
+                                topTitleText: 'Transaction',
+                                topTransactionsDetailsList: [
+                                  buildDetailRow('Meter Number',
+                                      meterNumberController.text, isDark),
+                                  buildDetailRow('Disco',
+                                      selectedDisco?.planName ?? '', isDark),
+                                  buildDetailRow('Meter Type',
+                                      selectedMeterType?.name ?? '', isDark),
+                                  buildDetailRow(
+                                      'Customer Name', customerName, isDark),
+                                  buildDetailRow(
+                                      'Amount',
+                                      currencyFormatter(amountController.text
+                                        ..replaceAll(',', '')),
+                                      isDark),
+                                  buildDetailRow('Fee',
+                                      currencyFormatter(serviceFee), isDark),
+                                  buildDetailRow('Total Amount',
+                                      currencyFormatter(totalAmount), isDark,
+                                      isTotal: true)
+                                ],
+                                onButtonPressed: () async {
+                                  final hasEnoughBalance = checkBalanceLeft(
+                                      context,
+                                      user?.wallets.first.balance.toString() ??
+                                          '0',
+                                      totalAmount);
+
+                                  if (!hasEnoughBalance) return;
+                                  final pin =
+                                      await BiometricTransactionPinModal.show(
+                                          context);
+                                  if (pin != null &&
+                                      pin.length == 4 &&
+                                      mounted) {
+                                    await _processPayment(pin);
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                      })
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            ReuseableAmountTextfield(
-                amountController: amountController,
-                prefixText: '₦',
-                hintText: '10,000'),
-            const SizedBox(height: 60),
-
-            // Continue Button
-            FullWidthButton(
-                text: 'Continue',
-                isEnabled: _canProceed(),
-                onPressed: () {
-                  if (_canProceed()) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ReuseableTransactionDetailsScreen(
-                          hasBottom: false,
-                          topTitleText: 'Transaction',
-                          topTransactionsDetailsList: [
-                            buildDetailRow('Meter Number',
-                                meterNumberController.text, isDark),
-                            buildDetailRow(
-                                'Disco', selectedDisco?.planName ?? '', isDark),
-                            buildDetailRow('Meter Type',
-                                selectedMeterType?.name ?? '', isDark),
-                            buildDetailRow(
-                                'Customer Name', customerName, isDark),
-                            buildDetailRow(
-                                'Amount',
-                                currencyFormatter(amountController.text),
-                                isDark),
-                            buildDetailRow(
-                                'Fee', currencyFormatter(serviceFee), isDark),
-                            buildDetailRow(
-                                'Total Amount',
-                                currencyFormatter(
-                                    '${int.parse(amountController.text) + int.parse(serviceFee)}'),
-                                isDark,
-                                isTotal: true)
-                          ],
-                          onButtonPressed: () async {
-                            final pin = await BiometricTransactionPinModal.show(context);
-                            if (pin != null && pin.length == 4 && mounted) {
-                              await _processPayment(pin);
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                  }
-                })
-          ],
-        ),
-      ),
     );
   }
 
@@ -332,11 +437,16 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         selectedMeterType != null &&
         meterNumberController.text.isNotEmpty &&
         amountController.text.isNotEmpty &&
-        isMeterVerified;
+        isMeterVerified &&
+        verifyMeterNumberData != null;
   }
 
   void _verifyMeterNumber() async {
     if (selectedMeterType == null || selectedDisco == null) return;
+
+    setState(() {
+      hasError = false;
+    });
 
     final request = VerifyMeterNumberRequest(
       itemCode: selectedMeterType!.itemCode,
@@ -344,22 +454,75 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       billerNumber: meterNumberController.text,
     );
 
-    await ref
+    final response = await ref
         .read(electricityPaymentNotifierProvider.notifier)
         .verifyMeterNumber(request);
 
-    final state = ref.read(electricityPaymentNotifierProvider);
-    if (state.message != null && !state.message!.contains('Invalid')) {
-      setState(() {
-        isMeterVerified = true;
-        customerName = 'JOHN SMITH JACOB'; // This would come from API response
-      });
+    if (response != null && response.data != null) {
+      // API uses response_code '00' to indicate success
+      final success = response.data!.responseCode == '00' ||
+          response.data!.responseMessage.toLowerCase().contains('success');
+      if (success) {
+        setState(() {
+          isMeterVerified = true;
+          // update service fee from API if provided
+          verifyMeterNumberData = response.data;
+          customerName = verifyMeterNumberData?.name ?? '';
+          try {
+            final feeInt = response.data!.fee.toInt();
+            serviceFee = feeInt.toString();
+          } catch (_) {}
+        });
+        return;
+      }
     } else {
       setState(() {
+        hasError = true;
         isMeterVerified = false;
         customerName = '';
       });
     }
+  }
+
+  _onShareTransactionReceiptPressed() {
+    final state = ref.read(electricityPaymentNotifierProvider);
+    final paymentResponse = state.data!.first;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => ReceiptShareScreen(
+                  date:
+                      '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                        label: 'Token',
+                        value: paymentResponse.data.rechargeToken),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Amount',
+                        value: currencyFormatter(
+                            amountController.text..replaceAll(',', ''))),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Fee', value: currencyFormatter(serviceFee)),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Currency', value: 'NGN'),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Transaction Type',
+                        value: 'Electricity Purchase'),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Provider',
+                        value: selectedDisco?.planName ?? ''),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Meter Number',
+                        value: meterNumberController.text.trim()),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Transaction ID',
+                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Status',
+                        value: 'Successful',
+                        isSuccessful: true)
+                  ],
+                )));
   }
 
   Future<void> _processPayment(String pin) async {
@@ -371,12 +534,21 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       billerCode: selectedDisco!.billerCode,
       currency: 'NGN',
       billerNumber: meterNumberController.text,
-      amount: double.parse(amountController.text),
+      amount: double.parse(amountController.text.replaceAll(',', '')),
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
 
     await ref
         .read(electricityPaymentNotifierProvider.notifier)
         .payElectricity(request);
+    Navigator.pop(context);
 
     final state = ref.read(electricityPaymentNotifierProvider);
     if (state.isDataAvailable &&
@@ -384,7 +556,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         state.data!.isNotEmpty &&
         mounted) {
       final paymentResponse = state.data!.first;
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => TransactionReceiptWidget(
@@ -435,15 +607,18 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
               ),
               TransactionDetail(
                 label: 'Date & Time',
-                value: '29 Sep 2025 | 8:15 pm',
+                value:
+                    '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
               ),
             ],
-            onShareReceipt: () {
-              // TODO: Implement share receipt functionality
-            },
+            onShareReceipt: _onShareTransactionReceiptPressed,
           ),
         ),
       );
+    } else {
+      AppMessenger.show(context,
+          message: state.message ?? 'An error ocured please try again',
+          type: MessageType.error);
     }
   }
 

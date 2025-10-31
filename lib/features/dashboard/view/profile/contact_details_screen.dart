@@ -5,11 +5,17 @@ import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/services_widgets/profile_widgets/profile_row_item.dart';
 import 'change_phone_number.dart';
 
-class ContactDetailsScreen extends ConsumerWidget {
+class ContactDetailsScreen extends ConsumerStatefulWidget {
   const ContactDetailsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ContactDetailsScreen> createState() => _ContactDetailsScreenState();
+}
+
+class _ContactDetailsScreenState extends ConsumerState<ContactDetailsScreen> {
+    TextEditingController emailController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = ref.watch(userProvider);
 
@@ -63,6 +69,7 @@ class ContactDetailsScreen extends ConsumerWidget {
                     title: 'Update Email Address',
                     currentValue: emailAddress,
                     fieldLabel: 'Email Address',
+                    controller: emailController,
                     description: 'Enter a new email address where you will receive account update and notifications',
                     onContinuePressed: () {
                       

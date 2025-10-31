@@ -71,14 +71,15 @@ class CablePaymentNotifier
   CablePaymentNotifier(this._repository)
       : super(DataState<CablePaymentResponse>.initial());
 
-  Future<void> verifyNumber(VerifyCableRequest request) async {
+  Future<VerifyCableResponse> verifyNumber(VerifyCableRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      await _repository.verifyCableNumber(request);
+      final res = await _repository.verifyCableNumber(request);
       state = state.copyWith(
         isInitialLoading: false,
-        message: 'Number verified',
+        message: res.message,
       );
+      return res;
     } catch (e, stack) {
       log('[CablePaymentNotifier verifyNumber Error] $e\n$stack');
       state = state.copyWith(
@@ -86,6 +87,7 @@ class CablePaymentNotifier
         isDataAvailable: false,
         message: e.toString(),
       );
+      rethrow;
     }
   }
 

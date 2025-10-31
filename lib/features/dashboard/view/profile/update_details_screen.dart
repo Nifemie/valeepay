@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/features/notifiers/update_details_notifier.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 
 class UpdateUserDetailsScreen extends ConsumerStatefulWidget {
   final String title;
@@ -8,14 +10,16 @@ class UpdateUserDetailsScreen extends ConsumerStatefulWidget {
   final String description;
   final String fieldLabel;
   final Function() onContinuePressed;
+  final TextEditingController controller;
 
   const UpdateUserDetailsScreen({
     super.key,
     required this.title,
+    required this.controller,
     required this.description,
     required this.currentValue,
     required this.fieldLabel,
-    required this.onContinuePressed
+    required this.onContinuePressed,
   });
 
   @override
@@ -23,45 +27,44 @@ class UpdateUserDetailsScreen extends ConsumerStatefulWidget {
       _UpdateUserDetailsScreenState();
 }
 
-class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScreen> {
-  late TextEditingController _controller;
+class _UpdateUserDetailsScreenState
+    extends ConsumerState<UpdateUserDetailsScreen> {
   bool _hasChanges = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.currentValue);
-    _controller.addListener(_onTextChanged);
+    widget.controller.addListener(_onTextChanged);
   }
 
   void _onTextChanged() {
     setState(() {
-      _hasChanges = _controller.text != widget.currentValue;
+      _hasChanges = widget.controller.text != widget.currentValue;
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // Don't dispose the controller since it was passed from outside
+    widget.controller.removeListener(_onTextChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final state = ref.watch(updateDetailsNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-          ),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -81,16 +84,16 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
-                    color: const Color(0xFFF76301),
+                    color: Color(0xFFF76301),
                     size: 20,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       widget.description,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                       ),
                     ),
@@ -104,7 +107,7 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
             // Field label
             Text(
               widget.fieldLabel,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -117,11 +120,10 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(12),
-               
               ),
               child: TextField(
-                controller: _controller,
-                style: TextStyle(
+                controller: widget.controller,
+                style: const TextStyle(
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
@@ -140,8 +142,10 @@ class _UpdateUserDetailsScreenState extends ConsumerState<UpdateUserDetailsScree
             // Continue button
             FullWidthButton(
               text: 'Continue',
-              isEnabled: _hasChanges && _controller.text.trim().isNotEmpty,
+              isEnabled:
+                  _hasChanges && widget.controller.text.trim().isNotEmpty,
               onPressed: widget.onContinuePressed,
+              isLoading: state.isInitialLoading,
             ),
 
             const SizedBox(height: 32),

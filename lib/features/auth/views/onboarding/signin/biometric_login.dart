@@ -419,20 +419,20 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                                   _profileImageUrl!.isNotEmpty
                               ? Image.network(
                                 _profileImageUrl!,
-                                width: 90.w,
-                                height: 90.w,
+                                width: 90.r,
+                                height: 90.r,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
+                                  return Icon(
                                     Icons.person,
-                                    size: 50,
+                                    size: 50.r,
                                     color: appTheme.primaryColor,
                                   );
                                 },
                               )
-                              : const Icon(
+                              : Icon(
                                 Icons.person,
-                                size: 50,
+                                size: 50.r,
                                 color: appTheme.primaryColor,
                               ),
                     ),
