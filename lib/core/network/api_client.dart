@@ -74,6 +74,7 @@ class ApiClient {
         },
         onError: (DioException e, handler) async {
           print('[API ERROR] => ${e.response?.statusCode} ${e.message}');
+          print('[API ERROR RESPONSE] => ${e.response?.data}');
 
           // ✅ Handle 401 Unauthorized
           if (e.response?.statusCode == 401) {

@@ -22,6 +22,13 @@ class ApiEndpoints {
       '/api/v1/wallet/initiate-bvn-verification';
   static const String validateBvn = '/api/v1/wallet/validate-bvn-verification';
 
+  // KYC - NIN Verification (Tier 2)
+  static const String verifyNin = '/api/v1/user/verify-nin';
+  static const String kycTier2 = '/api/v1/user/kyc-tier2';
+
+  // KYC - Address Verification (Tier 3)
+  static const String kycTier3 = '/api/v1/user/kyc-tier3';
+
   // Wallet - Transaction PIN
   static const String setWalletPin = '/api/v1/user/set-wallet-pin';
   static const String verifyWalletPin = '/api/v1/user/verify-wallet-pin';
@@ -33,11 +40,7 @@ class ApiEndpoints {
   static const String createPasscode = '/api/v1/user/create-passcode';
   static const String editProfile = '/api/v1/user/edit-profile';
 
-  // // Wallet - Transfers & Transactions
-  // static const String getBanks = '/api/v1/wallet/get-banks';
-  // static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
-  // static const String verifyAccount = '/api/v1/wallet/verify-account'; //post name inquery
-  // static const String initiateTransfer = '/api/v1/wallet/initiate-transfer'; //both for internal and external
+
   static const String getAllTransactions = '/api/v1/wallet/transaction';
 
   // Support endpoints

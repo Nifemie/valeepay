@@ -1,5 +1,9 @@
 import 'package:valarpay/features/dashboard/view/home/support/terms_and_conditions.dart';
 import 'package:valarpay/features/dashboard/view/home/support/privacy_policy.dart';
+import 'package:valarpay/features/dashboard/view/KYC/upgrade_kyc.dart';
+import 'package:valarpay/features/dashboard/view/KYC/proof_of_address.dart';
+import 'package:valarpay/features/dashboard/view/KYC/kyc_review_progress.dart';
+import 'package:valarpay/features/models/kyc_address_request.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/features/auth/views/onboarding/signup/security_details.dart';
 import 'package:valarpay/features/auth/views/onboarding/signup/verify_2fa.dart';
@@ -449,6 +453,21 @@ final router = GoRouter(
     GoRoute(
       path: '/account-setup',
       builder: (context, state) => const AccountSetupScreen(),
+    ),
+    GoRoute(
+      path: '/upgrade-kyc',
+      builder: (context, state) => const UpgradeKycScreen(),
+    ),
+    GoRoute(
+      path: '/proof-of-address',
+      builder: (context, state) {
+        final addressRequest = state.extra as KycAddressRequest;
+        return ProofOfAddressPage(addressRequest: addressRequest);
+      },
+    ),
+    GoRoute(
+      path: '/kyc-review-progress',
+      builder: (context, state) => const KycReviewProgressScreen(),
     ),
     GoRoute(
       path: '/add-money',

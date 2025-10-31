@@ -7,6 +7,8 @@ import 'package:valarpay/features/models/bvn_initialize_request.dart';
 import 'package:valarpay/features/models/bvn_initialize_response.dart';
 import 'package:valarpay/features/models/bvn_validate_request.dart';
 import 'package:valarpay/features/models/bvn_validate_response.dart';
+import 'package:valarpay/features/models/nin_verification_request.dart';
+import 'package:valarpay/features/models/nin_verification_response.dart';
 import 'package:valarpay/features/models/email_request.dart';
 import 'package:valarpay/features/models/set_wallet_pin_request.dart';
 import 'package:valarpay/features/models/set_wallet_pin_response.dart';
@@ -335,6 +337,88 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       return false;
     }
   }
+
+  Future<NinVerificationResponse?> verifyNinTier2(
+    NinVerificationRequest request,
+  ) async {
+    try {
+      log('[UserNotifier] Starting NIN Tier 2 verification...');
+      log('[UserNotifier] NIN: ${request.nin}');
+      log('[UserNotifier] Selfie image length: ${request.selfieImage.length}');
+      
+      final response = await _repository.verifyNinTier2(request);
+      
+      log('[UserNotifier] NIN verification response:');
+      log('  - Status Code: ${response.statusCode}');
+      log('  - Message: ${response.message}');
+      log('  - Is Success: ${response.isSuccess}');
+      
+      return response;
+    } catch (e, stack) {
+      log('[UserNotifier NIN Verification Error] $e\n$stack');
+      return NinVerificationResponse(
+        message: e.toString(),
+        error: 'Verification failed',
+        statusCode: 500,
+      );
+    }
+  }
+
+  /// Submit KYC Tier 3 address verification
+  Future<void> submitKycTier3(Map<String, dynamic> addressData) async {
+    try {
+      log('[UserNotifier] Starting KYC Tier 3 submission...');
+      log('[UserNotifier] Address data: $addressData');
+      
+      final response = await _repository.submitKycTier3(addressData);
+      
+      log('[UserNotifier] KYC Tier 3 response:');
+      log('  - Status Code: ${response.statusCode}');
+      log('  - Message: ${response.message}');
+      
+      // Refresh user profile to get updated KYC status
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log('[UserNotifier] KYC Tier 3 successful, refreshing profile...');
+        await refreshUserProfile();
+      }
+    } catch (e, stack) {
+      log('[UserNotifier KYC Tier 3 Error] $e\n$stack');
+      rethrow;
+    }
+  }
+
+  /// Verify NIN only (without selfie) for Tier 2 KYC upgrade
+  Future<NinVerificationResponse?> verifyNinOnly(String nin) async {
+    try {
+      log('[UserNotifier] Starting NIN verification (no selfie)...');
+      log('[UserNotifier] NIN: $nin');
+      
+      // Create request without selfie image
+      final request = NinVerificationRequest(
+        nin: nin,
+        selfieImage: '', // Empty string for no selfie
+      );
+      
+      final response = await _repository.verifyNinTier2(request);
+      
+      log('[UserNotifier] NIN verification response:');
+      log('  - Status Code: ${response.statusCode}');
+      log('  - Message: ${response.message}');
+      log('  - Is Success: ${response.isSuccess}');
+      
+      // Refresh user profile to get updated KYC status
+      if (response.isSuccess) {
+        log('[UserNotifier] NIN verification successful, refreshing profile...');
+        await refreshUserProfile();
+      }
+      
+      return response;
+    } catch (e, stack) {
+      log('[UserNotifier NIN Verification Error] $e\n$stack');
+      rethrow;
+    }
+  }
+
 
   void reset() => state = DataState<UserModel>.initial();
 }

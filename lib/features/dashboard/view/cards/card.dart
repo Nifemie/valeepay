@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
+import 'package:valarpay/features/dashboard/view/comming_soon.dart';
 
 class CardsScreen extends StatefulWidget {
   const CardsScreen({super.key});
@@ -55,25 +56,17 @@ class _CardsScreenState extends State<CardsScreen> {
 
             const SizedBox(height: 60),
 
-            // Empty state icon
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: appTheme.primaryColor,
-                  width: 1.2,
-                  style: BorderStyle.solid,
-                ),
-              ),
-              child: Icon(
-                Icons.credit_card,
-                color: appTheme.primaryColor,
-                size: 32,
+            // Card image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/card_image.jpg',
+                width: 280,
+                fit: BoxFit.contain,
               ),
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 24),
 
             // "No cards found" text
             Text(
@@ -155,7 +148,17 @@ class _CardsScreenState extends State<CardsScreen> {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          setState(() => isPhysicalCardSelected = isPhysical);
+          if (!isPhysical) {
+            // Navigate to coming soon screen for virtual card
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ComingSoonScreen(serviceName: "Virtual Card"),
+              ),
+            );
+          } else {
+            setState(() => isPhysicalCardSelected = isPhysical);
+          }
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

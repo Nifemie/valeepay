@@ -22,6 +22,8 @@ import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/models/verify_phone_number.dart';
 import 'package:valarpay/features/models/verify_wallet_pin_request.dart';
 import 'package:valarpay/features/models/verify_wallet_pin_response.dart';
+import 'package:valarpay/features/models/nin_verification_request.dart';
+import 'package:valarpay/features/models/nin_verification_response.dart';
 import '../../../core/network/api_client.dart';
 
 class UserRepository {
@@ -311,4 +313,87 @@ class UserRepository {
       throw Exception('Failed to upload profile image: $e');
     }
   }
+
+  /// Verify NIN for Tier 2 KYC upgrade
+  Future<NinVerificationResponse> verifyNinTier2(
+    NinVerificationRequest request,
+  ) async {
+    try {
+      log('[UserRepository] Verifying NIN for Tier 2...');
+      log('[UserRepository] NIN: ${request.nin}');
+      log('[UserRepository] Selfie length: ${request.selfieImage.length}');
+      
+      final response = await apiClient.post(
+        ApiEndpoints.kycTier2,
+        data: request.toJson(),
+      );
+      
+      log('[UserRepository] NIN verification response: ${response.statusCode}');
+      log('[UserRepository] Response data: ${response.data}');
+      
+      return NinVerificationResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      log('[UserRepository] NIN verification failed: ${e.response?.data}');
+      
+      // Return error response with proper structure
+      return NinVerificationResponse(
+        message: e.response?.data['message'] ?? 'NIN verification failed',
+        error: e.response?.data['error'] ?? 'Bad Request',
+        statusCode: e.response?.statusCode ?? 400,
+      );
+    } catch (e) {
+      log('[UserRepository] Unexpected error: $e');
+      return NinVerificationResponse(
+        message: 'Unexpected error: $e',
+        error: 'Internal Error',
+        statusCode: 500,
+      );
+    }
+  }
+
+  /// Submit address for Tier 3 KYC upgrade
+  Future<ApiResponse> submitKycTier3(Map<String, dynamic> addressData) async {
+    try {
+      log('[UserRepository] Submitting KYC Tier 3...');
+      log('[UserRepository] Address data: $addressData');
+      
+      final response = await apiClient.post(
+        ApiEndpoints.kycTier3,
+        data: addressData,
+      );
+
+      log('[UserRepository] KYC Tier 3 response: ${response.data}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ApiResponse.fromJson(response.data);
+      } else {
+        throw Exception(
+          response.data?['message'] ?? 'Failed to submit address verification',
+        );
+      }
+    } on DioException catch (e) {
+      log('[UserRepository] KYC Tier 3 DioException:');
+      log('  Status Code: ${e.response?.statusCode}');
+      log('  Response Data: ${e.response?.data}');
+      log('  Error Message: ${e.message}');
+      
+      // Try to extract the error message from the response
+      String errorMessage = 'Failed to submit address verification';
+      if (e.response?.data != null) {
+        if (e.response!.data is Map) {
+          errorMessage = e.response!.data['message'] ?? 
+                        e.response!.data['error'] ?? 
+                        errorMessage;
+        } else if (e.response!.data is String) {
+          errorMessage = e.response!.data;
+        }
+      }
+      
+      throw Exception(errorMessage);
+    } catch (e) {
+      log('[UserRepository] KYC Tier 3 unexpected error: $e');
+      throw Exception('Failed to submit address verification: $e');
+    }
+  }
+
 }
