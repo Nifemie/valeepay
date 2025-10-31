@@ -62,8 +62,10 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
         ),
         title: Text(
           "Add Money",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-        ),
+           style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),),
       ),
       body: !isBvnVerified
           ? const KycNotSetWidget(

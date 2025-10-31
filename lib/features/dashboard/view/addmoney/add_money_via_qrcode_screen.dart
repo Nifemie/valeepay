@@ -27,8 +27,10 @@ class _AddMoneyQRCodeState extends State<AddMoneyQRCode> {
         ),
         title: Text(
           "My QR Code",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-        ),
+           style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),),
       ),
       body: Padding(
         padding: ResponsiveUtils.paddingAll24,

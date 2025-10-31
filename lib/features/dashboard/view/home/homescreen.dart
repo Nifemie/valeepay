@@ -91,7 +91,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     final userName = user?.username ?? 'Guest';
     final capitalizedUserName =
         userName[0].toUpperCase() + userName.substring(1);
-    final firstName = (user?.fullname ?? 'Guest').split(' ').first;
 
     // Get wallet data
     final wallet =

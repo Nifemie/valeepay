@@ -22,8 +22,10 @@ class _CardsScreenState extends State<CardsScreen> {
         elevation: 0,
         title: const Text(
           "Cards",
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
-        ),
+           style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),),
         centerTitle: false,
       ),
       body: Padding(

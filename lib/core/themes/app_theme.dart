@@ -16,6 +16,10 @@ class AppTheme {
         foregroundColor: Colors.black,
         elevation: 0,
         surfaceTintColor: Colors.white,
+        titleTextStyle: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
       ),
       bottomAppBarTheme: const BottomAppBarThemeData(color: Colors.white),
       cardColor: Colors.grey[200],
@@ -47,6 +51,10 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.black,
+        titleTextStyle:  TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
       ),
       bottomAppBarTheme: const BottomAppBarThemeData(color: Colors.black),
       cardColor: const Color(0xFF2B2725),

@@ -71,20 +71,22 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                       ShareableTransactionReceiptDetail(
                           label: 'Amount',
                           value: currencyFormatter(planAmount)),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Fee',
-                          value: currencyFormatter(
-                              _verifyResponse?.fee.toString() ?? '0.0')),
-                      ShareableTransactionReceiptDetail(
+                     ShareableTransactionReceiptDetail(
                           label: 'Currency', value: 'NGN'),
                       ShareableTransactionReceiptDetail(
-                          label: 'Transaction Type', value: 'CableTV Purchase'),
+                          label: 'Transaction Type', value: 'Cable TV Purchase'),
                       ShareableTransactionReceiptDetail(
-                          label: 'Provider', value: selectedProvider),
+                          label: 'Plan', value: selectedPlan ?? ''),
                       ShareableTransactionReceiptDetail(
                           label: 'Smartcard Number',
                           value: smartcardController.text.trim()),
+                       ShareableTransactionReceiptDetail(
+                          label: 'Customer Name',
+                          value: _verifiedUserName ?? ''),
+                      
                       ShareableTransactionReceiptDetail(
+                          label: 'Provider', value: selectedProvider),
+                     ShareableTransactionReceiptDetail(
                           label: 'Transaction ID',
                           value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
                       ShareableTransactionReceiptDetail(

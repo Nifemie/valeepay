@@ -82,13 +82,12 @@ class _InternetProviderPaymentScreenState
                       ShareableTransactionReceiptDetail(
                           label: 'Currency', value: 'NGN'),
                       ShareableTransactionReceiptDetail(
-                          label: 'Transaction Type',
-                          value: 'Internet Purchase'),
+                          label: 'Transaction Type', value: 'Internet'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Beneficiay Number',
+                          value: accountController.text.trim()),
                       ShareableTransactionReceiptDetail(
                           label: 'Provider', value: selectedProvider),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Account Number',
-                          value: accountController.text.trim()),
                       ShareableTransactionReceiptDetail(
                           label: 'Transaction ID',
                           value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),

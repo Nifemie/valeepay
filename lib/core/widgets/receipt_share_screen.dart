@@ -37,7 +37,10 @@ class _ReceiptShareScreenState extends State<ReceiptShareScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Transaction Receipt")),
+      appBar: AppBar(title: const Text("Transaction Receipt", style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),)),
       body: SafeArea(
         child: Container(
           margin: const EdgeInsets.all(16),

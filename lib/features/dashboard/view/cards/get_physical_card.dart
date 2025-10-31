@@ -34,8 +34,10 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
         elevation: 0,
         title: const Text(
           "Get Physical Card",
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-        ),
+           style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),),
         centerTitle: false,
       ),
       body: Padding(

@@ -202,43 +202,45 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                   ],
 
                   // Cashback Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Use Cashback',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            '₦50.00',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Switch(
-                            value: _useCashback,
-                            onChanged: (value) {
-                              setState(() {
-                                _useCashback = value;
-                              });
-                            },
-                            activeColor: appTheme.primaryColor,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     const Expanded(
+                  //       child: Text(
+                  //         'Use Cashback',
+                  //         style: TextStyle(
+                  //           color: Colors.grey,
+                  //           fontSize: 14,
+                  //           fontWeight: FontWeight.w500,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Row(
+                  //       mainAxisSize: MainAxisSize.min,
+                  //       children: [
+                  //         const Text(
+                  //           '₦50.00',
+                  //           style: TextStyle(
+                  //             color: Colors.grey,
+                  //             fontSize: 14,
+                  //           ),
+                  //         ),
+                  //         const SizedBox(width: 8),
+                  //         Switch(
+                  //           value: _useCashback,
+                  //           onChanged: (value) {
+                  //             setState(() {
+                  //               _useCashback = value;
+                  //             });
+                  //           },
+                  //           activeColor: appTheme.primaryColor,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ],
+                  // ),
+                  
+                  
                   const SizedBox(height: 32),
 
                   // Continue Button
@@ -716,7 +718,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                           label: 'Currency', value: 'NGN'),
                       ShareableTransactionReceiptDetail(
                           label: 'Transaction Type',
-                          value: 'Data Purchase'),
+                          value: 'Mobile Data Purchase'),
                       ShareableTransactionReceiptDetail(
                           label: 'Provider',
                           value: _selectedNetwork),
@@ -724,7 +726,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                           label: 'Plan',
                           value: planDescription),
                       ShareableTransactionReceiptDetail(
-                          label: 'Beneficiary Number',
+                          label: 'Phone Number',
                           value:
                               _controller.text.trim()),
                      

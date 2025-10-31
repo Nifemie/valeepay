@@ -57,9 +57,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
         ),
         title: Text(
           "Account",
-          style:
-              Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-        ),
+           style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),),
       ),
       body: !isBvnVerified
           ? const KycNotSetWidget(

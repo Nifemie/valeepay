@@ -390,7 +390,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                   buildDetailRow('Disco',
                                       selectedDisco?.planName ?? '', isDark),
                                   buildDetailRow('Meter Type',
-                                      selectedMeterType?.name ?? '', isDark),
+                                      selectedMeterType?.categoryName ?? '', isDark),
                                   buildDetailRow(
                                       'Customer Name', customerName, isDark),
                                   buildDetailRow(
@@ -438,7 +438,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         meterNumberController.text.isNotEmpty &&
         amountController.text.isNotEmpty &&
         isMeterVerified &&
-        verifyMeterNumberData != null;
+        verifyMeterNumberData != null && !isNotMinimumAmount;
   }
 
   void _verifyMeterNumber() async {
@@ -495,25 +495,32 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                       '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                   transactionDetailList: [
                     ShareableTransactionReceiptDetail(
-                        label: 'Token',
-                        value: paymentResponse.data.rechargeToken),
-                    ShareableTransactionReceiptDetail(
                         label: 'Amount',
                         value: currencyFormatter(
                             amountController.text..replaceAll(',', ''))),
+                    
                     ShareableTransactionReceiptDetail(
                         label: 'Fee', value: currencyFormatter(serviceFee)),
+                    
                     ShareableTransactionReceiptDetail(
                         label: 'Currency', value: 'NGN'),
-                    ShareableTransactionReceiptDetail(
+                    
+                   ShareableTransactionReceiptDetail(
                         label: 'Transaction Type',
                         value: 'Electricity Purchase'),
+                     ShareableTransactionReceiptDetail(
+                        label: 'Token',
+                        value: paymentResponse.data.rechargeToken),
                     ShareableTransactionReceiptDetail(
-                        label: 'Provider',
+                        label: 'Meter Details',
+                        value: '${meterNumberController.text.trim()}\n${selectedMeterType?.categoryName}'),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Customer Name',
+                        value: verifyMeterNumberData?.name ?? ''),
+                    
+                    ShareableTransactionReceiptDetail(
+                        label: 'Discos',
                         value: selectedDisco?.planName ?? ''),
-                    ShareableTransactionReceiptDetail(
-                        label: 'Meter Number',
-                        value: meterNumberController.text.trim()),
                     ShareableTransactionReceiptDetail(
                         label: 'Transaction ID',
                         value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
@@ -527,7 +534,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
 
   Future<void> _processPayment(String pin) async {
     if (!_canProceed()) return;
-
+    
     final request = ElectricityPaymentRequest(
       walletPin: pin,
       itemCode: selectedMeterType!.itemCode,
@@ -591,7 +598,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
               TransactionDetail(
                 label: 'Meter Details',
                 value:
-                    '${meterNumberController.text} | ${selectedMeterType?.name}',
+                    '${meterNumberController.text} | ${selectedMeterType?.categoryName}',
               ),
               TransactionDetail(
                 label: 'Customer Name',

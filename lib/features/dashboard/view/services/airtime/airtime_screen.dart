@@ -225,9 +225,9 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                           value: 'Airtime Purchase'),
                       ShareableTransactionReceiptDetail(
                           label: 'Provider',
-                          value: selectedNetwork),
+                          value: selectedNetwork.toUpperCase()),
                       ShareableTransactionReceiptDetail(
-                          label: 'Beneficiary Number',
+                          label: 'Phone Number',
                           value:
                               _controller.text.trim()),
                       ShareableTransactionReceiptDetail(
@@ -299,7 +299,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                     label: 'Recipient Number',
                     value: _controller.text,
                   ),
-                  TransactionDetail(label: 'Network', value: selectedNetwork),
+                  TransactionDetail(label: 'Network', value: selectedNetwork.toUpperCase()),
                   TransactionDetail(
                     label: 'Amount',
                     value:  currencyFormatter(_amountController.text..replaceAll(',', '')),,
