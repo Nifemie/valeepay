@@ -5,12 +5,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/KYC/identity_verification.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
+import 'package:valarpay/features/models/bvn_verification_request.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'kyc_step_provider.dart';
 
 class CameraPermissionPage extends ConsumerStatefulWidget {
-  final KycAddressRequest request;
+  final BvnVerificationRequest request;
   const CameraPermissionPage({required this.request, Key? key})
       : super(key: key);
 

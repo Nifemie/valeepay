@@ -153,7 +153,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                       const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Container(
+                        child: SizedBox(
                           width: double.infinity,
                           height: 60,
                           child: Image.asset(

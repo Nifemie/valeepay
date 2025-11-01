@@ -6,19 +6,19 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:valarpay/core/services/verification_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/KYC/setup_pin.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
-import 'package:valarpay/features/models/qore_bvn_face_verification_request.dart';
+import 'package:valarpay/features/models/bvn_verification_request.dart';
 import '../../../notifiers/wallet_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import '../../widgets/Kyc/Dialog/profile_setup_dialog.dart';
 import 'kyc_step_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class IdentityVerificationPage extends ConsumerStatefulWidget {
-  final KycAddressRequest request;
+  final BvnVerificationRequest request;
   const IdentityVerificationPage({required this.request, Key? key})
     : super(key: key);
 
@@ -45,11 +45,19 @@ class _IdentityVerificationPageState
     _initializeCamera();
   }
 
-  _setupWallet() async {
+  _verifyBvnAndSetupWallet(File capturedImage) async {
     try {
+      setState(() => _isLoading = true);
+      final compressedFile = await compressImage(capturedImage);
+      String? base64 = await convertFileToBase64Async(compressedFile);
+      final verificationRequest = BvnVerificationRequest(
+        bvn: widget.request.bvn.toString(),
+        selfieImage: base64.toString(),
+      );
+
       await ref
           .read(walletNotifierProvider.notifier)
-          .setupWallet(widget.request);
+          .verifyBvnAndSetupWallet(verificationRequest);
       final userState = ref.read(walletNotifierProvider);
       if (userState.isDataAvailable && mounted) {
         AppMessenger.show(
@@ -68,14 +76,17 @@ class _IdentityVerificationPageState
           );
         }
       }
-    } catch (e) {
-      if (context.mounted) {
-        AppMessenger.show(
-          context,
-          message: 'An unexpected error occurred: $e',
-          type: MessageType.error,
-        );
-      }
+    } catch (e, stackTrace) {
+      log("Exception during face verification: $e");
+      log("Stack trace: $stackTrace");
+
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Face verification failed: ${e.toString()}',
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -151,66 +162,37 @@ class _IdentityVerificationPageState
     _startCountdown();
   }
 
-  Future<String> convertFileToBase64Async(File file) async {
-    final bytes = await file.readAsBytes();
-    return base64Encode(bytes);
+  Future<File> compressImage(File file) async {
+    final dir = await getTemporaryDirectory();
+    final targetPath = path.join(
+      dir.path,
+      '${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+    final XFile? result = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 40, // Adjust between 30–90
+    );
+    return result != null ? File(result.path) : file;
   }
 
-  Future<void> _verifyCapturedImage(File capturedImage) async {
-    try {
-      setState(() => _isLoading = true);
-      
-      log("🔍 Starting face verification...");
-      log("📸 Image path: ${capturedImage.path}");
-      log("📏 Image size: ${await capturedImage.length()} bytes");
-      
-      String? base64 = await convertFileToBase64Async(capturedImage);
-      log("✅ Base64 conversion complete, length: ${base64.length}");
-      
-      final requestBody = QoreBvnFaceVerificationRequest(
-        idNumber: widget.request.bvn.toString(),
-        photoBase64: base64.toString(),
-      );
-      log("📤 Sending request with BVN: ${widget.request.bvn}");
-      
-      final service = VerificationService();
-      final response = await service.verifyBvnFace(requestBody);
-      
-      log("📥 Response received:");
-      log("   - Status Code: ${response.statusCode}");
-      log("   - Message: ${response.message}");
-      log("   - Match: ${response.metadata?.match}");
-      log("   - Match Score: ${response.metadata?.matchScore}");
-      log("   - Threshold: ${response.metadata?.matchingThreshold}");
-      log("   - Full Response: ${response.toJson().toString()}");
+  Future<String> convertFileToBase64Async(File file) async {
+    final bytes = await file.readAsBytes();
+    final base64String = base64Encode(bytes);
 
-      if (response.metadata?.match == true) {
-        log("✅ Face verification successful!");
-        _setupWallet();
-      } else {
-        final errorMsg = response.message ?? 
-            'Face verification failed. Match: ${response.metadata?.match}, Score: ${response.metadata?.matchScore}';
-        log("❌ Face verification failed: $errorMsg");
-        
-        AppMessenger.show(
-          context,
-          type: MessageType.error,
-          message: errorMsg,
-        );
-      }
-    } catch (e, stackTrace) {
-      log("❌ Exception during face verification: $e");
-      log("Stack trace: $stackTrace");
-      
-      AppMessenger.show(
-        context,
-        type: MessageType.error,
-        message: 'Face verification failed: ${e.toString()}',
-      );
-      _retake();
-    } finally {
-      setState(() => _isLoading = false);
+    final extension = path.extension(file.path).toLowerCase();
+    String mimeType = 'image/jpeg'; // default fallback
+
+    if (extension == '.png') {
+      mimeType = 'image/png';
+    } else if (extension == '.jpg' || extension == '.jpeg') {
+      mimeType = 'image/jpeg';
+    } else if (extension == '.gif') {
+      mimeType = 'image/gif';
+    } else if (extension == '.webp') {
+      mimeType = 'image/webp';
     }
+    return 'data:$mimeType;base64,$base64String';
   }
 
   void _showSuccessDialog() {
@@ -368,7 +350,7 @@ class _IdentityVerificationPageState
                 onPressed: () {
                   if (_capturedImage != null) {
                     ref.read(kycStepProvider.notifier).state = 4;
-                    _verifyCapturedImage(_capturedImage!);
+                    _verifyBvnAndSetupWallet(_capturedImage!);
                   }
                 },
               ),

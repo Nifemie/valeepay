@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:valarpay/features/models/user.dart';
 
 class LoginRequest {
@@ -19,12 +16,12 @@ class LoginRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        "username": username,
-        "password": password,
-        "ipAddress": ipAddress,
-        "deviceName": deviceName,
-        "operatingSystem": operatingSystem,
-      };
+    "username": username,
+    "password": password,
+    "ipAddress": ipAddress,
+    "deviceName": deviceName,
+    "operatingSystem": operatingSystem,
+  };
 }
 
 class PasscodeLoginRequest {
@@ -76,9 +73,9 @@ class LoginResponse {
   }
 
   Map<String, dynamic> toJson() => {
-        'message': message,
-        'user': user.toJson(),
-        'accessToken': accessToken,
-        'statusCode': statusCode,
-      };
+    'message': message,
+    'user': user.toJson(),
+    'accessToken': accessToken,
+    'statusCode': statusCode,
+  };
 }

@@ -1,28 +1,28 @@
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
+import 'package:valarpay/features/models/bvn_verification_request.dart';
 import 'package:valarpay/features/models/transactions_response.dart';
 import 'package:valarpay/core/network/api_client.dart';
 import 'package:valarpay/features/models/api_response.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
 
 class WalletRepository {
   final ApiClient apiClient;
 
   WalletRepository(this.apiClient);
 
-  Future<ApiResponse> setupWallet(KycAddressRequest request) async {
+  Future<ApiResponse> verifyBVN(BvnVerificationRequest request) async {
     try {
       final response = await apiClient.post(
-        ApiEndpoints.validateBvn,
+        ApiEndpoints.verifyBvn,
         data: request.toJson(),
       );
       return ApiResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(
-        e.response?.data['message'] ?? 'Failed to validate bvn',
+        e.response?.data['message'] ?? 'BVN verification failed',
       );
     } catch (e) {
-      throw Exception('Unexpected error during bvn validation: $e');
+      throw Exception('Unexpected error during bvn verification: $e');
     }
   }
 

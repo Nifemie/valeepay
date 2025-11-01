@@ -83,23 +83,6 @@ class BiometricTransactionPinModal {
     return await pinModalFuture;
   }
   
-  static Future<String?> _showBiometricModal(BuildContext context) async {
-    final result = await showDialog<String?>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return _BiometricTransactionDialog();
-      },
-    );
-    
-    // Check if user chose to use PIN instead
-    if (result == '__FALLBACK__') {
-      // Show regular PIN modal
-      return await TransactionPinModal.show(context);
-    }
-    
-    return result;
-  }
 }
 
 class _BiometricTransactionDialog extends StatefulWidget {
@@ -110,15 +93,7 @@ class _BiometricTransactionDialog extends StatefulWidget {
 class _BiometricTransactionDialogState extends State<_BiometricTransactionDialog> {
   bool _isAuthenticating = false;
   bool _showFallback = false;
-  bool _hasShownDialog = false;
-  
-  @override
-  void initState() {
-    super.initState();
-    // Don't auto-trigger, wait for user to see the modal first
-    _hasShownDialog = true;
-  }
-  
+
   Future<void> _authenticateWithBiometric() async {
     if (!mounted) return;
     

@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/transaction_model.dart';
-import 'package:valarpay/features/models/transactions_response.dart';
 import 'package:valarpay/features/repositories/wallet_repository.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 

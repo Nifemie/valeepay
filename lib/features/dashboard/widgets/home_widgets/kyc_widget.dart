@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/KYC/identity_verification.dart';
+import 'package:valarpay/features/dashboard/view/KYC/BVN.dart';
 import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
 
 class KYCWidget extends StatelessWidget {
   const KYCWidget({Key? key, this.onSetup}) : super(key: key);
@@ -80,9 +79,7 @@ class KYCWidget extends StatelessWidget {
                 () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const ResidentialAddressPage(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const BVNPage()),
                   );
                 },
             style: ElevatedButton.styleFrom(

@@ -2,14 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
-import 'package:valarpay/features/models/phone_number_request.dart';
 import 'package:valarpay/features/models/reset_pin_model.dart';
-import 'package:valarpay/features/models/verify_phone_number.dart';
 import 'package:valarpay/features/notifiers/reset_pin_notifier.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -167,7 +164,9 @@ class _ForgotPinScreenState extends ConsumerState<ForgotPinScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                 _isLoading ? 'Sending reset pin OTP code to $email and $phoneNumber to reset your pin': 'Enter the code we sent to $email and $phoneNumber to reset your pin',
+                  _isLoading
+                      ? 'Sending reset pin OTP code to $email and $phoneNumber to reset your pin'
+                      : 'Enter the code we sent to $email and $phoneNumber to reset your pin',
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   textAlign: TextAlign.center,
                 ),
@@ -212,7 +211,7 @@ class _ForgotPinScreenState extends ConsumerState<ForgotPinScreen>
                     GestureDetector(
                       onTap: _resendTimer == 0 ? _sendForgotPinOtp : null,
                       child: Text(
-                             _resendTimer == 0
+                        _resendTimer == 0
                             ? 'Resend'
                             : 'Resend in $_resendTimer seconds',
                         style: TextStyle(

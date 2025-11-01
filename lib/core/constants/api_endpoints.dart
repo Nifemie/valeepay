@@ -18,9 +18,7 @@ class ApiEndpoints {
       '/api/v1/user/verify-forgot-password';
 
   // KYC - BVN Verification
-  static const String initializeBvn =
-      '/api/v1/wallet/initiate-bvn-verification';
-  static const String validateBvn = '/api/v1/wallet/validate-bvn-verification';
+  static const String verifyBvn = '/api/v1/wallet/bvn-verification';
 
   // KYC - NIN Verification (Tier 2)
   static const String verifyNin = '/api/v1/user/verify-nin';

@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/services/session_service.dart';
-import 'package:flutter/material.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://valar-pay-api.up.railway.app';

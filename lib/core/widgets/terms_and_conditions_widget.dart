@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/routing/app_router.dart';
-
 class TermsAndConditionsWidget extends StatelessWidget {
   const TermsAndConditionsWidget({super.key});
 
