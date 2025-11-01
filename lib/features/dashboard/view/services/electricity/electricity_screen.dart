@@ -574,8 +574,9 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         ),
       );
     } else {
-      AppMessenger.show(context, message: state.message ?? 'An error ocured please try again',
-      type: MessageType.error);
+      AppMessenger.show(context,
+          message: state.message ?? 'An error ocured please try again',
+          type: MessageType.error);
     }
   }
 
