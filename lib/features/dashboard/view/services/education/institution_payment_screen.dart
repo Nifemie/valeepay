@@ -27,6 +27,7 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
   final TextEditingController studentIdController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   int serviceFee = 500;
+  bool saveBeneficiary = false;
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +158,12 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
+                                saveBeneficiary: saveBeneficiary,
+                                onSaveBeneficiaryChanged: (value) {
+                                  setState(() {
+                                    saveBeneficiary = value;
+                                  });
+                                },
                                 hasBottom: false,
                           topTitleText: 'Transaction',
                                 topTransactionsDetailsList: [

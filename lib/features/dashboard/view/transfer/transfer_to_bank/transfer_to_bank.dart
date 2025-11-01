@@ -10,6 +10,7 @@ import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/core/widgets/snap_and_send_money.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/recent_and_saved_beneficiary.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -553,6 +554,17 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
                         isEnabled:
                             verifiedAccount != null && selectedBank != null),
                     const SizedBox(height: 24),
+                    TransferToBankRecentAndSavedBeneficiaries(
+                      onSelectAccount: (selectedAccount) {
+                        // Populate the account controller and trigger matching
+                        setState(() {
+                          accountController.text = selectedAccount;
+                        });
+                        if (accountController.text.length == 10) {
+                          _searchMatchingBanks();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),

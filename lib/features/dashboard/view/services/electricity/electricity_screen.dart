@@ -34,6 +34,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
   final TextEditingController meterNumberController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final NumberFormat formatter = NumberFormat('#,###');
+  bool saveBeneficiary = false;
 
   VerifyMeterNumberData? verifyMeterNumberData;
   String serviceFee = '500';
@@ -303,7 +304,8 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                   : paymentState.isInitialLoading
                                       ? 'Verifying meter number...'
                                       : hasError
-                                          ? 'Error verifying meter number'
+                                          ? paymentState.message ??
+                                              'Error verifying meter number'
                                           : 'Enter valid meter number to verify',
                               style: TextStyle(
                                 color: isMeterVerified
@@ -333,6 +335,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                   ReuseableAmountTextfield(
                       amountController: amountController,
                       prefixText: '₦',
+                      isReadOnly: verifyMeterNumberData == null,
                       hintText: '10,000'),
                   if (isNotMinimumAmount) SizedBox(height: 12),
                   if (isNotMinimumAmount)
@@ -382,6 +385,12 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                             MaterialPageRoute(
                               builder: (context) =>
                                   ReuseableTransactionDetailsScreen(
+                                saveBeneficiary: saveBeneficiary,
+                                onSaveBeneficiaryChanged: (value) {
+                                  setState(() {
+                                    saveBeneficiary = value;
+                                  });
+                                },
                                 hasBottom: false,
                                 topTitleText: 'Transaction',
                                 topTransactionsDetailsList: [
@@ -389,8 +398,10 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                       meterNumberController.text, isDark),
                                   buildDetailRow('Disco',
                                       selectedDisco?.planName ?? '', isDark),
-                                  buildDetailRow('Meter Type',
-                                      selectedMeterType?.categoryName ?? '', isDark),
+                                  buildDetailRow(
+                                      'Meter Type',
+                                      selectedMeterType?.categoryName ?? '',
+                                      isDark),
                                   buildDetailRow(
                                       'Customer Name', customerName, isDark),
                                   buildDetailRow(
@@ -438,7 +449,8 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         meterNumberController.text.isNotEmpty &&
         amountController.text.isNotEmpty &&
         isMeterVerified &&
-        verifyMeterNumberData != null && !isNotMinimumAmount;
+        verifyMeterNumberData != null &&
+        !isNotMinimumAmount;
   }
 
   void _verifyMeterNumber() async {
@@ -498,29 +510,25 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                         label: 'Amount',
                         value: currencyFormatter(
                             amountController.text..replaceAll(',', ''))),
-                    
                     ShareableTransactionReceiptDetail(
                         label: 'Fee', value: currencyFormatter(serviceFee)),
-                    
                     ShareableTransactionReceiptDetail(
                         label: 'Currency', value: 'NGN'),
-                    
-                   ShareableTransactionReceiptDetail(
+                    ShareableTransactionReceiptDetail(
                         label: 'Transaction Type',
                         value: 'Electricity Purchase'),
-                     ShareableTransactionReceiptDetail(
+                    ShareableTransactionReceiptDetail(
                         label: 'Token',
                         value: paymentResponse.data.rechargeToken),
                     ShareableTransactionReceiptDetail(
                         label: 'Meter Details',
-                        value: '${meterNumberController.text.trim()}\n${selectedMeterType?.categoryName}'),
+                        value:
+                            '${meterNumberController.text.trim()}\n${selectedMeterType?.categoryName}'),
                     ShareableTransactionReceiptDetail(
                         label: 'Customer Name',
                         value: verifyMeterNumberData?.name ?? ''),
-                    
                     ShareableTransactionReceiptDetail(
-                        label: 'Discos',
-                        value: selectedDisco?.planName ?? ''),
+                        label: 'Discos', value: selectedDisco?.planName ?? ''),
                     ShareableTransactionReceiptDetail(
                         label: 'Transaction ID',
                         value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
@@ -534,7 +542,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
 
   Future<void> _processPayment(String pin) async {
     if (!_canProceed()) return;
-    
+
     final request = ElectricityPaymentRequest(
       walletPin: pin,
       itemCode: selectedMeterType!.itemCode,

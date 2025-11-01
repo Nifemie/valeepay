@@ -43,17 +43,20 @@ class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
   final List<Widget>? bottomTransactionsDetailsList;
   final Function()? onButtonPressed;
   final bool showActions;
+  bool saveBeneficiary;
+  Function(bool) onSaveBeneficiaryChanged;
 
-  ReuseableTransactionDetailsScreen({
-    super.key,
-    required this.topTransactionsDetailsList,
-    this.bottomTransactionsDetailsList,
-    required this.topTitleText,
-    this.bottomTitleText,
-    required this.hasBottom,
-    this.onButtonPressed,
-    this.showActions = true,
-  });
+  ReuseableTransactionDetailsScreen(
+      {super.key,
+      required this.topTransactionsDetailsList,
+      this.bottomTransactionsDetailsList,
+      required this.topTitleText,
+      this.bottomTitleText,
+      required this.hasBottom,
+      this.onButtonPressed,
+      this.showActions = true,
+      required this.saveBeneficiary,
+      required this.onSaveBeneficiaryChanged});
 
   @override
   ConsumerState<ReuseableTransactionDetailsScreen> createState() =>
@@ -63,7 +66,12 @@ class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
 class _ReuseableTransactionDetailsScreenState
     extends ConsumerState<ReuseableTransactionDetailsScreen> {
   String selectedPaymentMethod = 'Vconnect Bank'; // Default selection
-  bool saveBeneficiary = false; // Save beneficiary toggle state
+  late bool _saveBeneficiary;
+  @override
+  void initState() {
+    super.initState();
+    _saveBeneficiary = widget.saveBeneficiary;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,11 +192,14 @@ class _ReuseableTransactionDetailsScreenState
                       ),
                     ),
                     Switch(
-                      value: saveBeneficiary,
-                      onChanged: (value) {
+                      value: _saveBeneficiary,
+                      onChanged: (val) {
+                        // Update local UI immediately
                         setState(() {
-                          saveBeneficiary = value;
+                          _saveBeneficiary = val;
                         });
+                        // Notify parent as before
+                        widget.onSaveBeneficiaryChanged(val);
                       },
                       activeColor: const Color(0xFFF76301),
                       activeTrackColor: const Color(
@@ -256,24 +267,12 @@ class _ReuseableTransactionDetailsScreenState
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        accountNumber,
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        'Balance: ${currencyFormatter(accountBalance)}',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  Text(
+                    accountNumber,
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),

@@ -30,6 +30,7 @@ class _TransactionHistoryPageState
     extends ConsumerState<TransactionHistoryPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -41,13 +42,24 @@ class _TransactionHistoryPageState
 
     // Setup scroll listener for pagination
     _scrollController.addListener(_onScroll);
+
+    // Setup search listener
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Handle search query changes
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+    });
   }
 
   // Fetch transactions
@@ -69,19 +81,6 @@ class _TransactionHistoryPageState
   // Handle refresh
   Future<void> _handleRefresh() async {
     await ref.read(transactionNotifierProvider.notifier).refresh();
-  }
-
-  // Handle status filter
-  void _handleStatusFilter(String? status) {
-    ref.read(selectedStatusFilterProvider.notifier).state = status;
-    ref.read(transactionNotifierProvider.notifier).filterByStatus(status);
-  }
-
-  // Handle clear filters
-  void _handleClearFilters() {
-    ref.read(selectedStatusFilterProvider.notifier).state = null;
-    ref.read(selectedCategoryFilterProvider.notifier).state = null;
-    ref.read(transactionNotifierProvider.notifier).clearFilters();
   }
 
   // Show filter bottom sheet
@@ -234,14 +233,27 @@ class _TransactionHistoryPageState
     } catch (_) {}
 
     // Filter transactions by selected month
-    final filteredTransactions =
-        (monthStart != null && monthEnd != null)
-            ? transactions.where((tx) {
-              final DateTime txDate = tx.createdAt;
-              return !txDate.isBefore(monthStart!) &&
-                  !txDate.isAfter(monthEnd!);
-            }).toList()
-            : transactions;
+    var filteredTransactions = (monthStart != null && monthEnd != null)
+        ? transactions.where((tx) {
+            final DateTime txDate = tx.createdAt;
+            return !txDate.isBefore(monthStart!) && !txDate.isAfter(monthEnd!);
+          }).toList()
+        : transactions;
+
+    // Apply search filter
+    if (_searchQuery.isNotEmpty) {
+      filteredTransactions = filteredTransactions.where((tx) {
+        final description = tx.description?.toLowerCase() ?? '';
+        final reference = tx.reference?.toLowerCase() ?? '';
+        final amount = tx.amount.toString();
+        final status = tx.status?.toLowerCase() ?? '';
+
+        return description.contains(_searchQuery) ||
+            reference.contains(_searchQuery) ||
+            amount.contains(_searchQuery) ||
+            status.contains(_searchQuery);
+      }).toList();
+    }
 
     // Calculate totals for filtered transactions (only successful)
     double totalIn = 0;
@@ -304,150 +316,168 @@ class _TransactionHistoryPageState
           : RefreshIndicator(
               onRefresh: _handleRefresh,
               child: Column(
-          children: [
-            // Header section with search and filters
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Search Bar
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFB0B0B0).withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
+                  // Header section with search and filters
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.search, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Search...',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[600],
-                                fontFamily: 'SF Pro',
-                                fontSize: 14,
-                              ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
+                        // Search Bar
+                        Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFB0B0B0).withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.search,
+                                  size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search transactions...',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontFamily: 'SF Pro',
+                                      fontSize: 14,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  onChanged: (value) {
+                                    // Trigger rebuild when search changes
+                                    setState(() {});
+                                  },
+                                ),
+                              ),
+                              if (_searchQuery.isNotEmpty)
+                                GestureDetector(
+                                  onTap: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                  child: Icon(
+                                    Icons.clear,
+                                    size: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Month Selector and Sort By
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Month Selector
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: _handleDatePicker,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        selectedMonth,
+                                        style: const TextStyle(
+                                          fontFamily: 'SF Pro',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.keyboard_arrow_down,
+                                          size: 16),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'In ₦${totalIn.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                        fontFamily: 'SF Pro',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Out ₦${totalOut.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF9CA3AF),
+                                        fontFamily: 'SF Pro',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            // Sort By Button
+                            GestureDetector(
+                              onTap: _showFilterBottomSheet,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF76301),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(
+                                      Icons.filter_list,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Sort by',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'SF Pro',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Month Selector and Sort By
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Month Selector
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onTap: _handleDatePicker,
-                            child: Row(
-                              children: [
-                                Text(
-                                  selectedMonth,
-                                  style: const TextStyle(
-                                    fontFamily: 'SF Pro',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down, size: 16),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text(
-                                'In ₦${totalIn.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  color: Color(0xFF9CA3AF),
-                                  fontFamily: 'SF Pro',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Out ₦${totalOut.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  color: Color(0xFF9CA3AF),
-                                  fontFamily: 'SF Pro',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      // Sort By Button
-                      GestureDetector(
-                        onTap: _showFilterBottomSheet,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF76301),
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(
-                                Icons.filter_list,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                'Sort by',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'SF Pro',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  // Transactions List
+                  Expanded(
+                    child: _buildTransactionsList(
+                      transactionState,
+                      filteredTransactions,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 4),
-            // Transactions List
-            Expanded(
-              child: _buildTransactionsList(
-                transactionState,
-                filteredTransactions,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -493,8 +523,7 @@ class _TransactionHistoryPageState
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount:
-          filteredTransactions.length +
+      itemCount: filteredTransactions.length +
           (ref.read(transactionNotifierProvider.notifier).hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         // Show loader at bottom if loading more
@@ -511,8 +540,8 @@ class _TransactionHistoryPageState
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder:
-                    (_) => TransactionDetailsPage(transaction: transaction),
+                builder: (_) =>
+                    TransactionDetailsPage(transaction: transaction),
               ),
             );
           },

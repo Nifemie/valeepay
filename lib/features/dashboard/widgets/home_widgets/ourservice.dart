@@ -44,7 +44,7 @@ class OurServicesWidget extends StatelessWidget {
       ServiceItem(
           icon: 'assets/images/service_icon/int.svg',
           label: 'Intl. Airtime',
-          onTap: () => context.push('/international-airtime')),
+          onTap: () => context.push('/coming-soon')),
       ServiceItem(
           icon: 'assets/images/service_icon/Education.svg',
           label: 'Education',

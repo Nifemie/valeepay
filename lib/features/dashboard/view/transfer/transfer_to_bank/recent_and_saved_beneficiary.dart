@@ -1,167 +1,346 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/beneficiary_transfer_amount_screen.dart';
+import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_amount_screen.dart';
+import 'package:valarpay/features/models/transaction_model.dart';
+import 'package:valarpay/features/models/transfer_models.dart';
+import 'package:valarpay/features/notifiers/beneficiary_notifier.dart';
+import 'package:valarpay/features/models/beneficiary_models.dart';
+import 'package:valarpay/features/notifiers/transaction_notifier.dart';
 
-class TransferToBankRecentAndSavedBeneficiaries extends StatefulWidget {
-  const TransferToBankRecentAndSavedBeneficiaries({super.key});
+class TransferToBankRecentAndSavedBeneficiaries extends ConsumerStatefulWidget {
+  final ValueChanged<String>? onSelectAccount;
+
+  const TransferToBankRecentAndSavedBeneficiaries({
+    super.key,
+    this.onSelectAccount,
+  });
 
   @override
-  State<TransferToBankRecentAndSavedBeneficiaries> createState() => _TransferToBankRecentAndSavedBeneficiariesState();
+  ConsumerState<TransferToBankRecentAndSavedBeneficiaries> createState() =>
+      _TransferToBankRecentAndSavedBeneficiariesState();
 }
 
-class _TransferToBankRecentAndSavedBeneficiariesState extends State<TransferToBankRecentAndSavedBeneficiaries> {
-    bool isRecentTab = true;
-  final List<Map<String, String>> recentBeneficiaries = [
-    {
-      "name": "John Smith",
-      "account": "0000000000",
-      "bank": "Fidelity Bank",
-      "logo": "assets/images/bank.png",
-    },
-    {
-      "name": "John Smith",
-      "account": "0000000000",
-      "bank": "Keystone Bank",
-      "logo": "assets/images/bank.png",
-    },
-    {
-      "name": "John Smith",
-      "account": "0000000000",
-      "bank": "Parallax Bank",
-      "logo": "assets/images/bank.png",
-    },
-  ];
-
+class _TransferToBankRecentAndSavedBeneficiariesState
+    extends ConsumerState<TransferToBankRecentAndSavedBeneficiaries> {
+  bool isRecentTab = true;
+  String _searchQuery = '';
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-         // Tabs (Recent & Saved)
-            Row(
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(beneficiaryNotifierProvider.notifier).getBeneficiaries(
+            category: 'TRANSFER',
+            transferType: 'inter',
+          );
+      ref
+          .read(transactionNotifierProvider.notifier)
+          .fetchTransactions(type: 'DEBIT', category: 'TRANSFER', limit: 50);
+    });
+  }
+
+  Widget _buildRecentBeneficiaries() {
+    final state = ref.watch(transactionNotifierProvider);
+
+    if (state.isInitialLoading) {
+      return const Center(
+          child: Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: CircularProgressIndicator(),
+      ));
+    }
+
+    if (state.data!.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: 20),
+          child: Text(
+            'No recent transfers',
+            style: const TextStyle(color: Colors.black54),
+          ),
+        ),
+      );
+    }
+
+    // Filter + only valid ones
+    final filtered = state.data!
+        .where((b) => b.transferDetails?.beneficiaryAccountNumber != null)
+        .where((b) {
+      final d = b.transferDetails!;
+      final name = d.beneficiaryName?.toLowerCase() ?? '';
+      final acct = d.beneficiaryAccountNumber?.toLowerCase() ?? '';
+      final bank = d.beneficiaryBankName?.toLowerCase() ?? '';
+      return name.contains(_searchQuery.toLowerCase()) ||
+          acct.contains(_searchQuery.toLowerCase()) ||
+          bank.contains(_searchQuery.toLowerCase());
+    }).toList();
+
+    if (filtered.isEmpty) {
+      return const Center(
+        child: Padding(
+            padding: EdgeInsets.only(top: 20),
+            child: Text("No recent transfers found")),
+      );
+    }
+
+    /// ✅ Merge duplicates: same beneficiary name + account number
+    final Map<String, TransactionModel> uniqueMap = {};
+
+    for (var tx in filtered) {
+      final d = tx.transferDetails!;
+      final key =
+          "${d.beneficiaryName}-${d.beneficiaryAccountNumber}".toLowerCase();
+
+      // Only keep one instance — first or latest, depending on your need
+      if (!uniqueMap.containsKey(key)) {
+        uniqueMap[key] = tx;
+      }
+    }
+
+    final mergedList = uniqueMap.values.toList();
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: mergedList.length,
+      itemBuilder: (context, index) {
+        final b = mergedList[index];
+        return InkWell(
+          onTap: () {
+            final acct = b.transferDetails?.beneficiaryAccountNumber;
+            if (acct != null && acct.isNotEmpty) {
+              widget.onSelectAccount?.call(acct);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => setState(() => isRecentTab = true),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Recent",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isRecentTab ? appTheme.primaryColor : null,
-                        ),
-                      ),
-                      if (isRecentTab)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 3,
-                          width: 40,
-                          color: appTheme.primaryColor,
-                        ),
-                    ],
+                CircleAvatar(
+                  radius: 18,
+                  child: Text(
+                    (b.transferDetails?.beneficiaryBankName?[0] ?? 'B'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () => setState(() => isRecentTab = false),
+                const SizedBox(width: 12),
+                Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Saved Beneficiary",
-                        style: TextStyle(
+                        b.transferDetails?.beneficiaryName ?? '',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: !isRecentTab ? appTheme.primaryColor : null,
                         ),
                       ),
-                      if (!isRecentTab)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          height: 3,
-                          width: 40,
-                          color: appTheme.primaryColor,
+                      const SizedBox(height: 2),
+                      Text(
+                        '${b.transferDetails?.beneficiaryAccountNumber}   ${b.transferDetails?.beneficiaryBankName}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
                         ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
 
-            const SizedBox(height: 16),
+  Widget _buildSavedBeneficiaries() {
+    final state = ref.watch(beneficiaryNotifierProvider);
 
-            // Search Field
-            TextField(
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.black54),
-                hintText: "Search",
-                filled: true,
-                fillColor: Theme.of(context).cardColor.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+    if (state.isInitialLoading) {
+      return const Center(
+          child: Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: CircularProgressIndicator()));
+    }
+
+    if (state.data!.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: 20),
+          child: Text(
+            'No saved beneficiaries',
+          ),
+        ),
+      );
+    }
+
+    // ✅ Filter by search
+    final beneficiaries = state.data!
+        .where((b) =>
+            b.accountName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            b.accountNumber
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            b.bankName.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+
+    if (beneficiaries.isEmpty) {
+      return const Center(
+        child: Text("No matching saved beneficiaries found"),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: beneficiaries.length,
+      itemBuilder: (context, index) {
+        final b = beneficiaries[index];
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BeneficiaryTransferAmountScreen(
+                  beneficiaryDetails: b,
                 ),
               ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  child: Text(
+                    (b.bankName.isNotEmpty ? b.bankName[0] : 'B'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        b.accountName,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${b.accountNumber}   ${b.bankName}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-            const SizedBox(height: 16),
-
-            // Beneficiaries List
-            Expanded(
-              child: ListView.builder(
-                itemCount: recentBeneficiaries.length,
-                itemBuilder: (context, index) {
-                  final b = recentBeneficiaries[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Tabs
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () => setState(() => isRecentTab = true),
+              child: Column(
+                children: [
+                  Text(
+                    "Recent",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isRecentTab ? appTheme.primaryColor : null,
                     ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundImage: AssetImage(b["logo"]!),
-                          radius: 18,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                b["name"]!,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "${b["account"]}   ${b["bank"]}",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.bookmark_add_outlined,
-                            size: 20,
-                            color: Colors.black54,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ],
+                  ),
+                  if (isRecentTab)
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      height: 3,
+                      width: 40,
+                      color: appTheme.primaryColor,
                     ),
-                  );
-                },
+                ],
               ),
             ),
-          
+            const SizedBox(width: 20),
+            GestureDetector(
+              onTap: () => setState(() => isRecentTab = false),
+              child: Column(
+                children: [
+                  Text(
+                    "Saved Beneficiary",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: !isRecentTab ? appTheme.primaryColor : null,
+                    ),
+                  ),
+                  if (!isRecentTab)
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      height: 3,
+                      width: 40,
+                      color: appTheme.primaryColor,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // ✅ Search Field (filters both)
+        TextField(
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search, color: Colors.black54),
+            hintText: "Search by name, account, or bank",
+            filled: true,
+            fillColor: Theme.of(context).cardColor.withValues(alpha: 0.5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value.trim();
+            });
+          },
+        ),
+
+        const SizedBox(height: 16),
+
+        isRecentTab ? _buildRecentBeneficiaries() : _buildSavedBeneficiaries(),
       ],
     );
   }

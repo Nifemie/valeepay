@@ -24,6 +24,7 @@ class _BettingScreenState extends ConsumerState<BettingScreen> {
   String selectedProvider = 'Bet9ja';
   final TextEditingController userIdController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  bool saveBeneficiary = false;
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +159,12 @@ class _BettingScreenState extends ConsumerState<BettingScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
+                          saveBeneficiary: saveBeneficiary,
+                          onSaveBeneficiaryChanged: (value) {
+                                      setState(() {
+                                        saveBeneficiary = value;
+                                      });
+                                    },
                           hasBottom: false,
                           topTitleText: 'Transaction',
                               topTransactionsDetailsList: [

@@ -35,6 +35,7 @@ class _InternalTransferAmountScreenState
   TextEditingController amountController = TextEditingController();
   TextEditingController narrationController = TextEditingController();
   bool isNotMinimumAmount = false;
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -123,7 +124,14 @@ class _InternalTransferAmountScreenState
       context,
       MaterialPageRoute(
         builder: (context) => ReuseableTransactionDetailsScreen(
+
           hasBottom: false,
+          saveBeneficiary: saveBeneficiary,
+          onSaveBeneficiaryChanged: (value) {
+            setState(() {
+              saveBeneficiary = value;
+            });
+          },
           topTitleText: 'Transaction',
           topTransactionsDetailsList: [
             buildDetailRow(

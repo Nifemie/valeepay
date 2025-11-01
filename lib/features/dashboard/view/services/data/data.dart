@@ -40,6 +40,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
   String _selectedNetwork = '';
   int _selectedOperatorId = 0;
   String _selectedPlan = '';
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -768,6 +769,12 @@ class _DataScreenState extends ConsumerState<DataScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ReuseableTransactionDetailsScreen(
+          saveBeneficiary: saveBeneficiary,
+          onSaveBeneficiaryChanged: (value) {
+            setState(() {
+              saveBeneficiary = value;
+            });
+          },
           hasBottom: false,
           topTitleText: 'Transaction',
           topTransactionsDetailsList: [

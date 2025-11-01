@@ -6,11 +6,13 @@ class ReuseableAmountTextfield extends StatelessWidget {
   String prefixText;
   String hintText;
   Function(String)? onChanged;
+  bool? isReadOnly;
   ReuseableAmountTextfield(
       {required this.amountController,
       required this.prefixText,
       required this.hintText,
       this.onChanged,
+      this.isReadOnly,
       super.key});
 
   @override
@@ -35,6 +37,7 @@ class ReuseableAmountTextfield extends StatelessWidget {
             child: TextField(
               onChanged: onChanged,
               controller: amountController,
+              readOnly: isReadOnly ?? false,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(

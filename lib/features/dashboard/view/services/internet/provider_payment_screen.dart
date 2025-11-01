@@ -36,6 +36,7 @@ class _InternetProviderPaymentScreenState
   final TextEditingController amountController =
       TextEditingController(text: '0');
   String serviceFee = '0';
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -192,6 +193,12 @@ class _InternetProviderPaymentScreenState
                     MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
                               hasBottom: false,
+                              saveBeneficiary: saveBeneficiary,
+                              onSaveBeneficiaryChanged: (value) {
+                                setState(() {
+                                  saveBeneficiary = value;
+                                });
+                              },
                               topTitleText: 'Transaction',
                               topTransactionsDetailsList: [
                                 buildDetailRow(

@@ -37,6 +37,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
   VerifyCableData? _verifyResponse;
   String? _verifiedUserName;
   String? _errorMessage;
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -444,6 +445,12 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                           MaterialPageRoute(
                             builder: (context) =>
                                 ReuseableTransactionDetailsScreen(
+                                  saveBeneficiary: saveBeneficiary,
+                                  onSaveBeneficiaryChanged: (value) {
+                                setState(() {
+                                  saveBeneficiary = value;
+                                });
+                              },
                               hasBottom: false,
                               topTitleText: 'Transaction',
                               topTransactionsDetailsList: [

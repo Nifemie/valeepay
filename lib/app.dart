@@ -2,15 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/services/user_activity_service.dart';
+import 'package:valarpay/core/services/connectivity_service.dart';
 import '../core/routing/app_router.dart';
 import '../core/themes/app_theme.dart';
 import '../core/providers/theme_provider.dart';
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  final _connectivityService = ConnectivityService();
+
+  @override
+  void initState() {
+    super.initState();
+    _connectivityService.initialize();
+  }
+
+  @override
+  void dispose() {
+    _connectivityService.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
 
     return ScreenUtilInit(
@@ -29,6 +49,17 @@ class MyApp extends ConsumerWidget {
                   darkTheme: AppTheme.darkTheme,
                   themeMode: themeMode,
                   routerConfig: router,
+                  builder: (context, child) {
+                    return Navigator(
+                      key: ConnectivityService.navigatorKey,
+                      onPopPage: (route, result) => route.didPop(result),
+                      pages: [
+                        MaterialPage(
+                          child: child ?? const SizedBox.shrink(),
+                        ),
+                      ],
+                    );
+                  },
                 )));
       },
     );

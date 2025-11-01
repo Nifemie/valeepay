@@ -13,33 +13,33 @@ import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
+import 'package:valarpay/features/models/beneficiary_models.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
-class TransferAmountScreen extends ConsumerStatefulWidget {
-  final Bank selectedBank;
-  final AccountDetails accountDetails;
+class BeneficiaryTransferAmountScreen extends ConsumerStatefulWidget {
+  final Beneficiary beneficiaryDetails;
 
-  const TransferAmountScreen({
-    super.key,
-    required this.selectedBank,
-    required this.accountDetails,
-  });
+  const BeneficiaryTransferAmountScreen(
+      {super.key, required this.beneficiaryDetails});
 
   @override
-  ConsumerState<TransferAmountScreen> createState() =>
-      _TransferAmountScreenState();
+  ConsumerState<BeneficiaryTransferAmountScreen> createState() =>
+      _BeneficiaryTransferAmountScreenState();
 }
 
-class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
+class _BeneficiaryTransferAmountScreenState
+    extends ConsumerState<BeneficiaryTransferAmountScreen> {
   final TextEditingController amountController = TextEditingController();
   final NumberFormat formatter = NumberFormat('#,###');
   final TextEditingController descriptionController = TextEditingController();
   TransferFee? transferFee;
   bool isLoadingFee = false;
+  bool isLoading = false;
   bool isNotMinimumAmount = false;
   bool saveBeneficiary = false;
+  AccountDetails? verifiedAccount;
 
   @override
   void initState() {
@@ -67,6 +67,12 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
           isNotMinimumAmount = false;
         });
       }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(beneficiaryAccountVerificationNotifierProvider.notifier).verifyAccount(
+            accountNumber: widget.beneficiaryDetails.accountNumber,
+            bankCode: widget.beneficiaryDetails.bankCode,
+          );
     });
   }
 
@@ -122,20 +128,20 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     try {
       print('🔐 Initiating transfer with PIN...');
       print(
-        '📤 Transfer details - Bank: ${widget.accountDetails.bankCode}, Account: ${widget.accountDetails.accountNumber}, Amount: $amount',
+        '📤 Transfer details - Bank: ${widget.beneficiaryDetails.bankName}, Account: ${widget.beneficiaryDetails.accountNumber}, Amount: $amount',
       );
 
       // Proceed with transfer (backend will validate PIN)
       // Use bankCode from accountDetails (returned from account verification) not from selectedBank
       await ref.read(transferNotifierProvider.notifier).initiateTransfer(
-          bankCode: widget.accountDetails.bankCode,
-          accountNumber: widget.accountDetails.accountNumber,
+          bankCode: widget.beneficiaryDetails.bankCode,
+          accountNumber: widget.beneficiaryDetails.accountNumber,
           amount: amount,
           currency: 'NGN',
           description: descriptionController.text.trim(),
           pin: pin,
           saveBeneficiary: saveBeneficiary,
-          sessionId: widget.accountDetails.sessionId);
+          sessionId: verifiedAccount!.sessionId);
 
       Navigator.pop(context); // Close loading
 
@@ -167,6 +173,39 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
       }
     });
 
+    ref.listen(beneficiaryAccountVerificationNotifierProvider, (previous, next) {
+      if (next.isInitialLoading) {
+        setState(() {
+          isLoading = true;
+        });
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        Navigator.pop(context); // Close loading
+        if (next.isDataAvailable &&
+            next.data != null &&
+            !next.isInitialLoading) {
+          setState(() {
+            verifiedAccount = next.data!.first;
+          });
+        } else if (next.message != null) {
+          AppMessenger.show(
+            context,
+            message: next.message!,
+            type: MessageType.error,
+          );
+        }
+      }
+    });
+
     // Capture required user data now (avoid capturing `ref` inside the
     // callback which may be invoked after this widget is disposed).
     final String _userFullname = ref.read(userProvider)?.fullname ?? '';
@@ -192,17 +231,17 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                       ShareableTransactionReceiptDetail(
                           label: 'Beneficiary Details',
                           value:
-                              '${widget.accountDetails.accountName} \n${widget.accountDetails.accountNumber}'),
+                              '${widget.beneficiaryDetails.accountName} \n${widget.beneficiaryDetails.accountNumber}'),
                       ShareableTransactionReceiptDetail(
                           label: 'Beneficiary Bank',
-                          value: widget.selectedBank.name),
+                          value: widget.beneficiaryDetails.bankName),
                       if (descriptionController.text.isNotEmpty)
                         ShareableTransactionReceiptDetail(
                             label: 'Narration',
                             value: descriptionController.text),
                       ShareableTransactionReceiptDetail(
                           label: 'Transaction ID',
-                          value: widget.accountDetails.sessionId),
+                          value: verifiedAccount!.sessionId),
                       ShareableTransactionReceiptDetail(
                           label: 'Status',
                           value: 'Successful',
@@ -245,20 +284,20 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                 topDetails: [
                   TransactionDetail(
                     label: 'Transaction ID',
-                    value: widget.accountDetails.sessionId,
+                    value: verifiedAccount!.sessionId,
                     showCopyIcon: true,
                   ),
                   TransactionDetail(
                     label: 'Recipient Name',
-                    value: widget.accountDetails.accountName,
+                    value: widget.beneficiaryDetails.accountName,
                   ),
                   TransactionDetail(
                     label: 'Recipient Account',
-                    value: widget.accountDetails.accountNumber,
+                    value: widget.beneficiaryDetails.accountNumber,
                   ),
                   TransactionDetail(
                     label: 'Bank',
-                    value: widget.selectedBank.name,
+                    value: widget.beneficiaryDetails.bankName,
                   ),
                   TransactionDetail(
                     label: 'Amount',
@@ -322,13 +361,14 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
               topTransactionsDetailsList: [
                 buildDetailRow(
                   'Account Name',
-                  widget.accountDetails.accountName,
+                  widget.beneficiaryDetails.accountName,
                   isDark,
                 ),
-                buildDetailRow('Bank', widget.selectedBank.name, isDark),
+                buildDetailRow(
+                    'Bank', widget.beneficiaryDetails.bankName, isDark),
                 buildDetailRow(
                   'Account Number',
-                  widget.accountDetails.accountNumber,
+                  widget.beneficiaryDetails.accountNumber,
                   isDark,
                 ),
                 buildDetailRow(
@@ -413,7 +453,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                           alpha: 0.1,
                         ),
                         child: Text(
-                          widget.selectedBank.name
+                          widget.beneficiaryDetails.bankName
                               .substring(0, 1)
                               .toUpperCase(),
                           style: TextStyle(
@@ -428,7 +468,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.accountDetails.accountName,
+                              widget.beneficiaryDetails.accountName,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -436,7 +476,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "${widget.accountDetails.accountNumber} • ${widget.selectedBank.name}",
+                              "${widget.beneficiaryDetails.accountNumber} • ${widget.beneficiaryDetails.bankName}",
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey,

@@ -28,6 +28,9 @@ class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
   String? _statusFilter;
   String? _dateFromFilter;
   String? _dateToFilter;
+  String? _typeFilter;
+  String? _categoryFilter;
+  int? _limitFilter;
 
   // Getters for pagination info
   bool get hasMore => _hasMore;
@@ -40,18 +43,27 @@ class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
     String? status,
     String? dateFrom,
     String? dateTo,
+    String? type,
+    String? category,
+    int? limit,
   }) async {
     // Reset on refresh or filter change
     if (refresh ||
         status != _statusFilter ||
         dateFrom != _dateFromFilter ||
-        dateTo != _dateToFilter) {
+        dateTo != _dateToFilter ||
+        type != _typeFilter ||
+        category != _categoryFilter ||
+        limit != _limitFilter) {
       _currentPage = 1;
       _allTransactions = [];
       _hasMore = true;
       _statusFilter = status;
       _dateFromFilter = dateFrom;
       _dateToFilter = dateTo;
+      _typeFilter = type;
+      _categoryFilter = category;
+      _limitFilter = limit;
     }
 
     // Don't fetch if no more data
@@ -74,11 +86,13 @@ class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
     try {
       final response = await _repository.getAllTransactions(
         page: _currentPage,
-        limit: 20,
+        limit: _limitFilter != null ? _limitFilter : 20,
         status: _statusFilter,
         dateFrom: _dateFromFilter,
         dateTo: _dateToFilter,
         userId: userId,
+        type: _typeFilter,
+        category: _categoryFilter,
       );
 
       _totalPages = response.totalPages;
@@ -149,6 +163,8 @@ class TransactionNotifier extends StateNotifier<DataState<TransactionModel>> {
     _statusFilter = null;
     _dateFromFilter = null;
     _dateToFilter = null;
+    _typeFilter = null;
+    _categoryFilter = null;
     state = DataState<TransactionModel>.initial();
   }
 }

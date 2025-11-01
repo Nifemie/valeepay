@@ -22,6 +22,7 @@ class PassengerDetailsScreen extends StatefulWidget {
 class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
   final List<Map<String, dynamic>> passengers = [];
   String serviceFee = '500';
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -115,6 +116,12 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
+                          saveBeneficiary: saveBeneficiary,
+                          onSaveBeneficiaryChanged: (value) {
+                        setState(() {
+                          saveBeneficiary = value;
+                        });
+                      },
                           topTitleText: 'Flight',
                           bottomTitleText: 'Fare Breakdown',
                           hasBottom: true,

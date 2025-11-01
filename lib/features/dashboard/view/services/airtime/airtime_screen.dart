@@ -39,6 +39,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final NumberFormat formatter = NumberFormat('#,###');
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -150,7 +151,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         operatorId: operatorId,
         phone: _controller.text,
         currency: 'NGN',
-        addBeneficiary: false,
+        addBeneficiary: saveBeneficiary,
       );
 
       print('🔐 Initiating airtime purchase...');
@@ -179,6 +180,12 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       MaterialPageRoute(
         builder: (context) => ReuseableTransactionDetailsScreen(
           hasBottom: false,
+          saveBeneficiary: saveBeneficiary,
+          onSaveBeneficiaryChanged: (value) {
+            setState(() {
+              saveBeneficiary = value;
+            });
+          },
           topTitleText: 'Transaction',
           topTransactionsDetailsList: [
             buildDetailRow('Recipient Number', _controller.text, isDark),
@@ -302,7 +309,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                   TransactionDetail(label: 'Network', value: selectedNetwork.toUpperCase()),
                   TransactionDetail(
                     label: 'Amount',
-                    value:  currencyFormatter(_amountController.text..replaceAll(',', '')),,
+                    value:  currencyFormatter(_amountController.text..replaceAll(',', '')),
                   ),
                 ],
                 onShareReceipt: _onShareTransactionReceiptPressed,
@@ -338,6 +345,21 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           'Airtime',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
+        actions: isBvnVerified
+            ? [
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'Saved Beneficiary',
+                    style: TextStyle(
+                      color: appTheme.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       ),
       body: !isBvnVerified
           ? const KycNotSetWidget(

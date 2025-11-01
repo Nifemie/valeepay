@@ -40,7 +40,6 @@ class ApiEndpoints {
   static const String createPasscode = '/api/v1/user/create-passcode';
   static const String editProfile = '/api/v1/user/edit-profile';
 
-
   static const String getAllTransactions = '/api/v1/wallet/transaction';
 
   // Support endpoints
@@ -102,6 +101,7 @@ class ApiEndpoints {
   // Transfer endpoints
   static const String getBanks = '/api/v1/wallet/get-banks';
   static const String getTransferFee = '/api/v1/wallet/get-transfer-fee';
+  static const String getBeneficiaries = '/api/v1/user/get-beneficiaries';
   static const String initiateTransfer = '/api/v1/wallet/initiate-transfer';
   static const String verifyAccount = '/api/v1/wallet/verify-account';
   static const String getTransactions = '/api/v1/wallet/transaction';

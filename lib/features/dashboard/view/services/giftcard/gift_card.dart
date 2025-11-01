@@ -42,6 +42,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   List<GiftCardProduct> availableProducts = [];
   List<GiftCardCategory> categories = [];
   bool isLoadingRate = false;
+  bool saveBeneficiary = false;
 
   @override
   void initState() {
@@ -319,7 +320,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                   errorBuilder: (context, error, stackTrace) => ClipRRect(
                       borderRadius: BorderRadius.circular(2),
                       child:
-                          Image.asset('assets/images/POUNDS.png', height: 14)),
+                          Image.asset('assets/images/ngflag.png', height: 14)),
                 ),
               )
             else
@@ -494,6 +495,12 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ReuseableTransactionDetailsScreen(
+          saveBeneficiary: saveBeneficiary,
+          onSaveBeneficiaryChanged: (value) {
+            setState(() {
+              saveBeneficiary = value;
+            });
+          },
           hasBottom: false,
           topTitleText: 'Transaction',
           topTransactionsDetailsList: [

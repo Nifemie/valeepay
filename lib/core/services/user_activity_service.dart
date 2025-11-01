@@ -8,7 +8,7 @@ import 'package:valarpay/features/providers/user_provider.dart';
 
 class UserActivityService {
   static Timer? _timer;
-  static const Duration timeoutDuration = Duration(minutes: 10);
+  static const Duration timeoutDuration = Duration(minutes: 20);
   static void startMonitoring(BuildContext context, WidgetRef ref) async {
     UserModel? user = await SessionService.getUser();
     if (user != null) {

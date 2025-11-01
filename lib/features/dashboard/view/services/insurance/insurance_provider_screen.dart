@@ -27,6 +27,7 @@ class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
   String selectedDuration = '1 year';
   final TextEditingController amountController = TextEditingController();
   int serviceFee = 500;
+  bool saveBeneficiary = false;
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +174,12 @@ class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
+                                saveBeneficiary: saveBeneficiary,
+                                onSaveBeneficiaryChanged: (value) {
+                                  setState(() {
+                                    saveBeneficiary = value;
+                                  });
+                                },
                                 hasBottom: false,
                           topTitleText: 'Transaction',
                                 topTransactionsDetailsList: [
