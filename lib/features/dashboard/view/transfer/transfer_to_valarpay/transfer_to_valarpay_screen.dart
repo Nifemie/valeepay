@@ -73,6 +73,8 @@ class _TransferToValarPayScreenState
     }
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
@@ -80,6 +82,9 @@ class _TransferToValarPayScreenState
 
     final accountVerificationState =
         ref.watch(internalAccountVerificationNotifierProvider);
+
+
+        
 
     // Listen to account verification state
     ref.listen(internalAccountVerificationNotifierProvider, (previous, next) {

@@ -5,10 +5,16 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/view/me/account_statement.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/mobile_data_services_section.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
@@ -57,8 +63,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     // Extract unique networks from plans
     final uniqueNetworks =
         availablePlans.map((plan) => plan.network).toSet().toList();
-
-    // Listen for plan errors
+   // Listen for plan errors
     ref.listen<DataState<DataPlanInfo>>(dataPlansNotifierProvider,
         (prev, next) {
       if (next.message != null &&
@@ -197,43 +202,45 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                   ],
 
                   // Cashback Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Use Cashback',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            '₦50.00',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Switch(
-                            value: _useCashback,
-                            onChanged: (value) {
-                              setState(() {
-                                _useCashback = value;
-                              });
-                            },
-                            activeColor: appTheme.primaryColor,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     const Expanded(
+                  //       child: Text(
+                  //         'Use Cashback',
+                  //         style: TextStyle(
+                  //           color: Colors.grey,
+                  //           fontSize: 14,
+                  //           fontWeight: FontWeight.w500,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Row(
+                  //       mainAxisSize: MainAxisSize.min,
+                  //       children: [
+                  //         const Text(
+                  //           '₦50.00',
+                  //           style: TextStyle(
+                  //             color: Colors.grey,
+                  //             fontSize: 14,
+                  //           ),
+                  //         ),
+                  //         const SizedBox(width: 8),
+                  //         Switch(
+                  //           value: _useCashback,
+                  //           onChanged: (value) {
+                  //             setState(() {
+                  //               _useCashback = value;
+                  //             });
+                  //           },
+                  //           activeColor: appTheme.primaryColor,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ],
+                  // ),
+                  
+                  
                   const SizedBox(height: 32),
 
                   // Continue Button
@@ -688,6 +695,55 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         _selectedOperatorId > 0;
   }
 
+   _onShareTransactionReceiptPressed() {
+     final dataVariations =
+                  ref.read(dataVariationNotifierProvider).data ?? [];
+              final descriptions = dataVariations.isNotEmpty
+                  ? dataVariations.first.fixedAmountsDescriptions
+                  : <String, dynamic>{};
+              final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
+              final planDescription =
+                  descriptions[amountKey] ?? '₦ ${amountController.text} Data';
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value:  currencyFormatter(amountController.text..replaceAll(',', ''))),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type',
+                          value: 'Mobile Data Purchase'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Provider',
+                          value: _selectedNetwork),
+                       ShareableTransactionReceiptDetail(
+                          label: 'Plan',
+                          value: planDescription),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Phone Number',
+                          value:
+                              _controller.text.trim()),
+                     
+                      
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
+
+   
+
   // Handle continue button press
   void _handleContinue() {
     if (!_isFormValid()) {
@@ -728,6 +784,13 @@ class _DataScreenState extends ConsumerState<DataScreen> {
 
   // Handle PIN entry and purchase
   Future<void> _handlePinEntry() async {
+    final user = ref.read(userProvider);
+    final hasEnoughBalance = checkBalanceLeft(
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    amountController.text.replaceAll(',', ''));
+          if (!hasEnoughBalance) return;
     final pin = await BiometricTransactionPinModal.show(context);
     if (pin == null || pin.length != 4) return;
 
@@ -802,13 +865,13 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                   : <String, dynamic>{};
               final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
               final planDescription =
-                  descriptions[amountKey] ?? '₦${amountController.text} Data';
+                  descriptions[amountKey] ?? '₦ ${amountController.text} Data';
 
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => TransactionReceiptWidget(
-                    amount: '₦${amountController.text}',
+                    amount: currencyFormatter(amountController.text..replaceAll(',', '')),
                     topDetails: [
                       TransactionDetail(
                           label: 'Transaction ID',
@@ -821,9 +884,9 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                       TransactionDetail(
                           label: 'Data Plan', value: planDescription),
                       TransactionDetail(
-                          label: 'Amount', value: '₦${amountController.text}'),
+                          label: 'Amount', value: currencyFormatter(amountController.text..replaceAll(',', ''))),
                     ],
-                    onShareReceipt: () {},
+                    onShareReceipt: _onShareTransactionReceiptPressed,
                   ),
                 ),
               );

@@ -5,9 +5,11 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/electricity.dart';
 import 'package:valarpay/features/notifiers/electricity_notifier.dart';
@@ -332,7 +334,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                       amountController: amountController,
                       prefixText: '₦',
                       hintText: '10,000'),
-                  if (isNotMinimumAmount) SizedBox(height: 5),
+                  if (isNotMinimumAmount) SizedBox(height: 12),
                   if (isNotMinimumAmount)
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -388,12 +390,13 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                   buildDetailRow('Disco',
                                       selectedDisco?.planName ?? '', isDark),
                                   buildDetailRow('Meter Type',
-                                      selectedMeterType?.name ?? '', isDark),
+                                      selectedMeterType?.categoryName ?? '', isDark),
                                   buildDetailRow(
                                       'Customer Name', customerName, isDark),
                                   buildDetailRow(
                                       'Amount',
-                                      currencyFormatter(amountController.text),
+                                      currencyFormatter(amountController.text
+                                        ..replaceAll(',', '')),
                                       isDark),
                                   buildDetailRow('Fee',
                                       currencyFormatter(serviceFee), isDark),
@@ -435,7 +438,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         meterNumberController.text.isNotEmpty &&
         amountController.text.isNotEmpty &&
         isMeterVerified &&
-        verifyMeterNumberData != null;
+        verifyMeterNumberData != null && !isNotMinimumAmount;
   }
 
   void _verifyMeterNumber() async {
@@ -481,9 +484,57 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
     }
   }
 
+  _onShareTransactionReceiptPressed() {
+    final state = ref.read(electricityPaymentNotifierProvider);
+    final paymentResponse = state.data!.first;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => ReceiptShareScreen(
+                  date:
+                      '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                        label: 'Amount',
+                        value: currencyFormatter(
+                            amountController.text..replaceAll(',', ''))),
+                    
+                    ShareableTransactionReceiptDetail(
+                        label: 'Fee', value: currencyFormatter(serviceFee)),
+                    
+                    ShareableTransactionReceiptDetail(
+                        label: 'Currency', value: 'NGN'),
+                    
+                   ShareableTransactionReceiptDetail(
+                        label: 'Transaction Type',
+                        value: 'Electricity Purchase'),
+                     ShareableTransactionReceiptDetail(
+                        label: 'Token',
+                        value: paymentResponse.data.rechargeToken),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Meter Details',
+                        value: '${meterNumberController.text.trim()}\n${selectedMeterType?.categoryName}'),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Customer Name',
+                        value: verifyMeterNumberData?.name ?? ''),
+                    
+                    ShareableTransactionReceiptDetail(
+                        label: 'Discos',
+                        value: selectedDisco?.planName ?? ''),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Transaction ID',
+                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                    ShareableTransactionReceiptDetail(
+                        label: 'Status',
+                        value: 'Successful',
+                        isSuccessful: true)
+                  ],
+                )));
+  }
+
   Future<void> _processPayment(String pin) async {
     if (!_canProceed()) return;
-
+    
     final request = ElectricityPaymentRequest(
       walletPin: pin,
       itemCode: selectedMeterType!.itemCode,
@@ -512,7 +563,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         state.data!.isNotEmpty &&
         mounted) {
       final paymentResponse = state.data!.first;
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => TransactionReceiptWidget(
@@ -547,7 +598,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
               TransactionDetail(
                 label: 'Meter Details',
                 value:
-                    '${meterNumberController.text} | ${selectedMeterType?.name}',
+                    '${meterNumberController.text} | ${selectedMeterType?.categoryName}',
               ),
               TransactionDetail(
                 label: 'Customer Name',
@@ -567,9 +618,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                     '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
               ),
             ],
-            onShareReceipt: () {
-              // TODO: Implement share receipt functionality
-            },
+            onShareReceipt: _onShareTransactionReceiptPressed,
           ),
         ),
       );

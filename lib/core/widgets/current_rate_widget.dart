@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 
 class CurrentRateWidget extends StatelessWidget {
   String text;
@@ -20,7 +21,7 @@ class CurrentRateWidget extends StatelessWidget {
           children: [
             Text(text,
                 style: TextStyle(color: Color(0XFF216EB2), fontSize: 16)),
-            Text(price,
+            Text(currencyFormatter(price),
                 style: TextStyle(
                     color: isDark ? Colors.white70 : Colors.grey[600],
                     fontSize: 14))

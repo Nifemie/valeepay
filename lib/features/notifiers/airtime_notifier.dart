@@ -85,6 +85,24 @@ class AirtimePlanNotifier extends StateNotifier<DataState<AirtimePlan>> {
     }
   }
 
+  Future<void> getInternationalPlan({required String phone}) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.getInternationalPlan(phone: phone);
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: [res.plan],
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[AirtimePlanNotifier getInternationalPlan] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Failed to load international plan: ${e.toString()}');
+    }
+  }
+
   void reset() => state = DataState<AirtimePlan>.initial();
 }
 
@@ -130,4 +148,72 @@ final airtimePlanNotifierProvider =
 final airtimePurchaseNotifierProvider = StateNotifierProvider<
     AirtimePurchaseNotifier, DataState<AirtimePurchaseResponse>>(
   (ref) => AirtimePurchaseNotifier(ref.read(airtimeRepositoryProvider)),
+);
+
+class InternationalFxNotifier
+    extends StateNotifier<DataState<InternationalFxRate>> {
+  final AirtimeRepository _repository;
+
+  InternationalFxNotifier(this._repository)
+      : super(DataState<InternationalFxRate>.initial());
+
+  Future<void> getFxRate(
+      {required double amount, required int operatorId}) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.getInternationalFxRate(
+          amount: amount, operatorId: operatorId);
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: [res.data],
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[InternationalFxNotifier getFxRate] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Failed to fetch FX rate: ${e.toString()}');
+    }
+  }
+
+  void reset() => state = DataState<InternationalFxRate>.initial();
+}
+
+class InternationalPurchaseNotifier
+    extends StateNotifier<DataState<AirtimePurchaseResponse>> {
+  final AirtimeRepository _repository;
+
+  InternationalPurchaseNotifier(this._repository)
+      : super(DataState<AirtimePurchaseResponse>.initial());
+
+  Future<void> purchase(AirtimePurchaseRequest request) async {
+    state = state.copyWith(isInitialLoading: true, message: null);
+    try {
+      final res = await _repository.payInternationalAirtime(request);
+      state = state.copyWith(
+          isInitialLoading: false,
+          data: [res],
+          isDataAvailable: true,
+          message: res.message);
+    } catch (e, stack) {
+      log('[InternationalPurchaseNotifier purchase] $e\n$stack');
+      state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: 'Purchase failed: ${e.toString()}');
+    }
+  }
+
+  void reset() => state = DataState<AirtimePurchaseResponse>.initial();
+}
+
+final internationalFxNotifierProvider = StateNotifierProvider<
+    InternationalFxNotifier, DataState<InternationalFxRate>>(
+  (ref) => InternationalFxNotifier(ref.read(airtimeRepositoryProvider)),
+);
+
+final internationalPurchaseNotifierProvider = StateNotifierProvider<
+    InternationalPurchaseNotifier, DataState<AirtimePurchaseResponse>>(
+  (ref) => InternationalPurchaseNotifier(ref.read(airtimeRepositoryProvider)),
 );

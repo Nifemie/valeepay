@@ -4,7 +4,9 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -57,6 +59,43 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // cable plans are read when needed (e.g. in modal builders)
+
+    _onShareTransactionReceiptPressed() {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value: currencyFormatter(planAmount)),
+                     ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type', value: 'Cable TV Purchase'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Plan', value: selectedPlan ?? ''),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Smartcard Number',
+                          value: smartcardController.text.trim()),
+                       ShareableTransactionReceiptDetail(
+                          label: 'Customer Name',
+                          value: _verifiedUserName ?? ''),
+                      
+                      ShareableTransactionReceiptDetail(
+                          label: 'Provider', value: selectedProvider),
+                     ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -136,8 +175,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                               ? SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                  ))
+                                  child: CircularProgressIndicator())
                               : Icon(
                                   Icons.keyboard_arrow_down,
                                   color: isDark
@@ -163,7 +201,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                   ReuseableTextFieldWithCountry(
                     controller: smartcardController,
                     hintText: 'Smartcard Number ',
-                    isReadOnly: selectedProvider == 'Select a provider' ,
+                    isReadOnly: selectedProvider == 'Select a provider',
                     textInputType: TextInputType.number,
                     showCountryLabel: false,
                     onChanged: (value) async {
@@ -532,7 +570,8 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                                   '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                                             ),
                                           ],
-                                          onShareReceipt: () {},
+                                          onShareReceipt:
+                                              _onShareTransactionReceiptPressed,
                                         ),
                                       ),
                                     );

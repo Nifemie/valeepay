@@ -1,4 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+
 import '/core/themes/color_utils.dart';
 
 class UploadImagesScreen extends StatefulWidget {
@@ -9,12 +15,62 @@ class UploadImagesScreen extends StatefulWidget {
 }
 
 class _UploadImagesScreenState extends State<UploadImagesScreen> {
-  List<String> uploadedImages = [];
+  // Six fixed upload slots. Each can be null or hold a picked image.
+  final List<XFile?> _images = List<XFile?>.filled(6, null);
+  final ImagePicker _picker = ImagePicker();
+
+  // Show bottom sheet to let user pick camera or gallery
+  void _showPickOptions(int index) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery, index);
+              },
+            ),
+            SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera, index);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Pick an image from the given source and assign to the slot
+  Future<void> _pickImage(ImageSource source, int index) async {
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 2000,
+        maxHeight: 2000,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          _images[index] = picked;
+        });
+      }
+    } catch (e) {
+      // You may wish to show an error/snackbar here if needed
+      // For now we silently ignore pick errors.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -79,13 +135,14 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
                 ),
                 itemCount: 6, // Max 6 upload slots
                 itemBuilder: (context, index) {
-                  if (index < uploadedImages.length) {
-                    // Show uploaded image
+                  final XFile? img = _images[index];
+                  if (img != null) {
+                    // Show uploaded image preview
                     return Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         image: DecorationImage(
-                          image: AssetImage(uploadedImages[index]),
+                          image: FileImage(File(img.path)),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -97,20 +154,20 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  uploadedImages.removeAt(index);
+                                  _images[index] = null;
                                 });
                               },
                               child: Container(
-                                width: 24,
-                                height: 24,
+                                width: 28,
+                                height: 28,
                                 decoration: const BoxDecoration(
-                                  color: Colors.red,
+                                  color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.close,
                                   color: Colors.white,
-                                  size: 16,
+                                  size: 18,
                                 ),
                               ),
                             ),
@@ -118,48 +175,41 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
                         ],
                       ),
                     );
-                  } else {
-                    // Show upload placeholder
-                    return GestureDetector(
-                      onTap: () {
-                        // Simulate image upload
-                        setState(() {
-                          uploadedImages
-                              .add('assets/images/sample_giftcard.png');
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                                            color: Theme.of(context).cardColor.withOpacity(0.4),
+                  }
 
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.grey[400]!,
-                            style: BorderStyle.solid,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate_outlined,
-                              color: Colors.grey[600],
-                              size: 32,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Upload',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                  // Placeholder slot
+                  return GestureDetector(
+                    onTap: () => _showPickOptions(index),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.grey[400]!,
+                          style: BorderStyle.solid,
                         ),
                       ),
-                    );
-                  }
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            color: Colors.grey[600],
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Upload',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -167,37 +217,16 @@ class _UploadImagesScreenState extends State<UploadImagesScreen> {
             const SizedBox(height: 24),
 
             // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: uploadedImages.isNotEmpty
-                    ? () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) =>
-                        //         const TransactionDetailsScreen(),
-                        //   ),
-                        // );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+            FullWidthButton(
+              text: 'Continue',
+              isEnabled: _images.any((e) => e != null),
+              onPressed: () {
+                // Continue with uploaded images. For example, upload to server or navigate.
+                AppMessenger.show(context,
+                    message: 'Sell giftcards is coming soon',
+                    type: MessageType.warning);
+              },
+            )
           ],
         ),
       ),

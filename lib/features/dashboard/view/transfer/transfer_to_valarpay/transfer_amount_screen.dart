@@ -9,9 +9,12 @@ import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -116,7 +119,7 @@ class _InternalTransferAmountScreenState
       balance.toString(),
       amountController.text.replaceAll(',', ''),
     );
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => ReuseableTransactionDetailsScreen(
@@ -173,12 +176,49 @@ class _InternalTransferAmountScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = ref.watch(userProvider);
 
-    // Get wallet data for current user's account number
-    final wallet =
-        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
-    final userAccountNumber = wallet?.accountNumber ?? '0000000000';
+     _onShareTransactionReceiptPressed() {
+      final user = ref.read(userProvider);
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value: currencyFormatter(amountController.text.trim())),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type',
+                          value: 'Intra-bank Transfer'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Sender Name', value: user?.fullname ?? ''),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Beneficiary Details',
+                          value:
+                              '${widget.accountDetails.accountName} \n${widget.accountDetails.accountNumber}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Beneficiary Bank',
+                          value: 'ValarPay'),
+                      if (narrationController.text.isNotEmpty)
+                        ShareableTransactionReceiptDetail(
+                            label: 'Narration',
+                            value: narrationController.text),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: widget.accountDetails.sessionId),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
+
+   
 
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
@@ -206,7 +246,7 @@ class _InternalTransferAmountScreenState
           final transferAmount =
               double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
 
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => TransactionReceiptWidget(
@@ -214,7 +254,7 @@ class _InternalTransferAmountScreenState
                 topDetails: [
                   TransactionDetail(
                     label: 'Transaction ID',
-                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    value: widget.accountDetails.sessionId,
                     showCopyIcon: true,
                   ),
                   TransactionDetail(
@@ -236,7 +276,7 @@ class _InternalTransferAmountScreenState
                       value: narrationController.text.trim(),
                     ),
                 ],
-                onShareReceipt: () {},
+                onShareReceipt: _onShareTransactionReceiptPressed,
               ),
             ),
           );
@@ -278,24 +318,7 @@ class _InternalTransferAmountScreenState
                         ? const Color(0xFF374151)
                         : const Color(0xFFF3F4F6),
                     child: ClipOval(
-                      child: user?.profileImageUrl != null &&
-                              user!.profileImageUrl!.isNotEmpty
-                          ? Image.network(
-                              user.profileImageUrl!,
-                              width: 48.r,
-                              height: 48.r,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.person,
-                                  size: 24.r,
-                                  color: isDark
-                                      ? const Color(0xFF9CA3AF)
-                                      : const Color(0xFF6B7280),
-                                );
-                              },
-                            )
-                          : Icon(
+                      child: Icon(
                               Icons.person,
                               size: 24.r,
                               color: isDark
@@ -317,7 +340,7 @@ class _InternalTransferAmountScreenState
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        '$userAccountNumber   ValarPay',
+                        '${widget.accountDetails.accountNumber}   ValarPay',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13.sp,

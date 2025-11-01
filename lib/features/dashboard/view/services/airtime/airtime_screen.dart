@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
 // app_messenger not used here
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
+import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
@@ -33,6 +38,7 @@ class AirtimeScreen extends ConsumerStatefulWidget {
 class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+  final NumberFormat formatter = NumberFormat('#,###');
 
   @override
   void initState() {
@@ -40,6 +46,30 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(airtimeProvidersNotifierProvider.notifier).fetchProviders();
     });
+    _amountController.addListener(() {
+      final text = _amountController.text.replaceAll(',', '');
+      if (text.isEmpty) return;
+
+      // Prevent recursive updates
+      final newText = formatter.format(int.parse(text));
+      if (newText != _amountController.text) {
+        final cursorPos = newText.length;
+        _amountController.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: cursorPos),
+        );
+      }
+      // if (int.parse(text) < 50) {
+      //   setState(() {
+      //     isNotMinimumAmount = true;
+      //   });
+      // } else {
+      //   setState(() {
+      //     isNotMinimumAmount = false;
+      //   });
+      // }
+    });
+  
   }
 
   @override
@@ -70,6 +100,13 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
   Future<void> _handlePinEntry() async {
     print('🔑 [Airtime] _handlePinEntry called');
+    final user = ref.read(userProvider);
+    final hasEnoughBalance = checkBalanceLeft(
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    _amountController.text.replaceAll(',', ''));
+          if (!hasEnoughBalance) return;
     final pin = await BiometricTransactionPinModal.show(context);
     print(
         '🔑 [Airtime] PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}');
@@ -109,7 +146,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
       final request = AirtimePurchaseRequest(
         walletPin: pinString,
-        amount: double.parse(_amountController.text),
+        amount: double.parse(_amountController.text..replaceAll(',', '')),
         operatorId: operatorId,
         phone: _controller.text,
         currency: 'NGN',
@@ -148,7 +185,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
             buildDetailRow('Provider', selectedNetwork, isDark),
             buildDetailRow(
               'Amount',
-              currencyFormatter(_amountController.text),
+              currencyFormatter(_amountController.text..replaceAll(',', '')),
               isDark,
             ),
           ],
@@ -170,6 +207,42 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     final providersState = ref.watch(airtimeProvidersNotifierProvider);
     final networkProviders = providersState.data ?? <NetworkProvider>[];
 
+     _onShareTransactionReceiptPressed() {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value:  currencyFormatter(_amountController.text..replaceAll(',', ''))),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type',
+                          value: 'Airtime Purchase'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Provider',
+                          value: selectedNetwork.toUpperCase()),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Phone Number',
+                          value:
+                              _controller.text.trim()),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
+
+   
+
     // Listen to airtime purchase state
     ref.listen(airtimePurchaseNotifierProvider, (previous, next) {
       print('🎧 [Airtime Listener] State changed:');
@@ -189,7 +262,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       final hasSuccessMessage = next.message != null &&
           next.message!.toLowerCase().contains('success');
       final isSuccess =
-          (next.isDataAvailable && hasData) || (hasData && hasSuccessMessage);
+          (next.isDataAvailable && hasData) || (hasData && hasSuccessMessage) || next.message != null && !next.isInitialLoading;
 
       if (isSuccess) {
         // Purchase successful - close loading and navigate to receipt
@@ -215,7 +288,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => TransactionReceiptWidget(
-                amount: '₦${_amountController.text}',
+                amount: currencyFormatter(_amountController.text..replaceAll(',', '')),
                 topDetails: [
                   TransactionDetail(
                     label: 'Transaction ID',
@@ -226,68 +299,18 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                     label: 'Recipient Number',
                     value: _controller.text,
                   ),
-                  TransactionDetail(label: 'Network', value: selectedNetwork),
+                  TransactionDetail(label: 'Network', value: selectedNetwork.toUpperCase()),
                   TransactionDetail(
                     label: 'Amount',
-                    value: '₦${_amountController.text}',
+                    value:  currencyFormatter(_amountController.text..replaceAll(',', '')),,
                   ),
                 ],
-                onShareReceipt: () {},
+                onShareReceipt: _onShareTransactionReceiptPressed,
               ),
             ),
           );
         });
-      } else if (next.message != null && !next.isInitialLoading) {
-        // Check if message indicates success even if data is not available
-        final isSuccess = next.message!.toLowerCase().contains('success');
-
-        if (isSuccess) {
-          // Purchase successful based on message
-          print(
-              '✅ [Airtime Listener] Purchase successful (via message), navigating to receipt');
-
-          // Close loading dialog
-          if (Navigator.canPop(context)) {
-            print('📤 [Airtime Listener] Closing loading dialog');
-            Navigator.pop(context);
-          }
-
-          // Small delay to ensure loading dialog is closed
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (!mounted) {
-              print(
-                  '⚠️ [Airtime Listener] Widget not mounted after delay, skipping navigation');
-              return;
-            }
-
-            print('🧾 [Airtime Listener] Navigating to receipt screen');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TransactionReceiptWidget(
-                  amount: '₦${_amountController.text}',
-                  topDetails: [
-                    TransactionDetail(
-                      label: 'Transaction ID',
-                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                      showCopyIcon: true,
-                    ),
-                    TransactionDetail(
-                      label: 'Recipient Number',
-                      value: _controller.text,
-                    ),
-                    TransactionDetail(label: 'Network', value: selectedNetwork),
-                    TransactionDetail(
-                      label: 'Amount',
-                      value: '₦${_amountController.text}',
-                    ),
-                  ],
-                  onShareReceipt: () {},
-                ),
-              ),
-            );
-          });
-        } else if (!next.isDataAvailable) {
+      }  else if (!next.isDataAvailable) {
           // Purchase failed
           print('❌ [Airtime Listener] Purchase failed: ${next.message}');
 
@@ -301,7 +324,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                 message: next.message!, type: MessageType.error);
           }
         }
-      }
+      
     });
 
     return Scaffold(

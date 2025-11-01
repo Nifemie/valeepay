@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
+import 'package:valarpay/core/utils/check_balance.dart';
+import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
+import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/current_rate_widget.dart';
+import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
+import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/upload_images_screen.dart';
@@ -33,7 +38,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   double? selectedAmountValue;
   int quantity = 1;
   String codeOptional = '';
-  String currentRate = '₦0';
+  String currentRate = '0';
   List<GiftCardProduct> availableProducts = [];
   List<GiftCardCategory> categories = [];
   bool isLoadingRate = false;
@@ -85,7 +90,6 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
         title: Text(
           'Giftcards',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -201,7 +205,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                           : selectedBrand,
                       imagePath: selectedProduct?.logoUrls.isNotEmpty == true
                           ? selectedProduct!.logoUrls.first
-                          : 'assets/images/POUNDS.png',
+                          : 'assets/images/blank.png',
                       onTap: giftCardState.isInitialLoading
                           ? null
                           : () => _showGiftCardBrandModal(),
@@ -216,7 +220,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                     _buildDropdownField(
                       value: selectedCountry,
                       imagePath: selectedProduct?.country.flagUrl ??
-                          'assets/images/POUNDS.png',
+                          'assets/images/blank.png',
                       onTap: selectedProduct != null
                           ? () => _showCountryModal()
                           : null,
@@ -230,7 +234,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                     const SizedBox(height: 8),
                     _buildDropdownField(
                       value: isLoadingRate ? 'Loading rate...' : selectedAmount,
-                      imagePath: 'assets/images/EURO.png',
+                      imagePath: 'assets/images/moneysymbol.png',
                       onTap: selectedProduct != null && !isLoadingRate
                           ? () => _showAmountModal()
                           : null,
@@ -306,15 +310,22 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
         child: Row(
           children: [
             if (imagePath.startsWith('http'))
-              Image.network(
-                imagePath,
-                height: 14,
-                width: 14,
-                errorBuilder: (context, error, stackTrace) =>
-                    Image.asset('assets/images/POUNDS.png', height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: Image.network(
+                  imagePath,
+                  height: 14,
+                  width: 14,
+                  errorBuilder: (context, error, stackTrace) => ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child:
+                          Image.asset('assets/images/POUNDS.png', height: 14)),
+                ),
               )
             else
-              Image.asset(imagePath, height: 14),
+              ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: Image.asset(imagePath, height: 14)),
             SizedBox(width: 16),
             Expanded(
               child: Text(
@@ -348,7 +359,12 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   }
 
   void _showGiftCardBrandModal() {
-    if (availableProducts.isEmpty) return;
+    if (availableProducts.isEmpty) {
+      AppMessenger.show(context,
+          message: 'No gift card products available at the moment.',
+          type: MessageType.info);
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -358,12 +374,14 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
         selectedBrand: selectedBrand,
         products: availableProducts,
         onBrandSelected: (product) {
-          selectedProduct = product;
-          selectedBrand = product.brand.brandName;
-          selectedCountry = product.country.name;
-          selectedAmount = 'Select Amount';
-          selectedAmountValue = null;
-          currentRate = '₦0';
+          setState(() {
+            selectedProduct = product;
+            selectedBrand = product.brand.brandName;
+            selectedCountry = product.country.name;
+            selectedAmount = 'Select Amount';
+            selectedAmountValue = null;
+            currentRate = '0';
+          });
           Navigator.pop(context);
         },
       ),
@@ -381,7 +399,9 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
         selectedCountry: selectedCountry,
         product: selectedProduct!,
         onCountrySelected: (country) {
-          selectedCountry = country;
+          setState(() {
+            selectedCountry = country;
+          });
           Navigator.pop(context);
         },
       ),
@@ -424,14 +444,14 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
 
       if (fxRate != null && mounted) {
         setState(() {
-          currentRate = '₦${fxRate.data.senderAmount.toStringAsFixed(2)}';
+          currentRate = fxRate.data.senderAmount.toStringAsFixed(2);
           isLoadingRate = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          currentRate = '₦0';
+          currentRate = '0';
           isLoadingRate = false;
         });
       }
@@ -442,10 +462,13 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     if (isBuySelected) {
       return selectedProduct != null &&
           selectedAmountValue != null &&
-          currentRate != '₦0' &&
+          currentRate != '0' &&
           !isLoadingRate;
     } else {
-      return true; // For sell giftcard, we can always proceed
+      return selectedProduct != null &&
+          selectedAmountValue != null &&
+          currentRate != '0' &&
+          !isLoadingRate;
     }
   }
 
@@ -464,7 +487,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     if (selectedProduct == null || selectedAmountValue == null) return;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final rate = currentRate.replaceAll('₦', '').replaceAll(',', '');
+    final rate = currentRate.replaceAll(',', '');
     final rateValue = double.tryParse(rate) ?? 0;
 
     Navigator.push(
@@ -479,10 +502,11 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
             buildDetailRow('Card Amount', selectedAmount, isDark),
             buildDetailRow(
               'Rate',
-              '₦${(rateValue / selectedAmountValue!).toStringAsFixed(2)}/${selectedProduct!.recipientCurrencyCode}',
+              '${currencyFormatter((rateValue / selectedAmountValue!).toStringAsFixed(2))}/${selectedProduct!.recipientCurrencyCode}',
               isDark,
             ),
-            buildDetailRow('Expected Amount in Naira', currentRate, isDark),
+            buildDetailRow('Expected Amount in Naira',
+                currencyFormatter(currentRate), isDark),
           ],
           onButtonPressed: () => _processPayment(rateValue),
         ),
@@ -491,10 +515,20 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   }
 
   Future<void> _processPayment(double amount) async {
-    final pin = await TransactionPinModal.show(context);
+    final user = ref.read(userProvider);
+    final hasEnoughBalance = checkBalanceLeft(context,
+        user?.wallets.first.balance.toString() ?? '0', amount.toString());
+    if (!hasEnoughBalance) return;
+    final pin = await BiometricTransactionPinModal.show(context);
     if (pin == null || pin.length != 4 || !mounted) return;
 
     if (mounted) Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
 
     final paymentRequest = GiftCardPaymentRequest(
       productId: selectedProduct!.productId,
@@ -510,7 +544,16 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
           .read(giftCardNotifierProvider.notifier)
           .payForGiftCard(paymentRequest);
 
-      if (mounted) {
+      Navigator.pop(context);
+
+      final state = ref.read(giftCardNotifierProvider);
+       final isSuccessMessage = state.message != null &&
+                state.message!.toLowerCase().contains('success');
+
+      if ((state.isDataAvailable &&
+                    state.data != null &&
+                    state.data!.isNotEmpty && mounted) ||
+                isSuccessMessage && mounted) {
         final transactionId = 'TXN${DateTime.now().millisecondsSinceEpoch}';
         Navigator.push(
           context,
@@ -522,15 +565,14 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                 TransactionDetail(
                   label: 'Country',
                   value: selectedCountry,
-                  showCopyIcon: true,
                 ),
                 TransactionDetail(label: 'Card Amount', value: selectedAmount),
                 TransactionDetail(
                   label: 'Rate',
                   value:
-                      '₦${(amount / selectedAmountValue!).toStringAsFixed(2)}/${selectedProduct!.recipientCurrencyCode}',
+                      '${currencyFormatter((amount / selectedAmountValue!).toStringAsFixed(2))}/${selectedProduct!.recipientCurrencyCode}',
                 ),
-                TransactionDetail(label: 'Amount Paid', value: currentRate),
+                TransactionDetail(label: 'Amount Paid', value: currencyFormatter(currentRate)),
               ],
               bottomDetails: [
                 TransactionDetail(
@@ -548,10 +590,14 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                       '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 ),
               ],
-              onShareReceipt: () {},
+              onShareReceipt:  _onShareBuyTransactionReceiptPressed,
             ),
           ),
         );
+      } else {
+        AppMessenger.show(context,
+            message: state.message ?? 'Purchase failed. Please try again.',
+            type: MessageType.error);
       }
     } catch (e) {
       if (mounted) {
@@ -562,23 +608,45 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     }
   }
 
-  String getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
-  }
+_onShareBuyTransactionReceiptPressed() {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ReceiptShareScreen(
+                    date:
+                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    transactionDetailList: [
+                      ShareableTransactionReceiptDetail(
+                          label: 'Amount',
+                          value:  currencyFormatter(currentRate)),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Currency', value: 'NGN'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction Type',
+                          value: 'Buy Giftcard'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Card Type',
+                          value: selectedProduct != null
+                              ? selectedProduct!.productName
+                              : ''),
+                       ShareableTransactionReceiptDetail(
+                          label: 'Country',
+                          value: selectedCountry),
+                        ShareableTransactionReceiptDetail(
+                          label: 'Card',
+                          value: 'Card number'),
+                      
+                      ShareableTransactionReceiptDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
+                      ShareableTransactionReceiptDetail(
+                          label: 'Status',
+                          value: 'Successful',
+                          isSuccessful: true)
+                    ],
+                  )));
+    }
+
 }
 
 String getMonthName(int month) {

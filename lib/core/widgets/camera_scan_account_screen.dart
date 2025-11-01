@@ -133,7 +133,10 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan Account Number')),
+      appBar: AppBar(title: const Text('Scan Account Number', style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),)),
       body: SafeArea(
         child: Stack(
           children: [

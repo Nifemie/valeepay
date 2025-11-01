@@ -47,7 +47,6 @@ class _InternetScreenState extends ConsumerState<InternetScreen> {
         title: Text(
           'Internet',
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -108,7 +107,6 @@ class _InternetScreenState extends ConsumerState<InternetScreen> {
         title: Text(
           provider,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),

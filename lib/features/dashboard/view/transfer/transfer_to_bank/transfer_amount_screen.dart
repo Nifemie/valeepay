@@ -241,7 +241,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                 topDetails: [
                   TransactionDetail(
                     label: 'Transaction ID',
-                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    value: widget.accountDetails.sessionId,
                     showCopyIcon: true,
                   ),
                   TransactionDetail(
