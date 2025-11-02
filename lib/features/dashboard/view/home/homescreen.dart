@@ -91,8 +91,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     final userName = user?.username ?? 'Guest';
     final capitalizedUserName =
         userName[0].toUpperCase() + userName.substring(1);
-    final firstName = (user?.fullname ?? 'Guest').split(' ').first;
-
     // Get wallet data
     final wallet =
         user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
@@ -107,7 +105,10 @@ class _HomescreenState extends ConsumerState<Homescreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: _HomeAppBar(firstName: capitalizedUserName, greeting: greeting),
+              child: _HomeAppBar(
+                firstName: capitalizedUserName,
+                greeting: greeting,
+              ),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -145,7 +146,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                           return Column(
                             children: [
                               const SizedBox(height: 16),
-                              const KYCWidget(),
+                              KYCWidget(user: user!),
                             ],
                           );
                         },
@@ -429,7 +430,6 @@ class _AddMoneyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final buttonColor = isDark ? const Color(0xFF2B2725) : Colors.white;
     final iconColor = isDark ? Colors.white : appTheme.primaryColor;
 
     return GestureDetector(

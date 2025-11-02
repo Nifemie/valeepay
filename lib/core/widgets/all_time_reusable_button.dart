@@ -86,7 +86,7 @@ class SecondaryButton extends StatelessWidget {
 
 class FullWidthButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isEnabled;
   final bool isLoading;
 

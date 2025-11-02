@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
-
+import 'package:valarpay/features/dashboard/view/KYC/BVN.dart';
 /// Reusable widget to show when KYC is not completed
 class KycNotSetWidget extends StatelessWidget {
   final String title;
@@ -70,9 +69,7 @@ class KycNotSetWidget extends StatelessWidget {
                   // Navigate to KYC flow
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const ResidentialAddressPage(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const BVNPage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -85,10 +82,7 @@ class KycNotSetWidget extends StatelessWidget {
                 ),
                 child: const Text(
                   'Complete KYC',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
