@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart';
+import 'package:valarpay/core/themes/color_utils.dart';
 
 /// Shows a colorful "No Internet" alert dialog.
 /// - [onRetry] is called when the user taps Retry.
@@ -104,7 +105,6 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
     final dialogWidth = media.size.width * 0.86;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       type: MaterialType.transparency,
@@ -117,9 +117,7 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isDark
-                    ? [Colors.indigo.shade700, Colors.deepPurple.shade700]
-                    : [Colors.pink.shade300, Colors.orange.shade300],
+                colors:  [Colors.pink.shade300, appTheme.primaryColor.withValues(alpha: 0.3)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -167,7 +165,7 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                         child: Icon(
                           Icons.wifi_off,
                           size: 44,
-                          color: isDark ? Colors.deepPurple : Colors.deepOrange,
+                          color: appTheme.primaryColor,
                         ),
                       ),
                     ),
