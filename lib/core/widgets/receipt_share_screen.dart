@@ -40,7 +40,7 @@ class _ReceiptShareScreenState extends State<ReceiptShareScreen> {
       appBar: AppBar(title: const Text("Transaction Receipt", style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-          ),)),
+          ))),
       body: SafeArea(
         child: Container(
           margin: const EdgeInsets.all(16),
