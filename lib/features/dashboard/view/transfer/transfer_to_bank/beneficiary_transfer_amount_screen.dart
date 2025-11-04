@@ -113,9 +113,6 @@ class _BeneficiaryTransferAmountScreenState
   }
 
   void _initiateTransfer(String pin, double amount) async {
-    print(
-      '🚀 _initiateTransfer called with amount: $amount, pin length: ${pin.length}',
-    );
     Navigator.pop(context); // Close pin modal
 
     // Show loading
@@ -126,11 +123,6 @@ class _BeneficiaryTransferAmountScreenState
     );
 
     try {
-      print('🔐 Initiating transfer with PIN...');
-      print(
-        '📤 Transfer details - Bank: ${widget.beneficiaryDetails.bankName}, Account: ${widget.beneficiaryDetails.accountNumber}, Amount: $amount',
-      );
-
       // Proceed with transfer (backend will validate PIN)
       // Use bankCode from accountDetails (returned from account verification) not from selectedBank
       await ref.read(transferNotifierProvider.notifier).initiateTransfer(
@@ -144,11 +136,8 @@ class _BeneficiaryTransferAmountScreenState
           sessionId: verifiedAccount!.sessionId);
 
       Navigator.pop(context); // Close loading
-
-      print('✅ Transfer completed successfully');
     } catch (e) {
       Navigator.pop(context); // Close loading
-      print('❌ Transfer error: $e');
       AppMessenger.show(
         context,
         message: 'Transfer failed: ${e.toString()}',
@@ -252,26 +241,17 @@ class _BeneficiaryTransferAmountScreenState
 
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
-      print(
-        '🎧 Transfer listener triggered - isDataAvailable: ${next.isDataAvailable}, data: ${next.data}, message: ${next.message}',
-      );
-
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
-        print('✅ Transfer successful, navigating to receipt');
-
         if (!mounted) {
-          print('⚠️ Widget not mounted, skipping navigation');
           return;
         }
 
         // Small delay to ensure any dialogs are closed
         Future.delayed(const Duration(milliseconds: 100), () {
           if (!mounted) {
-            print('⚠️ Widget not mounted after delay, skipping navigation');
             return;
           }
 
-          print('🧾 Navigating to receipt screen');
           // Transfer successful - navigate to receipt
           final transferAmount =
               double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
@@ -389,24 +369,15 @@ class _BeneficiaryTransferAmountScreenState
                 ),
               ],
               onButtonPressed: () async {
-                print('🔘 Transfer button pressed, amount: $amount');
                 final pin = await BiometricTransactionPinModal.show(context);
-                print(
-                  '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-                );
 
                 if (pin != null && pin.length == 4) {
                   // Ensure PIN is a string
                   final pinString = pin.toString();
-                  print(
-                      '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
 
                   if (mounted) {
-                    print('✅ PIN valid, calling _initiateTransfer');
                     _initiateTransfer(pinString, amount);
                   }
-                } else {
-                  print('❌ PIN invalid or cancelled');
                 }
               },
             ),

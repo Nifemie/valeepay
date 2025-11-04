@@ -7,6 +7,7 @@ import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 import 'package:valarpay/features/notifiers/profile_notifier.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
+import 'package:valarpay/features/dashboard/view/KYC/upgrade_kyc.dart';
 
 class ProfileHeader extends ConsumerStatefulWidget {
   final VoidCallback? onEditTap;
@@ -267,7 +268,14 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
               ],
             ),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UpgradeKycScreen(),
+                ),
+              );
+            },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

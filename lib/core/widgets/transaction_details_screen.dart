@@ -14,6 +14,7 @@ Widget buildDetailRow(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
@@ -23,11 +24,17 @@ Widget buildDetailRow(
             fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
+            ),
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.visible,
+            softWrap: true,
           ),
         ),
       ],
@@ -266,12 +273,21 @@ class _ReuseableTransactionDetailsScreenState
                     name,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     accountNumber,
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Balance: ${currencyFormatter(accountBalance)}',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],

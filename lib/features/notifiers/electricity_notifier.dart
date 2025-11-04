@@ -93,14 +93,15 @@ class ElectricityPaymentNotifier
     }
   }
 
-  Future<void> payElectricity(ElectricityPaymentRequest request) async {
+  Future<void> payElectricity(
+      ElectricityPaymentRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final response = await _repository.payElectricity(request);
       state = state.copyWith(
         isInitialLoading: false,
-        data: [response],
         isDataAvailable: true,
+        singleData: response,
         message: response.message,
       );
     } catch (e, stack) {
