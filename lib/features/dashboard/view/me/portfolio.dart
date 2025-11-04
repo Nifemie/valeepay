@@ -101,7 +101,7 @@ class MyPortfolioPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isBalanceVisible ? balanceText : '₦****',
+                    isBalanceVisible ? balanceText : '₦ •••••',
                     style: TextStyle(
                       color: isDark ? Colors.white : const Color(0xFF111827),
                       fontFamily: 'SF Pro',

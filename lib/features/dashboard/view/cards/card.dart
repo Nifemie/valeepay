@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/comming_soon.dart';
@@ -23,20 +22,16 @@ class _CardsScreenState extends State<CardsScreen> {
         elevation: 0,
         title: const Text(
           "Cards",
-           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
         centerTitle: false,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 12),
-
-            // Toggle buttons for Physical / Virtual card
             Container(
               height: 42,
               decoration: BoxDecoration(
@@ -61,16 +56,14 @@ class _CardsScreenState extends State<CardsScreen> {
               borderRadius: BorderRadius.circular(16),
               child: Image.asset(
                 'assets/images/card_image.jpg',
-                width: 280,
                 fit: BoxFit.contain,
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // "No cards found" text
             Text(
-              "No cards found",
+              "Your ValarPay Physical Card",
               style: TextStyle(
                 color: appTheme.primaryColor,
                 fontWeight: FontWeight.w500,
@@ -85,56 +78,48 @@ class _CardsScreenState extends State<CardsScreen> {
               textAlign: TextAlign.center,
               text: TextSpan(
                 text:
-                    "You currently do not have any ${isPhysicalCardSelected ? "physical" : "virtual"} card linked to this account. Click on ",
+                    "Carry ValarPay in your wallet and pay anywhere — online or offline — with ease and security.",
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
                   color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
                 ),
                 children: [
-                  TextSpan(
-                    text: "Get Card Now",
-                    style: TextStyle(
-                      color: appTheme.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const TextSpan(text: " to apply for a new card."),
+                 
                 ],
               ),
             ),
 
-            const Spacer(),
+            // const Spacer(),
 
             // CTA button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => GetPhysicalCardScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  "Get Card Now",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-
+            // SizedBox(
+            //   width: double.infinity,
+            //   height: 52,
+            //   child: ElevatedButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(builder: (_) => GetPhysicalCardScreen()),
+            //       );
+            //     },
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: appTheme.primaryColor,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(28),
+            //       ),
+            //       elevation: 0,
+            //     ),
+            //     child: const Text(
+            //       "Get Card Now",
+            //       style: TextStyle(
+            //         fontSize: 15,
+            //         fontWeight: FontWeight.w600,
+            //         color: Colors.white,
+            //       ),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 40),
           ],
         ),
@@ -153,7 +138,8 @@ class _CardsScreenState extends State<CardsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const ComingSoonScreen(serviceName: "Virtual Card"),
+                builder:
+                    (_) => const ComingSoonScreen(serviceName: "Virtual Card"),
               ),
             );
           } else {

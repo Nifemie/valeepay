@@ -20,7 +20,7 @@ Widget buildDetailRow(
           label,
           style: TextStyle(
             color: isDark ? Colors.white70 : Colors.grey[600],
-            fontSize: 14,
+            fontSize: 12,
             fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -159,7 +159,7 @@ class _ReuseableTransactionDetailsScreenState
                     children: [
                       // Payment methods
                       _buildPaymentMethod(
-                        'Vconnect Bank',
+                        'ValarPay Account',
                         accountNumber,
                         balance.toString(),
                         'assets/images/new_valapay.png',
@@ -218,15 +218,6 @@ class _ReuseableTransactionDetailsScreenState
                   ],
                 ),
 
-                const SizedBox(height: 24),
-
-                // Confirm Button
-                FullWidthButton(
-                  text: 'Confirm',
-                  onPressed: (widget.onButtonPressed != null)
-                      ? widget.onButtonPressed!
-                      : () {},
-                ),
               ],
             ],
           ),

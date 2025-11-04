@@ -225,7 +225,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                     Text(
                       isBalanceVisible
                           ? currencyFormatter(balance.toString())
-                          : "₦****",
+                          : "₦ •••••",
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
