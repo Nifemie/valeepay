@@ -515,18 +515,19 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
             buildDetailRow('Expected Amount in Naira',
                 currencyFormatter(currentRate), isDark),
           ],
-          onButtonPressed: () => _processPayment(rateValue),
+          onButtonPressed: () => _processPinPayment(rateValue),
+          onBiometricButtonPressed: () => _processBiometricPinPayment(rateValue),
         ),
       ),
     );
   }
 
-  Future<void> _processPayment(double amount) async {
+  Future<void> _processPinPayment(double amount) async {
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(context,
         user?.wallets.first.balance.toString() ?? '0', amount.toString());
     if (!hasEnoughBalance) return;
-    final pin = await BiometricTransactionPinModal.show(context);
+    final pin = await TransactionPinModal.show(context);
     if (pin == null || pin.length != 4 || !mounted) return;
 
     if (mounted) Navigator.pop(context);
@@ -566,6 +567,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => TransactionReceiptWidget(
+              headerText: 'Transaction',
               amount: currentRate,
               topDetails: [
                 TransactionDetail(label: 'Card Type', value: selectedBrand),
@@ -614,6 +616,102 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
       }
     }
   }
+
+Future<void> _processBiometricPinPayment(double amount) async {
+    final user = ref.read(userProvider);
+    final hasEnoughBalance = checkBalanceLeft(context,
+        user?.wallets.first.balance.toString() ?? '0', amount.toString());
+    if (!hasEnoughBalance) return;
+    final pin = await BiometricTransactionPinModal.show(context);
+    if (pin == null || pin.length != 4 || !mounted) return;
+
+    if (mounted) Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final paymentRequest = GiftCardPaymentRequest(
+      productId: selectedProduct!.productId,
+      currency: 'NGN',
+      walletPin: pin,
+      amount: amount,
+      unitPrice: selectedAmountValue!,
+      quantity: quantity,
+    );
+
+    try {
+      await ref
+          .read(giftCardNotifierProvider.notifier)
+          .payForGiftCard(paymentRequest);
+
+      Navigator.pop(context);
+
+      final state = ref.read(giftCardNotifierProvider);
+       final isSuccessMessage = state.message != null &&
+                state.message!.toLowerCase().contains('success');
+
+      if ((state.isDataAvailable &&
+                    state.data != null &&
+                    state.data!.isNotEmpty && mounted) ||
+                isSuccessMessage && mounted) {
+        final transactionId = 'TXN${DateTime.now().millisecondsSinceEpoch}';
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionReceiptWidget(
+              headerText: 'Transaction',
+              amount: currentRate,
+              topDetails: [
+                TransactionDetail(label: 'Card Type', value: selectedBrand),
+                TransactionDetail(
+                  label: 'Country',
+                  value: selectedCountry,
+                ),
+                TransactionDetail(label: 'Card Amount', value: selectedAmount),
+                TransactionDetail(
+                  label: 'Rate',
+                  value:
+                      '${currencyFormatter((amount / selectedAmountValue!).toStringAsFixed(2))}/${selectedProduct!.recipientCurrencyCode}',
+                ),
+                TransactionDetail(label: 'Amount Paid', value: currencyFormatter(currentRate)),
+              ],
+              bottomDetails: [
+                TransactionDetail(
+                  label: 'Transaction ID',
+                  value: transactionId,
+                  showCopyIcon: true,
+                ),
+                TransactionDetail(
+                  label: 'Payment Source',
+                  value: 'ValarPay Account',
+                ),
+                TransactionDetail(
+                  label: 'Date & Time',
+                  value:
+                      '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                ),
+              ],
+              onShareReceipt:  _onShareBuyTransactionReceiptPressed,
+            ),
+          ),
+        );
+      } else {
+        AppMessenger.show(context,
+            message: state.message ?? 'Purchase failed. Please try again.',
+            type: MessageType.error);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppMessenger.show(context,
+            message: 'Purchase failed: ${e.toString()}',
+            type: MessageType.error);
+      }
+    }
+  }
+
 
 _onShareBuyTransactionReceiptPressed() {
       Navigator.push(

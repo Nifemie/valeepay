@@ -47,11 +47,8 @@ class SecondaryButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const SecondaryButton({
-    Key? key,
-    required this.text,
-    required this.onPressed,
-  }) : super(key: key);
+  const SecondaryButton({Key? key, required this.text, required this.onPressed})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +70,6 @@ class SecondaryButton extends StatelessWidget {
         child: Text(
           text,
           style: const TextStyle(
-            color: Color(0xFF111827),
             fontFamily: 'SF Pro',
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -115,20 +111,22 @@ class FullWidthButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
           ),
         ),
-        child: isLoading
-            ? SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator())
-            : Text(
-                text,
-                style: TextStyle(
-                  color: isEnabled ? Colors.black : const Color(0xFF9CA3AF),
-                  fontFamily: 'SF Pro',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+        child:
+            isLoading
+                ? SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(),
+                )
+                : Text(
+                  text,
+                  style: TextStyle(
+                    color: isEnabled ? Colors.white : const Color(0xFF9CA3AF),
+                    fontFamily: 'SF Pro',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
       ),
     );
   }

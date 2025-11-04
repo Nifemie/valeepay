@@ -243,10 +243,10 @@ class _TransactionHistoryPageState
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
       filteredTransactions = filteredTransactions.where((tx) {
-        final description = tx.description?.toLowerCase() ?? '';
+        final description = tx.description.toLowerCase();
         final reference = tx.reference?.toLowerCase() ?? '';
         final amount = tx.amount.toString();
-        final status = tx.status?.toLowerCase() ?? '';
+        final status = tx.status.toLowerCase();
         final beneficiaryName = tx.depositDetails?.beneficiaryName?.toLowerCase() ?? '';
         final senderName = tx.depositDetails?.senderName?.toLowerCase() ?? '';
 

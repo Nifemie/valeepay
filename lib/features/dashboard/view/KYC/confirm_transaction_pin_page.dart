@@ -172,6 +172,7 @@ class _ConfirmTransactionPinPageState
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return PasscodeSuccessDialog(
+          headerText: 'Pin',
           onDone: () async {
             ref.read(pinControllerProvider.notifier).clearAllPins();
 

@@ -177,6 +177,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                                     MaterialPageRoute(
                                         builder: (context) =>
                                             TransactionReceiptWidget(
+                                              headerText: 'Transaction',
                                               amount:
                                                   '${int.parse('45000') + int.parse(serviceFee) + int.parse(serviceFee) + int.parse('35000') + int.parse('25000')}',
                                               topDetails: [

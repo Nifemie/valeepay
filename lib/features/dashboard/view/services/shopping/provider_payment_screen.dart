@@ -175,6 +175,7 @@ class _ShoppingProviderPaymentScreenState
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   TransactionReceiptWidget(
+                                                    headerText: 'Transaction',
                                                     amount:
                                                         '${(int.parse(amountController.text) + serviceFee)}',
                                                     topDetails: [
