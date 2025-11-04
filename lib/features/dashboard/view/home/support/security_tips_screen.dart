@@ -188,7 +188,7 @@ class SecurityTipsScreen extends StatelessWidget {
               InkWell(
                 borderRadius: ResponsiveUtils.borderRadius12,
                 onTap: () async {
-                  final Uri phoneUri = Uri.parse('tel:+2348234146906');
+                  final Uri phoneUri = Uri.parse('tel:+2342013309609');
                   try {
                     await launchUrl(
                       phoneUri,

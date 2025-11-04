@@ -168,12 +168,12 @@ class BranchLocationsBottomSheet extends StatelessWidget {
                   address:
                       'C3&C4 Suite 2nd Floor Ejison Plaza, 9a New Market Road, Main Market, Onitsha, Anambra State',
                   hours: 'Mon - Fri: 9:00 AM - 5:00 PM',
-                  phone: '+234 823 414 6906',
+                  phone: '+234 201 330 9609',
                   onDirections: () {
                     // Open maps
                   },
                   onCall: () async {
-                    final phoneUri = Uri.parse('tel:+2348234146906');
+                    final phoneUri = Uri.parse('tel:+2342013309609');
                     if (await canLaunchUrl(phoneUri)) {
                       await launchUrl(
                         phoneUri,

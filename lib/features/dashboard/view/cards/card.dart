@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/comming_soon.dart';
 
 class CardsScreen extends StatefulWidget {
@@ -21,107 +20,202 @@ class _CardsScreenState extends State<CardsScreen> {
       appBar: AppBar(
         elevation: 0,
         title: const Text(
-          "Cards",
+          "ValarPay Cards",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color:
-                    isDark
-                        ? Colors.grey.shade800
-                        : Theme.of(context).cardColor.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  _buildCardToggle("Physical Card", true),
-                  _buildCardToggle("Virtual Card", false),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 60),
-
-            // Card image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                'assets/images/card_image.jpg',
-                fit: BoxFit.contain,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            Text(
-              "Your ValarPay Physical Card",
-              style: TextStyle(
-                color: appTheme.primaryColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // Description text
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                text:
-                    "Carry ValarPay in your wallet and pay anywhere — online or offline — with ease and security.",
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                height: 42,
+                decoration: BoxDecoration(
+                  color:
+                      isDark
+                          ? Colors.grey.shade800
+                          : Theme.of(context).cardColor.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(24),
                 ),
+                child: Row(
+                  children: [
+                    _buildCardToggle("Physical Card", true),
+                    _buildCardToggle("Virtual Card", false),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Card image
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/card_image.jpg',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // 1️⃣ Free Application and Usage
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                 
+                  Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6F8F0),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.card_giftcard,
+                      color: Color(0xFF00C853),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Free Application and Usage",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "Free application, Zero maintenance",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
 
-            // const Spacer(),
+              const SizedBox(height: 16),
 
-            // CTA button
-            // SizedBox(
-            //   width: double.infinity,
-            //   height: 52,
-            //   child: ElevatedButton(
-            //     onPressed: () {
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(builder: (_) => GetPhysicalCardScreen()),
-            //       );
-            //     },
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: appTheme.primaryColor,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(28),
-            //       ),
-            //       elevation: 0,
-            //     ),
-            //     child: const Text(
-            //       "Get Card Now",
-            //       style: TextStyle(
-            //         fontSize: 15,
-            //         fontWeight: FontWeight.w600,
-            //         color: Colors.white,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            const SizedBox(height: 40),
-          ],
+              // 2️⃣ Earn
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6F5FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.attach_money,
+                      color: Color(0xFF1E88E5),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Earn",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "Flexible spending with 15% annual interest",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // 3️⃣ Security
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.verified_user,
+                      color: Color(0xFF00C853),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Security",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "CBN licensed, NDIC insured",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              // Description text
+
+              // const Spacer(),
+
+              // CTA button
+              // SizedBox(
+              //   width: double.infinity,
+              //   height: 52,
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       Navigator.push(
+              //         context,
+              //         MaterialPageRoute(builder: (_) => GetPhysicalCardScreen()),
+              //       );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: appTheme.primaryColor,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(28),
+              //       ),
+              //       elevation: 0,
+              //     ),
+              //     child: const Text(
+              //       "Get Card Now",
+              //       style: TextStyle(
+              //         fontSize: 15,
+              //         fontWeight: FontWeight.w600,
+              //         color: Colors.white,
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
