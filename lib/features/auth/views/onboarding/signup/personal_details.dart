@@ -14,10 +14,7 @@ import '../../../../models/user_availablity_request.dart';
 
 class PersonalDetailsScreen extends ConsumerStatefulWidget {
   final SignUpRequest request;
-  const PersonalDetailsScreen({
-    required this.request,
-    super.key,
-  });
+  const PersonalDetailsScreen({required this.request, super.key});
 
   @override
   ConsumerState<PersonalDetailsScreen> createState() =>
@@ -35,8 +32,11 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
   Future<void> _checkUserAvailablity() async {
     try {
       if (_formKey.currentState!.validate()) {
-        await ref.read(userNotifierProvider.notifier).checkUserExistance(
-            UserAvailabilityRequest(username: _usernameController.text));
+        await ref
+            .read(userNotifierProvider.notifier)
+            .checkUserExistance(
+              UserAvailabilityRequest(username: _usernameController.text),
+            );
         final userState = ref.read(userNotifierProvider);
         if (!userState.isDataAvailable && mounted) {
           AppMessenger.show(
@@ -47,7 +47,7 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
         } else {
           final updatedRequest = widget.request.copyWith(
             fullname:
-                '${_firstNameController.text} ${_lastNameController.text}',
+                '${_firstNameController.text.toString().trim()} ${_lastNameController.text.toString().trim()}',
             username: _usernameController.text,
             dateOfBirth: _dobController.text,
             referralCode: _referralController.text,
@@ -161,9 +161,10 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
                 const SizedBox(height: 50),
 
                 FullWidthButton(
-                    text: 'Continue',
-                    isLoading: userState.isInitialLoading,
-                    onPressed: _checkUserAvailablity)
+                  text: 'Continue',
+                  isLoading: userState.isInitialLoading,
+                  onPressed: _checkUserAvailablity,
+                ),
               ],
             ),
           ),
@@ -187,10 +188,7 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -199,9 +197,11 @@ class _PersonalDetailsScreenState extends ConsumerState<PersonalDetailsScreen> {
           onTap: onTap,
           maxLines: maxLines,
           decoration: _inputDecoration(hint, suffixIcon),
-          validator: (value) => (isRequired && (value == null || value.isEmpty))
-              ? 'This field is required'
-              : null,
+          validator:
+              (value) =>
+                  (isRequired && (value == null || value.isEmpty))
+                      ? 'This field is required'
+                      : null,
         ),
       ],
     );

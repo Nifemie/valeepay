@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
-// unused imports removed
 
 class AccountMenuWidget extends StatelessWidget {
   const AccountMenuWidget({Key? key}) : super(key: key);
@@ -83,11 +81,7 @@ class AccountMenuWidget extends StatelessWidget {
         child: Row(
           children: [
             // Left icon
-            SvgPicture.asset(
-              svgPath,
-              width: 24,
-              height: 24,
-            ),
+            SvgPicture.asset(svgPath, width: 24, height: 24),
             const SizedBox(width: 12),
             // Title text
             Expanded(

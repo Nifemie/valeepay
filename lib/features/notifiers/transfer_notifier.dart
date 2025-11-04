@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/repositories/transfer_repository.dart';
-import 'package:valarpay/features/notifiers/auth_notifier.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
 /// Repository provider

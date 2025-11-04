@@ -46,7 +46,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
           );
         } else {
           final updatedRequest = widget.request.copyWith(
-            fullname: _businessNameController.text,
+            fullname: _businessNameController.text.toString().trim(),
             username: _usernameController.text,
             dateOfBirth: _dobController.text,
             referralCode: _referralController.text,

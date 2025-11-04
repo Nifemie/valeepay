@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
-import 'package:valarpay/features/providers/user_provider.dart';
 import '../widgets/me_widgets/account_widget.dart';
 import '../widgets/me_widgets/user_profile.dart';
 import '../widgets/me_widgets/security_widget.dart';

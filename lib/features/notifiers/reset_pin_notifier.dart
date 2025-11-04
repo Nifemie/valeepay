@@ -4,9 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/api_client.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/reset_pin_model.dart';
-import 'package:valarpay/features/models/forgot_password.dart';
-import 'package:valarpay/features/models/reset_password.dart';
-import 'package:valarpay/features/models/verify_otp_request.dart';
 import 'package:valarpay/features/repositories/reset_pin_repository.dart';
 
 class ResetPinNotifier extends StateNotifier<DataState<ResetPinRequest>> {

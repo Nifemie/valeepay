@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,10 +33,9 @@ class BiometricLoginScreen extends ConsumerStatefulWidget {
 class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   String? _username;
   String? _capitalizedUsername;
-  String? _phoneNumber;
+  String? _accountNumber;
   String? _profileImageUrl;
   bool _isLoading = false;
-  String? _fullname;
 
   @override
   void initState() {
@@ -49,42 +51,41 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
   Future<void> _loadUserSession() async {
     final user = await SessionService.getUser();
     final savedUsername = await SessionService.getActualUsername();
-    final savedFullname = await SessionService.getUserFullname();
     final savedPhoneNumber = await SessionService.getPhoneNumber();
 
     setState(() {
       // Use actual username for display (not email)
       _username = user?.username ?? savedUsername ?? 'User';
       if (_username!.isNotEmpty) {
-    _capitalizedUsername =
-        _username![0].toUpperCase() + _username!.substring(1);
-  } else {
-    _capitalizedUsername = 'User';
-  }
-      _fullname = user?.fullname ?? savedFullname ?? 'User';
-      _phoneNumber = user?.phoneNumber ?? savedPhoneNumber ?? '';
-      _profileImageUrl = user?.profileImageUrl;
+        _capitalizedUsername =
+            _username![0].toUpperCase() + _username!.substring(1);
+      } else {
+        _capitalizedUsername = 'User';
+      }
+       log(jsonEncode(user));
+       
+      if (user != null) {
+        _accountNumber =
+            user.wallets.isNotEmpty
+                ? user.wallets[0].accountNumber
+                : user.phoneNumber ?? savedPhoneNumber ?? '';
+        _profileImageUrl = user.profileImageUrl;
+      } else {
+        _accountNumber = savedPhoneNumber;
+      }
     });
   }
 
-  /// Mask phone number to show only first 3 and last 3 digits
-  String _maskPhoneNumber(String? phone) {
+  String _maskNumber(String? phone) {
     if (phone == null || phone.isEmpty) {
       return ''; // Return empty string instead of "Loading..."
     }
-
     if (phone == 'N/A') {
       return '';
     }
-
-    if (phone.length <= 6) {
-      return phone; // Too short to mask
-    }
-
     final first3 = phone.substring(0, 3);
     final last3 = phone.substring(phone.length - 3);
     final maskedMiddle = '*' * (phone.length - 6);
-
     return '$first3$maskedMiddle$last3';
   }
 
@@ -448,7 +449,7 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    _maskPhoneNumber(_phoneNumber),
+                    _maskNumber(_accountNumber),
                     style: TextStyle(fontSize: 15.sp, color: Colors.grey[300]),
                   ),
                   SizedBox(height: 50.h),

@@ -27,10 +27,6 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
   static const _biometricGracePeriod = Duration(seconds: 5);
   static bool _isBiometricInProgress = false;
   
-  /// Call this before starting biometric authentication
-  static void setBiometricInProgress(bool inProgress) {
-    _isBiometricInProgress = inProgress;
-  }
 
   @override
   void initState() {
