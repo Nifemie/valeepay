@@ -6,6 +6,7 @@ class DataState<T> {
   final int totalPages;
   final String? message;
   final List<T>? data;
+  final T? singleData;
 
   const DataState({
     this.isInitialLoading = false,
@@ -15,6 +16,7 @@ class DataState<T> {
     this.totalPages = 1,
     this.message,
     this.data,
+    this.singleData,
   });
 
   factory DataState.initial() => DataState<T>(
@@ -25,6 +27,7 @@ class DataState<T> {
         totalPages: 1,
         message: null,
         data: const [],
+        singleData: null
       );
 
   DataState<T> copyWith({
@@ -35,6 +38,7 @@ class DataState<T> {
     int? totalPages,
     String? message,
     List<T>? data,
+    final T? singleData
   }) {
     return DataState<T>(
       isInitialLoading: isInitialLoading ?? this.isInitialLoading,
@@ -44,6 +48,7 @@ class DataState<T> {
       totalPages: totalPages ?? this.totalPages,
       message: message ?? this.message,
       data: data ?? this.data,
+      singleData: singleData ?? this.singleData
     );
   }
 }

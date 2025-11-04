@@ -5,9 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
-import 'package:flutter/services.dart';
-import 'dart:convert';
-import 'package:image/image.dart' as img;
 
 final proofOfAddressImageProvider = StateProvider<File?>((ref) => null);
 
@@ -160,26 +157,6 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
         ),
       ),
     );
-  }
-
-  Future<String> _compressAndEncodeImage(File imageFile) async {
-    final bytes = await imageFile.readAsBytes();
-    img.Image? image = img.decodeImage(bytes);
-
-    if (image == null) return '';
-
-    // Resize if too large
-    if (image.width > 1024 || image.height > 1024) {
-      image = img.copyResize(
-        image,
-        width: image.width > image.height ? 1024 : null,
-        height: image.height > image.width ? 1024 : null,
-      );
-    }
-
-    // Compress to JPEG with quality 85
-    final compressedBytes = img.encodeJpg(image, quality: 85);
-    return base64Encode(compressedBytes);
   }
 
   Future<void> _submitProofOfAddress() async {

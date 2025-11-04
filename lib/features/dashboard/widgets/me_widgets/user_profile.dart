@@ -21,7 +21,7 @@ class ProfileHeaderCard extends ConsumerStatefulWidget {
 }
 
 class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
-  bool isBalanceVisible = false;
+  bool isBalanceVisible = true;
 
   @override
   void initState() {
@@ -46,23 +46,16 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
     } else if (user?.username != null) {
       userName = user!.username;
     }
+    
+    // Capitalize first letter of username
+    if (userName.isNotEmpty) {
+      userName = userName[0].toUpperCase() + userName.substring(1);
+    }
     final accountNumber = wallet?.accountNumber ?? '0000000000';
     final balance = wallet?.balance ?? 0.0;
 
-    // 🔍 Debug: Log wallet data
-    debugPrint('💰 [Profile Card] Balance: ₦$balance');
-    debugPrint('💰 [Profile Card] Account: $accountNumber');
-    debugPrint('💰 [Profile Card] Wallets count: ${user?.wallets.length ?? 0}');
-    if (wallet != null) {
-      debugPrint(
-        '💰 [Profile Card] Wallet balance from model: ${wallet.balance}',
-      );
-      debugPrint(
-        '💰 [Profile Card] Wallet formatted: ${wallet.formattedBalance}',
-      );
-    }
     const double rewardsAmount =
-        0.00; // TODO: Get from rewards API when available
+        0.00; 
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -134,7 +127,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                           child: Text(
                             accountNumber,
                             style: const TextStyle(
-                              color: Color.fromARGB(255, 200, 202, 206),
+                              color: Color(0xFF6B7280),
                               fontSize: 12,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -193,7 +186,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
 
           const SizedBox(height: 20),
 
-          // 🔹 Balance + Rewards + Security
+        
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -233,8 +226,7 @@ class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard> {
                       isBalanceVisible
                           ? currencyFormatter(balance.toString())
                           : "₦****",
-                      style: const TextStyle(
-                        fontSize: 24,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                       overflow: TextOverflow.ellipsis,

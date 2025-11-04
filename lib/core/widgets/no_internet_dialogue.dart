@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart';
+import 'package:valarpay/core/themes/color_utils.dart';
 
 /// Shows a colorful "No Internet" alert dialog.
 /// - [onRetry] is called when the user taps Retry.
@@ -104,22 +105,17 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
     final dialogWidth = media.size.width * 0.86;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       type: MaterialType.transparency,
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: dialogWidth,
-          ),
+          constraints: BoxConstraints(maxWidth: dialogWidth),
           child: Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isDark
-                    ? [Colors.indigo.shade700, Colors.deepPurple.shade700]
-                    : [Colors.pink.shade300, Colors.orange.shade300],
+                colors: [Colors.pink.shade300, appTheme.primaryColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -153,10 +149,7 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                     animation: _pulseController,
                     builder: (context, child) {
                       final scale = _pulseController.value;
-                      return Transform.scale(
-                        scale: scale,
-                        child: child,
-                      );
+                      return Transform.scale(scale: scale, child: child);
                     },
                     child: CircleAvatar(
                       radius: 40,
@@ -167,7 +160,7 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                         child: Icon(
                           Icons.wifi_off,
                           size: 44,
-                          color: isDark ? Colors.deepPurple : Colors.deepOrange,
+                          color: appTheme.primaryColor,
                         ),
                       ),
                     ),
@@ -189,7 +182,7 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                         blurRadius: 6,
                         color: Colors.black26,
                         offset: Offset(0, 2),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -199,14 +192,18 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                 // Message card with glassy effect
                 Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   margin: const EdgeInsets.only(top: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: Colors.white.withOpacity(0.12), width: 0.8),
+                      color: Colors.white.withOpacity(0.12),
+                      width: 0.8,
+                    ),
                   ),
                   child: Text(
                     widget.message,
@@ -231,7 +228,8 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                           foregroundColor: Colors.black87,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: () {
                           widget.onRetry?.call();
@@ -248,7 +246,8 @@ class _NoInternetDialogBodyState extends State<_NoInternetDialogBody>
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: () async {
                           await _openSettings();

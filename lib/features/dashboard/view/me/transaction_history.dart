@@ -244,13 +244,17 @@ class _TransactionHistoryPageState
     if (_searchQuery.isNotEmpty) {
       filteredTransactions = filteredTransactions.where((tx) {
         final description = tx.description.toLowerCase();
-        final reference = tx.reference.toLowerCase();
+        final reference = tx.reference?.toLowerCase() ?? '';
         final amount = tx.amount.toString();
         final status = tx.status.toLowerCase();
+        final beneficiaryName = tx.depositDetails?.beneficiaryName?.toLowerCase() ?? '';
+        final senderName = tx.depositDetails?.senderName?.toLowerCase() ?? '';
 
         return description.contains(_searchQuery) ||
             reference.contains(_searchQuery) ||
             amount.contains(_searchQuery) ||
+            beneficiaryName.contains(_searchQuery) ||
+            senderName.contains(_searchQuery) ||
             status.contains(_searchQuery);
       }).toList();
     }

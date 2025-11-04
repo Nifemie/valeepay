@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
 class PasscodeSuccessDialog extends StatelessWidget {
+  final String headerText;
   final VoidCallback onDone;
 
-  const PasscodeSuccessDialog({
-    Key? key,
-    required this.onDone,
-  }) : super(key: key);
+  const PasscodeSuccessDialog({Key? key, required this.onDone, required this.headerText})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -28,16 +26,12 @@ class PasscodeSuccessDialog extends StatelessWidget {
                 color: Color(0xFF10B981),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 28,
-              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 28),
             ),
             const SizedBox(height: 20),
             // Title
-            const Text(
-              'Passcode Set Successfully',
+             Text(
+              '$headerText Set Successfully',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF111827),
@@ -49,8 +43,8 @@ class PasscodeSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             // Description
-            const Text(
-              'Your passcode has been created. You\'ll now use it to authorize actions securely',
+             Text(
+              'Your $headerText has been created. You\'ll now use it to authorize actions securely',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF9CA3AF),
@@ -62,30 +56,9 @@ class PasscodeSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             // Done Button
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: onDone,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF76301),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-                child: const Text(
-                  'Done',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'SF Pro',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
+            FullWidthButton(
+              text: 'Continue',
+              onPressed: onDone,
             ),
           ],
         ),

@@ -28,7 +28,7 @@ class EmptyTransactionsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Transactions Yet',
+              'No Transactions Found',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -37,28 +37,11 @@ class EmptyTransactionsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Your transaction history will appear here',
+              'Try refreshing or check back later.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
-            if (onRefresh != null) ...[
-              const SizedBox(height: 24),
-              OutlinedButton.icon(
-                onPressed: onRefresh,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
             ],
-          ],
         ),
       ),
     );

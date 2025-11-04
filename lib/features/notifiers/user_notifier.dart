@@ -3,10 +3,6 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/api_client.dart';
 import 'package:valarpay/core/network/data_state.dart';
-import 'package:valarpay/features/models/bvn_initialize_request.dart';
-import 'package:valarpay/features/models/bvn_initialize_response.dart';
-import 'package:valarpay/features/models/bvn_validate_request.dart';
-import 'package:valarpay/features/models/bvn_validate_response.dart';
 import 'package:valarpay/features/models/nin_verification_request.dart';
 import 'package:valarpay/features/models/nin_verification_response.dart';
 import 'package:valarpay/features/models/email_request.dart';
@@ -222,50 +218,6 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
         isDataAvailable: false,
         message: e.toString(),
       );
-    }
-  }
-
-  Future<BvnInitializeResponse?> initializeBvn(
-    BvnInitializeRequest request,
-  ) async {
-    state = state.copyWith(isInitialLoading: true, message: null);
-    try {
-      final res = await _repository.initializeBvn(request);
-      state = state.copyWith(
-        isInitialLoading: false,
-        isDataAvailable: true,
-        message: res.message,
-      );
-      return res; // Return the response so caller can access verificationId
-    } catch (e, stack) {
-      log('[UserNotifier BVN Initialize Error] $e\n$stack');
-      state = state.copyWith(
-        isInitialLoading: false,
-        isDataAvailable: false,
-        message: e.toString(),
-      );
-      return null;
-    }
-  }
-
-  Future<BvnValidateResponse?> validateBvn(BvnValidateRequest request) async {
-    state = state.copyWith(isInitialLoading: true, message: null);
-    try {
-      final res = await _repository.validateBvn(request);
-      state = state.copyWith(
-        isInitialLoading: false,
-        isDataAvailable: true,
-        message: res.message,
-      );
-      return res;
-    } catch (e, stack) {
-      log('[UserNotifier BVN Validate Error] $e\n$stack');
-      state = state.copyWith(
-        isInitialLoading: false,
-        isDataAvailable: false,
-        message: e.toString(),
-      );
-      return null;
     }
   }
 

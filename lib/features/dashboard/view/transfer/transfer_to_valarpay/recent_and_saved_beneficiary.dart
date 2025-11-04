@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/beneficiary_transfer_amount_screen.dart';
 import 'package:valarpay/features/models/transaction_model.dart';
-import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/beneficiary_notifier.dart';
 import 'package:valarpay/features/notifiers/transaction_notifier.dart';
 
@@ -66,7 +64,7 @@ class _InternalRecentAndSavedBeneficiaryState
     final filtered = state.data!
         .where((b) =>
             b.transferDetails?.beneficiaryAccountNumber != null &&
-            b.transferDetails!.senderBankName!
+            b.transferDetails!.beneficiaryName!
                 .toLowerCase()
                 .contains('valarpay'))
         .where((b) {
@@ -149,7 +147,6 @@ class _InternalRecentAndSavedBeneficiaryState
                         '${b.transferDetails?.beneficiaryAccountNumber}   ${b.transferDetails?.beneficiaryBankName}',
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.black54,
                         ),
                       ),
                     ],
@@ -246,7 +243,6 @@ class _InternalRecentAndSavedBeneficiaryState
                         '${b.accountNumber}   ${b.bankName}',
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.black54,
                         ),
                       ),
                     ],

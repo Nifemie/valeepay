@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/api_response.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
+import 'package:valarpay/features/models/bvn_verification_request.dart';
 import 'package:valarpay/features/repositories/wallet_repository.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart' show apiClientProvider;
 
@@ -11,10 +11,10 @@ class WalletNotifier extends StateNotifier<DataState<ApiResponse>> {
 
   WalletNotifier(this._repository) : super(DataState<ApiResponse>.initial());
 
-  Future<void> setupWallet(KycAddressRequest request) async {
+  Future<void> verifyBvnAndSetupWallet(BvnVerificationRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final res = await _repository.setupWallet(request);
+      final res = await _repository.verifyBVN(request);
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: true,

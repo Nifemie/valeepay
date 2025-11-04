@@ -227,6 +227,7 @@ class _CountryProviderScreenState extends ConsumerState<CountryProviderScreen> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => TransactionReceiptWidget(
+                                  headerText: 'Transaction',
                                       amount: currencyFormatter(rawAmount),
                                       topDetails: [
                                         TransactionDetail(

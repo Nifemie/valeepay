@@ -3,10 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
 import 'package:valarpay/features/models/api_response.dart';
-import 'package:valarpay/features/models/bvn_initialize_request.dart';
-import 'package:valarpay/features/models/bvn_initialize_response.dart';
-import 'package:valarpay/features/models/bvn_validate_request.dart';
-import 'package:valarpay/features/models/bvn_validate_response.dart';
 import 'package:valarpay/features/models/email_request.dart';
 import 'package:valarpay/features/models/forgot_password.dart';
 import 'package:valarpay/features/models/login.dart';
@@ -185,34 +181,6 @@ class UserRepository {
     }
   }
 
-  Future<BvnInitializeResponse> initializeBvn(
-    BvnInitializeRequest request,
-  ) async {
-    try {
-      final response = await apiClient.post(
-        ApiEndpoints.initializeBvn,
-        data: request.toJson(),
-      );
-      return BvnInitializeResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(
-        e.response?.data['message'] ?? 'Failed to initialize BVN',
-      );
-    }
-  }
-
-  Future<BvnValidateResponse> validateBvn(BvnValidateRequest request) async {
-    try {
-      final response = await apiClient.post(
-        ApiEndpoints.validateBvn,
-        data: request.toJson(),
-      );
-      return BvnValidateResponse.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to validate BVN');
-    }
-  }
-
   Future<SetWalletPinResponse> setWalletPin(SetWalletPinRequest request) async {
     try {
       final response = await apiClient.post(
@@ -289,7 +257,7 @@ class UserRepository {
           file.path,
           filename: fileName,
         ),
-        'fullName': fullName
+        'fullName': fullName,
       });
 
       final response = await apiClient.putFormData(
@@ -304,7 +272,6 @@ class UserRepository {
       }
       // Success - backend returns message. Caller may refresh profile afterwards.
       return ApiResponse.fromJson(response.data);
-      ;
     } on DioException catch (e) {
       throw Exception(
         e.response?.data?['message'] ?? 'Failed to upload profile image',
@@ -322,19 +289,19 @@ class UserRepository {
       log('[UserRepository] Verifying NIN for Tier 2...');
       log('[UserRepository] NIN: ${request.nin}');
       log('[UserRepository] Selfie length: ${request.selfieImage.length}');
-      
+
       final response = await apiClient.post(
         ApiEndpoints.kycTier2,
         data: request.toJson(),
       );
-      
+
       log('[UserRepository] NIN verification response: ${response.statusCode}');
       log('[UserRepository] Response data: ${response.data}');
-      
+
       return NinVerificationResponse.fromJson(response.data);
     } on DioException catch (e) {
       log('[UserRepository] NIN verification failed: ${e.response?.data}');
-      
+
       // Return error response with proper structure
       return NinVerificationResponse(
         message: e.response?.data['message'] ?? 'NIN verification failed',
@@ -356,14 +323,14 @@ class UserRepository {
     try {
       log('[UserRepository] Submitting KYC Tier 3...');
       log('[UserRepository] Address data: $addressData');
-      
+
       final response = await apiClient.post(
         ApiEndpoints.kycTier3,
         data: addressData,
       );
 
       log('[UserRepository] KYC Tier 3 response: ${response.data}');
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return ApiResponse.fromJson(response.data);
       } else {
@@ -376,24 +343,24 @@ class UserRepository {
       log('  Status Code: ${e.response?.statusCode}');
       log('  Response Data: ${e.response?.data}');
       log('  Error Message: ${e.message}');
-      
+
       // Try to extract the error message from the response
       String errorMessage = 'Failed to submit address verification';
       if (e.response?.data != null) {
         if (e.response!.data is Map) {
-          errorMessage = e.response!.data['message'] ?? 
-                        e.response!.data['error'] ?? 
-                        errorMessage;
+          errorMessage =
+              e.response!.data['message'] ??
+              e.response!.data['error'] ??
+              errorMessage;
         } else if (e.response!.data is String) {
           errorMessage = e.response!.data;
         }
       }
-      
+
       throw Exception(errorMessage);
     } catch (e) {
       log('[UserRepository] KYC Tier 3 unexpected error: $e');
       throw Exception('Failed to submit address verification: $e');
     }
   }
-
 }

@@ -198,6 +198,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   Widget _infoRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
@@ -217,6 +218,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                     ),
+                overflow: TextOverflow.visible,
+                softWrap: true,
               ),
             ],
           ),

@@ -4,10 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nigerian_states_and_lga/nigerian_states_and_lga.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
-import 'package:valarpay/features/notifiers/user_notifier.dart';
-
 import '../../widgets/Kyc/kyc_progress_bar.dart';
-import 'BVN.dart';
 import 'kyc_step_provider.dart';
 
 final stateProvider = StateProvider<String>((ref) => '');
@@ -26,27 +23,10 @@ class ResidentialAddressPage extends ConsumerStatefulWidget {
 
 class _ResidentialAddressPageState extends ConsumerState<ResidentialAddressPage> {
   List<String> _lgas = [];
-  List<String> _areas = []; // You can populate this with actual areas or leave as manual input
 
   @override
   void initState() {
     super.initState();
-    // TODO: TESTING MODE - Validation temporarily disabled
-    // Check if user has completed KYC Tier 2
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   final user = ref.read(userNotifierProvider);
-    //   if (user != null && !user.isNinVerified) {
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //       const SnackBar(
-    //         content: Text(
-    //           'Please complete KYC Tier 2 (NIN Verification) first',
-    //         ),
-    //         backgroundColor: Colors.red,
-    //       ),
-    //     );
-    //     Navigator.pop(context);
-    //   }
-    // });
   }
 
   @override

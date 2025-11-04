@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
-import 'package:valarpay/features/dashboard/view/KYC/identity_verification.dart';
-import 'package:valarpay/features/dashboard/view/KYC/residential_address.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
+import 'package:valarpay/features/dashboard/view/KYC/BVN.dart';
+import 'package:valarpay/features/dashboard/view/KYC/setup_pin.dart';
+import 'package:valarpay/features/models/user.dart';
 
 class KYCWidget extends StatelessWidget {
-  const KYCWidget({Key? key, this.onSetup}) : super(key: key);
-
-  final VoidCallback? onSetup;
+  final UserModel? user;
+  const KYCWidget({Key? key, required this.user}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -75,16 +74,26 @@ class KYCWidget extends StatelessWidget {
 
           // Button
           ElevatedButton(
-            onPressed:
-                onSetup ??
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ResidentialAddressPage(),
-                    ),
-                  );
-                },
+            onPressed: () {
+              final isBvnVerified = user?.isBvnVerified ?? false;
+              final isWalletPinSet = user?.isWalletPinSet ?? false;
+              final shouldSkipBvnVerification =
+                  isBvnVerified && !isWalletPinSet;
+
+              if (shouldSkipBvnVerification) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SetupTransactionPinPage(),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BVNPage()),
+                );
+              }
+            },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: appTheme.primaryColor, // secondary blue

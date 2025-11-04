@@ -91,23 +91,26 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
     final repo = ref.read(transferRepositoryProvider);
 
     // Run verification for each bank in parallel but safely catch errors
-    final tasks = allBanks
-        .map((bank) => () async {
-              if (_shouldStopSearching || _isDisposed) return null;
-              try {
-                final res = await repo
-                    .verifyAccount(
-                      VerifyAccountRequest(
-                        accountNumber: account,
-                        bankCode: bank.bankCode,
-                      ),
-                    )
-                    .timeout(const Duration(seconds: 4));
-                if (res.data.accountName.isNotEmpty) return bank;
-              } catch (_) {}
-              return null;
-            })
-        .toList();
+    final tasks =
+        allBanks
+            .map(
+              (bank) => () async {
+                if (_shouldStopSearching || _isDisposed) return null;
+                try {
+                  final res = await repo
+                      .verifyAccount(
+                        VerifyAccountRequest(
+                          accountNumber: account,
+                          bankCode: bank.bankCode,
+                        ),
+                      )
+                      .timeout(const Duration(seconds: 4));
+                  if (res.data.accountName.isNotEmpty) return bank;
+                } catch (_) {}
+                return null;
+              },
+            )
+            .toList();
 
     final results = await runInBatches(tasks, batchSize: 25);
 
@@ -154,15 +157,15 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 100), () {
       if (_isDisposed) return;
-      if (accountController.text.length == 10) {
-        _searchMatchingBanks();
-      } else {
-        setState(() {
-          verifiedAccount = null;
-          matchedBanks = [];
-          matchError = null;
-        });
-      }
+      // if (accountController.text.length == 10) {
+      //   _searchMatchingBanks();
+      // } else {
+      //   setState(() {
+      //     verifiedAccount = null;
+      //     matchedBanks = [];
+      //     matchError = null;
+      //   });
+      // }
     });
   }
 
@@ -182,9 +185,7 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
   void _selectBank() async {
     final result = await Navigator.push<Bank>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SelectBankScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const SelectBankScreen()),
     );
 
     if (result != null) {
@@ -207,11 +208,17 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
       setState(() {
         accountController.text = clipboardData.text!;
       });
-      AppMessenger.show(context,
-          type: MessageType.success, message: 'ValarPay pasted from clipboard');
+      AppMessenger.show(
+        context,
+        type: MessageType.success,
+        message: 'ValarPay pasted from clipboard',
+      );
     } else {
-      AppMessenger.show(context,
-          type: MessageType.error, message: 'Clipboard is empty');
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Clipboard is empty',
+      );
     }
   }
 
@@ -220,8 +227,9 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
     final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
 
-    final accountVerificationState =
-        ref.watch(accountVerificationNotifierProvider);
+    final accountVerificationState = ref.watch(
+      accountVerificationNotifierProvider,
+    );
 
     // Listen to account verification state
     ref.listen(accountVerificationNotifierProvider, (previous, next) {
@@ -236,8 +244,11 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
           verifiedAccount = null;
         });
       } else if (next.message != null && !next.isDataAvailable) {
-        AppMessenger.show(context,
-            message: next.message!, type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: next.message!,
+          type: MessageType.error,
+        );
         setState(() {
           verifiedAccount = null;
         });
@@ -253,322 +264,345 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
         ),
         title: const Text(
           "Transfer to Bank Account",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
-      body: !isBvnVerified
-          ? const KycNotSetWidget(
-              title: 'KYC Not Completed',
-              subtitle:
-                  'Complete your KYC verification to transfer money to bank accounts',
-            )
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SnapAndSendMoneyCard(
-                      onPressed: () async {
-                        // Open camera scanner and await detected 10-digit account number
-                        final result = await Navigator.push<String?>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CameraScanScreen(),
-                          ),
-                        );
+      body:
+          !isBvnVerified
+              ? const KycNotSetWidget(
+                title: 'KYC Not Completed',
+                subtitle:
+                    'Complete your KYC verification to transfer money to bank accounts',
+              )
+              : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SnapAndSendMoneyCard(
+                        onPressed: () async {
+                          // Open camera scanner and await detected 10-digit account number
+                          final result = await Navigator.push<String?>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CameraScanScreen(),
+                            ),
+                          );
 
-                        if (result != null && result.isNotEmpty) {
-                          // populate account field and trigger matching
-                          setState(() {
-                            accountController.text = result;
-                          });
-                          // directly trigger matching for immediate feedback
-                          if (accountController.text.length == 10) {
-                            _searchMatchingBanks();
+                          if (result != null && result.isNotEmpty) {
+                            // populate account field and trigger matching
+                            setState(() {
+                              accountController.text = result;
+                            });
+                            // directly trigger matching for immediate feedback
+                            if (accountController.text.length == 10) {
+                              // _searchMatchingBanks();
+                            }
                           }
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    // Beneficiary Account Number
-                    const Text(
-                      "Beneficiary Account Number",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: accountController,
-                      onChanged: (value) {
-                        if (value.isEmpty) {}
-                      },
-                      keyboardType: TextInputType.number,
-                      maxLength: 10,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        hintText: 'Enter Bank account name/number',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 14,
-                        ),
-                        suffixIcon: accountController.text.isEmpty
-                            ? IconButton(
-                                onPressed: () {
-                                  pasteFromClipboard();
-                                },
-                                icon: Icon(
-                                  Icons.content_paste,
-                                  color: Colors.grey[500],
-                                ))
-                            : null,
-                        filled: true,
-                        fillColor:
-                            Theme.of(context).cardColor.withValues(alpha: 0.5),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 14.w,
-                          vertical: 14.h,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.r),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      // Beneficiary Account Number
+                      const Text(
+                        "Beneficiary Account Number",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: accountController,
+                        onChanged: (value) {
+                          if (value.isEmpty) {}
+                        },
+                        keyboardType: TextInputType.number,
+                        maxLength: 10,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'Enter Bank account name/number',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                          suffixIcon:
+                              accountController.text.isEmpty
+                                  ? IconButton(
+                                    onPressed: () {
+                                      pasteFromClipboard();
+                                    },
+                                    icon: Icon(
+                                      Icons.content_paste,
+                                      color: Colors.grey[500],
+                                    ),
+                                  )
+                                  : null,
+                          filled: true,
+                          fillColor: Theme.of(
+                            context,
+                          ).cardColor.withValues(alpha: 0.5),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 14.w,
+                            vertical: 14.h,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.r),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // Select Bank
-                    const Text(
-                      "Select Bank",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 8),
+                      // Select Bank
+                      const Text("Select Bank", style: TextStyle(fontSize: 14)),
+                      const SizedBox(height: 8),
 
-                    GestureDetector(
-                      onTap: _selectBank,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .cardColor
-                              .withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 16,
-                              backgroundColor: selectedBank != null
-                                  ? appTheme.primaryColor.withValues(alpha: 0.1)
-                                  : Colors.black,
-                              child: selectedBank != null
-                                  ? Text(
-                                      selectedBank!.name
-                                          .substring(0, 1)
-                                          .toUpperCase(),
-                                      style: TextStyle(
-                                        color: appTheme.primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    )
-                                  : const Icon(Icons.account_balance,
-                                      color: Colors.white, size: 18),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                selectedBank?.name ?? "Select Bank",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                      GestureDetector(
+                        onTap: _selectBank,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).cardColor.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor:
+                                    selectedBank != null
+                                        ? appTheme.primaryColor.withValues(
+                                          alpha: 0.1,
+                                        )
+                                        : Colors.black,
+                                child:
+                                    selectedBank != null
+                                        ? Text(
+                                          selectedBank!.name
+                                              .substring(0, 1)
+                                              .toUpperCase(),
+                                          style: TextStyle(
+                                            color: appTheme.primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.account_balance,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  selectedBank?.name ?? "Select Bank",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const Icon(Icons.chevron_right),
-                          ],
+                              const Icon(Icons.chevron_right),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 14),
 
-                    // If there are matched banks show them inline for user selection
-                    if (isSearchingBanks)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
+                      // If there are matched banks show them inline for user selection
+                      if (isSearchingBanks)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
                                 width: 16,
                                 height: 16,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2)),
-                            SizedBox(width: 8),
-                            Text('Matching banks...')
-                          ],
-                        ),
-                      )
-                    else if (matchedBanks.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          Text(
-                            "Matched Bank(s)",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Matching banks...'),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          ...matchedBanks.map((bank) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: appTheme.primaryColor
-                                      .withValues(alpha: 0.1),
-                                  child: Text(
+                        )
+                      else if (matchedBanks.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              "Matched Bank(s)",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ...matchedBanks.map((bank) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: appTheme.primaryColor
+                                        .withValues(alpha: 0.1),
+                                    child: Text(
                                       bank.name.substring(0, 2).toUpperCase(),
                                       style: TextStyle(
-                                          color: appTheme.primaryColor)),
-                                ),
-                                title: Text(bank.name,
+                                        color: appTheme.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    bank.name,
                                     style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500)),
-                                onTap: () {
-                                  setState(() {
-                                    selectedBank = bank;
-                                    matchedBanks = [];
-                                    matchError = null;
-                                  });
-                                  _verifyAccount();
-                                },
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                tileColor: Theme.of(context)
-                                    .cardColor
-                                    .withValues(alpha: 0.5),
-                              ),
-                            );
-                          }).toList(),
-                        ],
-                      ),
-                    const SizedBox(height: 20),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    setState(() {
+                                      selectedBank = bank;
+                                      matchedBanks = [];
+                                      matchError = null;
+                                    });
+                                    _verifyAccount();
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  tileColor: Theme.of(
+                                    context,
+                                  ).cardColor.withValues(alpha: 0.5),
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      const SizedBox(height: 20),
 
-                    // Account Verification Status / Match error
-                    if (isVerifying)
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  appTheme.primaryColor),
+                      // Account Verification Status / Match error
+                      if (isVerifying)
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  appTheme.primaryColor,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Verifying account...",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      )
-                    else if (verifiedAccount != null)
-                      Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              color: appTheme.primaryColor),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              verifiedAccount!.accountName,
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Verifying account...",
                               style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        )
+                      else if (verifiedAccount != null)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              color: appTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                verifiedAccount!.accountName,
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: appTheme.primaryColor),
+                                  color: appTheme.primaryColor,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    else if (matchError != null)
-                      Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Text(
-                            matchError!,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.red,
+                          ],
+                        )
+                      else if (matchError != null)
+                        Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Text(
+                              matchError!,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    else if (accountController.text.length == 10 &&
-                            selectedBank != null ||
-                        accountVerificationState.data == null)
-                      Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: Colors.red),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Account verification failed",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.red,
+                          ],
+                        )
+                      else if (accountController.text.length == 10 &&
+                              selectedBank != null ||
+                          accountVerificationState.data == null)
+                        Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Account verification failed",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // Continue Button
-                    FullWidthButton(
+                      // Continue Button
+                      FullWidthButton(
                         text: 'Continue',
                         onPressed: () {
                           _isDisposed = true;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => TransferAmountScreen(
-                                selectedBank: selectedBank!,
-                                accountDetails: verifiedAccount!,
-                              ),
+                              builder:
+                                  (context) => TransferAmountScreen(
+                                    selectedBank: selectedBank!,
+                                    accountDetails: verifiedAccount!,
+                                  ),
                             ),
                           );
                         },
                         isEnabled:
-                            verifiedAccount != null && selectedBank != null),
-                    const SizedBox(height: 24),
-                    TransferToBankRecentAndSavedBeneficiaries(
-                      onSelectAccount: (selectedAccount) {
-                        // Populate the account controller and trigger matching
-                        setState(() {
-                          accountController.text = selectedAccount;
-                        });
-                        if (accountController.text.length == 10) {
-                          _searchMatchingBanks();
-                        }
-                      },
-                    ),
-                  ],
+                            verifiedAccount != null && selectedBank != null,
+                      ),
+                      const SizedBox(height: 24),
+                      TransferToBankRecentAndSavedBeneficiaries(
+                        onSelectAccount: (selectedAccount) {
+                          // Populate the account controller and trigger matching
+                          setState(() {
+                            accountController.text = selectedAccount;
+                          });
+                          if (accountController.text.length == 10) {
+                            // _searchMatchingBanks();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

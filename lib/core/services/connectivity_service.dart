@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/no_internet_dialogue.dart';
+import 'package:valarpay/features/dashboard/view/services/jamb/education_service.dart';
 
 class ConnectivityService {
   static final ConnectivityService _instance = ConnectivityService._internal();
@@ -77,9 +78,9 @@ class ConnectivityService {
       if (hasConnection) {
         _hasConnection = true;
         _isDialogShowing = false;
-        if (context.mounted) {
-          Navigator.of(context).pop();
-        }
+      } else {
+        // still no connection, show dialog again
+        _showDialog();
       }
     } else if (result == false) {
       // user tapped Open Settings
@@ -88,7 +89,7 @@ class ConnectivityService {
     }
   }
 
- void dispose() {
+  void dispose() {
     _subscription?.cancel();
   }
 }

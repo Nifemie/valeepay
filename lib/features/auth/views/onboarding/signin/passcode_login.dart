@@ -110,7 +110,13 @@ class _PasscodeLoginScreenState extends ConsumerState<PasscodeLoginScreen> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if(context.canPop()) {
+              Navigator.pop(context);
+            } else {
+              context.push('/signin');
+            }
+          },
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [

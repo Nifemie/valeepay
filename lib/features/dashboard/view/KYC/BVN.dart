@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/dashboard/view/KYC/camera_Permission.dart';
-import 'package:valarpay/features/models/kyc_address_request.dart';
+import 'package:valarpay/features/models/bvn_verification_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 import '../../widgets/Kyc/kyc_progress_bar.dart';
 import 'kyc_step_provider.dart';
@@ -10,9 +10,7 @@ import 'kyc_step_provider.dart';
 final bvnProvider = StateProvider<String>((ref) => '');
 
 class BVNPage extends ConsumerStatefulWidget {
-  final KycAddressRequest request;
-
-  const BVNPage({required this.request, Key? key}) : super(key: key);
+  const BVNPage({Key? key}) : super(key: key);
 
   @override
   ConsumerState<BVNPage> createState() => _BVNPageState();
@@ -24,9 +22,7 @@ class _BVNPageState extends ConsumerState<BVNPage> {
   @override
   void initState() {
     super.initState();
-    _bvnController = TextEditingController(
-      text: ref.read(bvnProvider),
-    );
+    _bvnController = TextEditingController(text: ref.read(bvnProvider));
   }
 
   @override
@@ -108,7 +104,9 @@ class _BVNPageState extends ConsumerState<BVNPage> {
                   Container(
                     height: 40,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(8),
@@ -205,9 +203,10 @@ class _BVNPageState extends ConsumerState<BVNPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CameraPermissionPage(
-                        request: widget.request.copyWith(bvn: bvn),
-                      ),
+                      builder:
+                          (context) => CameraPermissionPage(
+                            request: BvnVerificationRequest(bvn: bvn),
+                          ),
                     ),
                   );
                 },

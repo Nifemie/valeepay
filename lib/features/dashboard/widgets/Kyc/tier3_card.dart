@@ -92,7 +92,7 @@ class _Tier3CardState extends State<Tier3Card> {
                 ),
               ),
             ),
-          
+
           // Header
           Container(
             width: double.infinity,
@@ -104,19 +104,6 @@ class _Tier3CardState extends State<Tier3Card> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      // TODO: TESTING MODE - Validation temporarily disabled
-                      // Check if NIN is verified before allowing navigation
-                      // if (!widget.isNinVerified) {
-                      //   ScaffoldMessenger.of(context).showSnackBar(
-                      //     const SnackBar(
-                      //       content: Text(
-                      //         'Please complete KYC Tier 2 (NIN Verification) before upgrading to Tier 3',
-                      //       ),
-                      //       backgroundColor: Colors.red,
-                      //     ),
-                      //   );
-                      //   return;
-                      // }
                       // Navigate to residential address page
                       Navigator.push(
                         context,
@@ -181,41 +168,41 @@ class _Tier3CardState extends State<Tier3Card> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Text(
-                  'Requirements',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[400]
-                        : const Color(0xFF9CA3AF),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w400,
+                  Text(
+                    'Requirements',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[400]
+                          : const Color(0xFF9CA3AF),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Address',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : const Color(0xFF111827),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Address',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF111827),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  'Address Verification',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : const Color(0xFF111827),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Address Verification',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF111827),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ),
 
           // Limits Section (shown when expanded)
@@ -251,7 +238,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Single Credit Limit',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.grey[400]
                                     : const Color(0xFF9CA3AF),
                                 fontSize: 12.sp,
@@ -262,7 +250,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Unlimited',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white
                                     : const Color(0xFF111827),
                                 fontSize: 14.sp,
@@ -273,7 +262,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Daily Credit Limit',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.grey[400]
                                     : const Color(0xFF9CA3AF),
                                 fontSize: 12.sp,
@@ -284,7 +274,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Unlimited',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white
                                     : const Color(0xFF111827),
                                 fontSize: 14.sp,
@@ -303,7 +294,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Single Debit Limit',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.grey[400]
                                     : const Color(0xFF9CA3AF),
                                 fontSize: 12.sp,
@@ -314,7 +306,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Unlimited',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white
                                     : const Color(0xFF111827),
                                 fontSize: 14.sp,
@@ -325,7 +318,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Daily Debit Limit',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.grey[400]
                                     : const Color(0xFF9CA3AF),
                                 fontSize: 12.sp,
@@ -336,7 +330,8 @@ class _Tier3CardState extends State<Tier3Card> {
                             Text(
                               'Unlimited',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white
                                     : const Color(0xFF111827),
                                 fontSize: 14.sp,
