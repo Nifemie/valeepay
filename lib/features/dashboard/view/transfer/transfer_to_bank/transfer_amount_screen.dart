@@ -137,11 +137,10 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
           saveBeneficiary: saveBeneficiary,
           sessionId: widget.accountDetails.sessionId);
 
-      Navigator.pop(context); // Close loading
-
+      // Don't close loading here - let the listener handle navigation
       print('✅ Transfer completed successfully');
     } catch (e) {
-      Navigator.pop(context); // Close loading
+      Navigator.pop(context); // Close loading only on error
       print('❌ Transfer error: $e');
       AppMessenger.show(
         context,
@@ -237,10 +236,22 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
           final transferAmount =
               double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => TransactionReceiptWidget(
+          // First, explicitly close the loading dialog
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop(); // Close loading dialog
+          }
+          
+          // Then pop back to home screen
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          
+          // Small delay to ensure navigation stack is clean
+          Future.delayed(const Duration(milliseconds: 50), () {
+            if (!mounted) return;
+            
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TransactionReceiptWidget(
                 amount: currencyFormatter(transferAmount.toString()),
                 topDetails: [
                   TransactionDetail(
@@ -287,6 +298,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
               ),
             ),
           );
+          });
         });
       } else if (next.message != null && !next.isDataAvailable) {
         AppMessenger.show(
