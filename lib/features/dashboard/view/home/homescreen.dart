@@ -117,7 +117,6 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     children: [
-                      const SizedBox(height: 16),
                       _BalanceCard(
                         balance: balance,
                         accountNumber: accountNumber,
@@ -132,23 +131,27 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                       Consumer(
                         builder: (context, ref, child) {
                           final user = ref.watch(userProvider);
-                          final isBvnVerified = user?.isBvnVerified ?? false;
-                          final isWalletPinSet = user?.isWalletPinSet ?? false;
+                          if (user != null) {
+                            final isBvnVerified = user?.isBvnVerified ?? false;
+                            final isWalletPinSet =
+                                user?.isWalletPinSet ?? false;
 
-                          // Show KYC widget if BVN is not verified OR wallet PIN is not set
-                          final shouldShowKyc =
-                              !isBvnVerified || !isWalletPinSet;
+                            // Show KYC widget if BVN is not verified OR wallet PIN is not set
+                            final shouldShowKyc =
+                                !isBvnVerified || !isWalletPinSet;
 
-                          if (!shouldShowKyc) {
-                            return const SizedBox(height: 12);
+                            if (!shouldShowKyc) {
+                              return const SizedBox(height: 12);
+                            }
+
+                            return Column(
+                              children: [
+                                const SizedBox(height: 16),
+                                KYCWidget(user: user),
+                              ],
+                            );
                           }
-
-                          return Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              KYCWidget(user: user!),
-                            ],
-                          );
+                          return SizedBox();
                         },
                       ),
                       const SizedBox(height: 12),
@@ -406,7 +409,7 @@ class _BalanceCard extends StatelessWidget {
                   Text(
                     isBalanceVisible
                         ? currencyFormatter(balance)
-                        : '₦ ••••••••••',
+                        : '₦ ••••••••',
                     style: textTheme.headlineSmall?.copyWith(
                       color: onPrimary,
                       fontWeight: FontWeight.bold,

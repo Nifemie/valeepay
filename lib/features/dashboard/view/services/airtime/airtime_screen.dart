@@ -45,9 +45,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(airtimeProvidersNotifierProvider.notifier).fetchProviders();
-    });
     _amountController.addListener(() {
       final text = _amountController.text.replaceAll(',', '');
       if (text.isEmpty) return;
@@ -61,9 +58,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           selection: TextSelection.collapsed(offset: cursorPos),
         );
       }
- 
     });
-  
   }
 
   @override
@@ -74,16 +69,17 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   }
 
   void _showContactAccessDialog() => showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => ContactAccessDialog(
+    context: context,
+    barrierDismissible: true,
+    builder:
+        (context) => ContactAccessDialog(
           onAllow: () {
             Navigator.of(context).pop();
             _pickContact();
           },
           onCancel: () => Navigator.of(context).pop(),
         ),
-      );
+  );
 
   bool _isFormValid(String network, int operatorId) {
     return _controller.text.isNotEmpty &&
@@ -95,11 +91,11 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   Future<void> _handlePinEntry() async {
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(
-                                    context,
-                                    user?.wallets.first.balance.toString() ??
-                                        '0',
-                                    _amountController.text.replaceAll(',', ''));
-          if (!hasEnoughBalance) return;
+      context,
+      user?.wallets.first.balance.toString() ?? '0',
+      _amountController.text.replaceAll(',', ''),
+    );
+    if (!hasEnoughBalance) return;
     final pin = await TransactionPinModal.show(context);
 
     if (pin == null || pin.length != 4) {
@@ -140,8 +136,11 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     } catch (e) {
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
-        AppMessenger.show(context,
-            message: 'Error: ${e.toString()}', type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: 'Error: ${e.toString()}',
+          type: MessageType.error,
+        );
       }
     }
   }
@@ -149,11 +148,11 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   Future<void> _handleBiometricPinEntry() async {
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(
-                                    context,
-                                    user?.wallets.first.balance.toString() ??
-                                        '0',
-                                    _amountController.text.replaceAll(',', ''));
-          if (!hasEnoughBalance) return;
+      context,
+      user?.wallets.first.balance.toString() ?? '0',
+      _amountController.text.replaceAll(',', ''),
+    );
+    if (!hasEnoughBalance) return;
     final pin = await BiometricTransactionPinModal.show(context);
 
     if (pin == null || pin.length != 4) {
@@ -194,40 +193,44 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     } catch (e) {
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
-        AppMessenger.show(context,
-            message: 'Error: ${e.toString()}', type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: 'Error: ${e.toString()}',
+          type: MessageType.error,
+        );
       }
     }
   }
-
-  
 
   void _navigateToDetails(String selectedNetwork, int selectedOperatorId) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ReuseableTransactionDetailsScreen(
-          hasBottom: false,
-          saveBeneficiary: saveBeneficiary,
-          onSaveBeneficiaryChanged: (value) {
-            setState(() {
-              saveBeneficiary = value;
-            });
-          },
-          topTitleText: 'Transaction',
-          topTransactionsDetailsList: [
-            buildDetailRow('Recipient Number', _controller.text, isDark),
-            buildDetailRow('Provider', selectedNetwork, isDark),
-            buildDetailRow(
-              'Amount',
-              currencyFormatter(_amountController.text..replaceAll(',', '')),
-              isDark,
+        builder:
+            (context) => ReuseableTransactionDetailsScreen(
+              hasBottom: false,
+              saveBeneficiary: saveBeneficiary,
+              onSaveBeneficiaryChanged: (value) {
+                setState(() {
+                  saveBeneficiary = value;
+                });
+              },
+              topTitleText: 'Transaction',
+              topTransactionsDetailsList: [
+                buildDetailRow('Recipient Number', _controller.text, isDark),
+                buildDetailRow('Provider', selectedNetwork, isDark),
+                buildDetailRow(
+                  'Amount',
+                  currencyFormatter(
+                    _amountController.text..replaceAll(',', ''),
+                  ),
+                  isDark,
+                ),
+              ],
+              onButtonPressed: _handlePinEntry,
+              onBiometricButtonPressed: _handleBiometricPinEntry,
             ),
-          ],
-          onButtonPressed: _handlePinEntry,
-          onBiometricButtonPressed: _handleBiometricPinEntry,
-        ),
       ),
     );
   }
@@ -237,48 +240,57 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
 
-    final useCashback = ref.watch(airtimeUseCashbackProvider);
     final selectedNetwork = ref.watch(airtimeSelectedNetworkProvider);
     final selectedOperatorId = ref.watch(airtimeSelectedOperatorIdProvider);
 
     final providersState = ref.watch(airtimeProvidersNotifierProvider);
     final networkProviders = providersState.data ?? <NetworkProvider>[];
 
-     _onShareTransactionReceiptPressed() {
+    _onShareTransactionReceiptPressed() {
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => ReceiptShareScreen(
-                    date:
-                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                    transactionDetailList: [
-                      ShareableTransactionReceiptDetail(
-                          label: 'Amount',
-                          value:  currencyFormatter(_amountController.text..replaceAll(',', ''))),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Currency', value: 'NGN'),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Transaction Type',
-                          value: 'Airtime Purchase'),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Provider',
-                          value: selectedNetwork.toUpperCase()),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Phone Number',
-                          value:
-                              _controller.text.trim()),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Transaction ID',
-                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Status',
-                          value: 'Successful',
-                          isSuccessful: true)
-                    ],
-                  )));
+        context,
+        MaterialPageRoute(
+          builder:
+              (_) => ReceiptShareScreen(
+                date:
+                    '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                transactionDetailList: [
+                  ShareableTransactionReceiptDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(
+                      _amountController.text..replaceAll(',', ''),
+                    ),
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Currency',
+                    value: 'NGN',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Transaction Type',
+                    value: 'Airtime Purchase',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Provider',
+                    value: selectedNetwork.toUpperCase(),
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Phone Number',
+                    value: _controller.text.trim(),
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Status',
+                    value: 'Successful',
+                    isSuccessful: true,
+                  ),
+                ],
+              ),
+        ),
+      );
     }
-
-   
 
     // Listen to airtime purchase state
     ref.listen(airtimePurchaseNotifierProvider, (previous, next) {
@@ -288,13 +300,15 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
       // Check for success: either isDataAvailable is true OR data exists with success message
       final hasData = next.data != null && next.data!.isNotEmpty;
-      final hasSuccessMessage = next.message != null &&
+      final hasSuccessMessage =
+          next.message != null &&
           next.message!.toLowerCase().contains('success');
       final isSuccess =
-          (next.isDataAvailable && hasData) || (hasData && hasSuccessMessage) || next.message != null && !next.isInitialLoading;
+          (next.isDataAvailable && hasData) ||
+          (hasData && hasSuccessMessage) ||
+          next.message != null && !next.isInitialLoading;
 
       if (isSuccess) {
-        
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         }
@@ -307,44 +321,54 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => TransactionReceiptWidget(
-                headerText: 'Transaction',
-                amount: currencyFormatter(_amountController.text..replaceAll(',', '')),
-                topDetails: [
-                  TransactionDetail(
-                    label: 'Transaction ID',
-                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                    showCopyIcon: true,
+              builder:
+                  (_) => TransactionReceiptWidget(
+                    headerText: 'Transaction',
+                    amount: currencyFormatter(
+                      _amountController.text..replaceAll(',', ''),
+                    ),
+                    topDetails: [
+                      TransactionDetail(
+                        label: 'Transaction ID',
+                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                        showCopyIcon: true,
+                      ),
+                      TransactionDetail(
+                        label: 'Recipient Number',
+                        value: _controller.text,
+                      ),
+                      TransactionDetail(
+                        label: 'Network',
+                        value: selectedNetwork.toUpperCase(),
+                      ),
+                      TransactionDetail(
+                        label: 'Amount',
+                        value: currencyFormatter(
+                          _amountController.text..replaceAll(',', ''),
+                        ),
+                      ),
+                    ],
+                    onShareReceipt: _onShareTransactionReceiptPressed,
                   ),
-                  TransactionDetail(
-                    label: 'Recipient Number',
-                    value: _controller.text,
-                  ),
-                  TransactionDetail(label: 'Network', value: selectedNetwork.toUpperCase()),
-                  TransactionDetail(
-                    label: 'Amount',
-                    value:  currencyFormatter(_amountController.text..replaceAll(',', '')),
-                  ),
-                ],
-                onShareReceipt: _onShareTransactionReceiptPressed,
-              ),
             ),
           );
         });
-      }  else if (!next.isDataAvailable) {
-          // Purchase failed
+      } else if (!next.isDataAvailable) {
+        // Purchase failed
 
-          // Close loading dialog
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          }
-
-          if (mounted) {
-            AppMessenger.show(context,
-                message: next.message!, type: MessageType.error);
-          }
+        // Close loading dialog
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
         }
-      
+
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: next.message!,
+            type: MessageType.error,
+          );
+        }
+      }
     });
 
     return Scaffold(
@@ -358,44 +382,46 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           'Airtime',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
-        actions: isBvnVerified
-            ? [
-                TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Saved Beneficiary',
-                    style: TextStyle(
-                      color: appTheme.primaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ]
-            : null,
-      ),
-      body: !isBvnVerified
-          ? const KycNotSetWidget(
-              title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to purchase airtime',
-            )
-          : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Phone Number',
+        actions:
+            isBvnVerified
+                ? [
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'Saved Beneficiary',
                       style: TextStyle(
-                        color: Colors.grey,
+                        color: appTheme.primaryColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ReuseableTextFieldWithCountry(
+                  ),
+                ]
+                : null,
+      ),
+      body:
+          !isBvnVerified
+              ? const KycNotSetWidget(
+                title: 'KYC Not Completed',
+                subtitle: 'Complete your KYC verification to purchase airtime',
+              )
+              : SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Phone Number',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ReuseableTextFieldWithCountry(
                         controller: _controller,
                         countryCode: '+234 ',
                         flagImagePath: 'assets/images/ngflag.png',
@@ -418,93 +444,117 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                             ),
                           ),
                         ),
-                        onChanged: (unnamed) => setState(() {})),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Network Provider',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        onChanged: (value) {
+                          setState(() {});
+                          // Auto-fetch providers when phone number is complete (10 digits)
+                          if (value.length >= 10) {
+                            ref
+                                .read(airtimeProvidersNotifierProvider.notifier)
+                                .fetchProviders();
+                          }
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Network Provider',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: providersState.isInitialLoading &&
-                              networkProviders.isEmpty
-                          ? const Center(child: CircularProgressIndicator())
-                          : NetworkProviderSelector(
-                              selectedNetwork: selectedNetwork,
-                              providers: networkProviders,
-                              onNetworkSelected: (value) async {
-                                if (value.isEmpty) return;
-                                try {
-                                  final provider = networkProviders
-                                      .firstWhere((p) => p.network == value);
-                                  // update selected network and operator id
-                                  ref
-                                      .read(airtimeSelectedNetworkProvider
-                                          .notifier)
-                                      .state = value;
-                                  ref
-                                      .read(airtimeSelectedOperatorIdProvider
-                                          .notifier)
-                                      .state = provider.operatorId;
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child:
+                            providersState.isInitialLoading &&
+                                    networkProviders.isEmpty
+                                ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                : NetworkProviderSelector(
+                                  selectedNetwork: selectedNetwork,
+                                  providers: networkProviders,
+                                  onNetworkSelected: (value) async {
+                                    if (value.isEmpty) return;
+                                    try {
+                                      final provider = networkProviders
+                                          .firstWhere(
+                                            (p) => p.network == value,
+                                          );
+                                      // update selected network and operator id
+                                      ref
+                                          .read(
+                                            airtimeSelectedNetworkProvider
+                                                .notifier,
+                                          )
+                                          .state = value;
+                                      ref
+                                          .read(
+                                            airtimeSelectedOperatorIdProvider
+                                                .notifier,
+                                          )
+                                          .state = provider.operatorId;
 
-                                  if (_controller.text.isNotEmpty) {
-                                    await ref
-                                        .read(airtimePlanNotifierProvider
-                                            .notifier)
-                                        .getPlan(
-                                          phone: _controller.text,
-                                          currency: 'NGN',
-                                        );
-                                  }
-                                } catch (e) {
-                                  // provider not found or other error - ignore silently
-                                }
-                              },
+                                      if (_controller.text.isNotEmpty) {
+                                        await ref
+                                            .read(
+                                              airtimePlanNotifierProvider
+                                                  .notifier,
+                                            )
+                                            .getPlan(
+                                              phone: _controller.text,
+                                              currency: 'NGN',
+                                            );
+                                      }
+                                    } catch (e) {
+                                      // provider not found or other error - ignore silently
+                                    }
+                                  },
+                                ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Amount',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ReuseableAmountTextfield(
+                        amountController: _amountController,
+                        prefixText: '₦',
+                        hintText: '500',
+                        onChanged: (unnamed) => setState(() {}),
+                      ),
+
+                      const SizedBox(height: 32),
+                      FullWidthButton(
+                        text: 'Continue',
+                        onPressed:
+                            () => _navigateToDetails(
+                              selectedNetwork,
+                              selectedOperatorId,
                             ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Amount',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        isEnabled: _isFormValid(
+                          selectedNetwork,
+                          selectedOperatorId,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    ReuseableAmountTextfield(
-                      amountController: _amountController,
-                      prefixText: '₦',
-                      hintText: '500',
-                      onChanged: (unnamed) => setState(() {}),
-                    ),
-                   
-
-                    const SizedBox(height: 32),
-                    FullWidthButton(
-                      text: 'Continue',
-                      onPressed: () => _navigateToDetails(
-                          selectedNetwork, selectedOperatorId),
-                      isEnabled:
-                          _isFormValid(selectedNetwork, selectedOperatorId),
-                    ),
-                    const SizedBox(height: 32),
-                    const AirtimeServicesSection(),
-                  ],
+                      const SizedBox(height: 32),
+                      const AirtimeServicesSection(),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 
@@ -546,9 +596,10 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
       if (Navigator.canPop(context)) Navigator.pop(context); // close loading
 
-      final contactList = contacts
-          .where((c) => (c.phones.isNotEmpty) || (c.emails.isNotEmpty))
-          .toList();
+      final contactList =
+          contacts
+              .where((c) => (c.phones.isNotEmpty) || (c.emails.isNotEmpty))
+              .toList();
 
       if (contactList.isEmpty) {
         AppMessenger.show(
@@ -577,13 +628,15 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
               void _filterContacts(String query) {
                 query = query.toLowerCase();
                 setModalState(() {
-                  filteredContacts = contactList.where((c) {
-                    final name = c.displayName.toLowerCase();
-                    final phone = c.phones.isNotEmpty
-                        ? c.phones.first.number.toLowerCase()
-                        : '';
-                    return name.contains(query) || phone.contains(query);
-                  }).toList();
+                  filteredContacts =
+                      contactList.where((c) {
+                        final name = c.displayName.toLowerCase();
+                        final phone =
+                            c.phones.isNotEmpty
+                                ? c.phones.first.number.toLowerCase()
+                                : '';
+                        return name.contains(query) || phone.contains(query);
+                      }).toList();
                 });
               }
 
@@ -611,15 +664,18 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                       // 🔍 Search Field
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         child: TextField(
                           controller: searchController,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search),
                             hintText: 'Search contact...',
                             filled: true,
-                            fillColor:
-                                Theme.of(context).cardColor.withOpacity(0.5),
+                            fillColor: Theme.of(
+                              context,
+                            ).cardColor.withOpacity(0.5),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -632,42 +688,45 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                       // Contact list
                       SizedBox(
                         height: 450,
-                        child: filteredContacts.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'No contacts found',
-                                  style: TextStyle(color: Colors.grey),
+                        child:
+                            filteredContacts.isEmpty
+                                ? const Center(
+                                  child: Text(
+                                    'No contacts found',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                                : ListView.separated(
+                                  itemCount: filteredContacts.length,
+                                  separatorBuilder:
+                                      (_, __) => const Divider(height: 1),
+                                  itemBuilder: (context, index) {
+                                    final c = filteredContacts[index];
+                                    final phone =
+                                        c.phones.isNotEmpty
+                                            ? c.phones.first.number
+                                            : '';
+                                    final displayName =
+                                        c.displayName.isNotEmpty
+                                            ? c.displayName
+                                            : phone;
+
+                                    return ListTile(
+                                      title: Text(displayName),
+                                      subtitle: Text(phone),
+                                      onTap: () async {
+                                        final formatted = _formatTo11(phone);
+                                        setState(() {
+                                          _controller.text = formatted;
+                                        });
+
+                                        if (Navigator.canPop(context)) {
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                    );
+                                  },
                                 ),
-                              )
-                            : ListView.separated(
-                                itemCount: filteredContacts.length,
-                                separatorBuilder: (_, __) =>
-                                    const Divider(height: 1),
-                                itemBuilder: (context, index) {
-                                  final c = filteredContacts[index];
-                                  final phone = c.phones.isNotEmpty
-                                      ? c.phones.first.number
-                                      : '';
-                                  final displayName = c.displayName.isNotEmpty
-                                      ? c.displayName
-                                      : phone;
-
-                                  return ListTile(
-                                    title: Text(displayName),
-                                    subtitle: Text(phone),
-                                    onTap: () async {
-                                      final formatted = _formatTo11(phone);
-                                      setState(() {
-                                        _controller.text = formatted;
-                                      });
-
-                                      if (Navigator.canPop(context)) {
-                                        Navigator.pop(context);
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
                       ),
                     ],
                   ),

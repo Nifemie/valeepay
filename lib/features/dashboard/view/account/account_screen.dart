@@ -171,7 +171,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           ),
           SizedBox(height: 4.h),
           Text(
-            isVisible ? balance : "$currency ***********",
+            isVisible ? balance : "$currency •••••",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
