@@ -24,12 +24,14 @@ class TransactionReceiptWidget extends ConsumerStatefulWidget {
   final List<TransactionDetail> topDetails;
   final List<TransactionDetail>? bottomDetails;
   final VoidCallback onShareReceipt;
+  final String headerText;
 
   const TransactionReceiptWidget({
     Key? key,
     required this.amount,
     required this.topDetails,
     this.bottomDetails,
+    required this.headerText,
     required this.onShareReceipt,
   }) : super(key: key);
 
@@ -58,8 +60,8 @@ class _TransactionReceiptWidgetState
                 ),
                 const SizedBox(height: 16),
                 // Transaction Successful Text
-                const Text(
-                  'Transaction Successful',
+                 Text(
+                  '${widget.headerText} Successful',
                   style: TextStyle(
                     color: Color(0xFF9CA3AF),
                     fontFamily: 'SF Pro',

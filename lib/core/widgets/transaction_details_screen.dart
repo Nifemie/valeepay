@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:valarpay/core/services/local_storage_service.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -49,21 +51,24 @@ class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
   String? bottomTitleText;
   final List<Widget>? bottomTransactionsDetailsList;
   final Function()? onButtonPressed;
+  final Function()? onBiometricButtonPressed;
   final bool showActions;
   bool saveBeneficiary;
   Function(bool) onSaveBeneficiaryChanged;
 
-  ReuseableTransactionDetailsScreen(
-      {super.key,
-      required this.topTransactionsDetailsList,
-      this.bottomTransactionsDetailsList,
-      required this.topTitleText,
-      this.bottomTitleText,
-      required this.hasBottom,
-      this.onButtonPressed,
-      this.showActions = true,
-      required this.saveBeneficiary,
-      required this.onSaveBeneficiaryChanged});
+  ReuseableTransactionDetailsScreen({
+    super.key,
+    required this.topTransactionsDetailsList,
+    this.bottomTransactionsDetailsList,
+    required this.topTitleText,
+    this.bottomTitleText,
+    required this.hasBottom,
+    this.onButtonPressed,
+    this.onBiometricButtonPressed,
+    this.showActions = true,
+    required this.saveBeneficiary,
+    required this.onSaveBeneficiaryChanged,
+  });
 
   @override
   ConsumerState<ReuseableTransactionDetailsScreen> createState() =>
@@ -93,9 +98,7 @@ class _ReuseableTransactionDetailsScreenState
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-          ),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -218,6 +221,15 @@ class _ReuseableTransactionDetailsScreenState
                   ],
                 ),
 
+                const SizedBox(height: 24),
+
+                // Confirm Button
+                FullWidthButton(
+                  text: 'Confirm',
+                  onPressed: () {
+                    showConfirmPaymentSheet(context);
+                  },
+                ),
               ],
             ],
           ),
@@ -267,10 +279,7 @@ class _ReuseableTransactionDetailsScreenState
                   const SizedBox(height: 4),
                   Text(
                     accountNumber,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -295,6 +304,104 @@ class _ReuseableTransactionDetailsScreenState
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> showConfirmPaymentSheet(BuildContext context) async {
+    final fingerprintEnabled =
+        await LocalStorageService.getBool('pref_transaction_fingerprint') ??
+        false;
+    final faceIdEnabled =
+        await LocalStorageService.getBool('pref_transaction_faceid') ?? false;
+
+    final biometricEnabled = fingerprintEnabled || faceIdEnabled;
+
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20.w,
+            right: 20.w,
+            top: 16.h,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Back Icon
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.arrow_back, size: 24),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 8.h),
+
+              // Title
+              Text(
+                "Confirm Payment",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+              ),
+
+              SizedBox(height: 6.h),
+
+              // Subtitle
+              Text(
+                "Choose your preferred method to complete your\ntransaction",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600),
+              ),
+
+              SizedBox(height: 20.h),
+
+              // Proceed Button + Fingerprint
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: FullWidthButton(
+                      text: 'Proceed',
+                      onPressed:
+                          (widget.onButtonPressed != null)
+                              ? widget.onButtonPressed!
+                              : () {},
+                    ),
+                  ),
+
+                  if (biometricEnabled) SizedBox(width: 14.w),
+
+                  // Fingerprint Icon
+                  if (biometricEnabled)
+                    InkWell(
+                      onTap:
+                          (widget.onBiometricButtonPressed != null)
+                              ? widget.onBiometricButtonPressed!
+                              : () {},
+                      child: Container(
+                        padding: EdgeInsets.all(12.r),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50.r),
+                        ),
+                        child: const Icon(Icons.fingerprint, size: 26),
+                      ),
+                    ),
+                ],
+              ),
+              SizedBox(height: 20.h),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -147,7 +147,6 @@ class _InternalRecentAndSavedBeneficiaryState
                         '${b.transferDetails?.beneficiaryAccountNumber}   ${b.transferDetails?.beneficiaryBankName}',
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.black54,
                         ),
                       ),
                     ],
@@ -244,7 +243,6 @@ class _InternalRecentAndSavedBeneficiaryState
                         '${b.accountNumber}   ${b.bankName}',
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.black54,
                         ),
                       ),
                     ],

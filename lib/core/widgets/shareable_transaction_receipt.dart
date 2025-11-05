@@ -83,7 +83,7 @@ class ShareableTransactionReceipt extends StatelessWidget {
 
           const SizedBox(height: 16),
           const Text(
-            "Thank you for banking with ValarPay.\nFor support, contact us at support@valarpay.com",
+            "Thank you for banking with ValarPay.\nFor support, contact us at support@valarpay.com | +2342013309609",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: Colors.grey),
           ),

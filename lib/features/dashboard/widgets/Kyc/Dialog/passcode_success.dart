@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
 class PasscodeSuccessDialog extends StatelessWidget {
+  final String headerText;
   final VoidCallback onDone;
 
-  const PasscodeSuccessDialog({Key? key, required this.onDone})
+  const PasscodeSuccessDialog({Key? key, required this.onDone, required this.headerText})
     : super(key: key);
 
   @override
@@ -29,8 +30,8 @@ class PasscodeSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // Title
-            const Text(
-              'Passcode Set Successfully',
+             Text(
+              '$headerText Set Successfully',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF111827),
@@ -42,8 +43,8 @@ class PasscodeSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             // Description
-            const Text(
-              'Your passcode has been created. You\'ll now use it to authorize actions securely',
+             Text(
+              'Your $headerText has been created. You\'ll now use it to authorize actions securely',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF9CA3AF),

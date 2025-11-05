@@ -11,6 +11,7 @@ import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/receipt_share_screen.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
@@ -108,6 +109,80 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                         '0',
                                     _amountController.text.replaceAll(',', ''));
           if (!hasEnoughBalance) return;
+    final pin = await TransactionPinModal.show(context);
+    print(
+        '🔑 [Airtime] PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}');
+
+    // Log first and last character for debugging (without exposing full PIN)
+    if (pin != null && pin.length == 4) {
+      print(
+          '🔑 [Airtime] PIN format check: starts with "${pin[0]}", ends with "${pin[3]}"');
+    }
+
+    if (pin == null || pin.length != 4) {
+      print('⚠️ [Airtime] Invalid PIN, returning');
+      return;
+    }
+    if (!mounted) {
+      print('⚠️ [Airtime] Widget not mounted, returning');
+      return;
+    }
+
+    // Close details screen first
+    Navigator.pop(context);
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
+
+      // Ensure PIN is a string
+      final pinString = pin.toString();
+      print(
+          '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
+
+      final request = AirtimePurchaseRequest(
+        walletPin: pinString,
+        amount: double.parse(_amountController.text..replaceAll(',', '')),
+        operatorId: operatorId,
+        phone: _controller.text,
+        currency: 'NGN',
+        addBeneficiary: saveBeneficiary,
+      );
+
+      print('🔐 Initiating airtime purchase...');
+      print(
+          '🔐 Request details: amount=${request.amount}, operatorId=${request.operatorId}, phone=${request.phone}');
+      print(
+          '🔐 Request walletPin type: ${request.walletPin.runtimeType}, value: ${request.walletPin}');
+      await ref
+          .read(airtimePurchaseNotifierProvider.notifier)
+          .purchase(request);
+      print('📤 Airtime purchase request sent');
+    } catch (e) {
+      print('❌ Airtime purchase error: $e');
+      if (mounted) Navigator.pop(context); // close loading
+      if (mounted) {
+        AppMessenger.show(context,
+            message: 'Error: ${e.toString()}', type: MessageType.error);
+      }
+    }
+  }
+
+  Future<void> _handleBiometricPinEntry() async {
+    print('🔑 [Airtime] _handlePinEntry called');
+    final user = ref.read(userProvider);
+    final hasEnoughBalance = checkBalanceLeft(
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    _amountController.text.replaceAll(',', ''));
+          if (!hasEnoughBalance) return;
     final pin = await BiometricTransactionPinModal.show(context);
     print(
         '🔑 [Airtime] PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}');
@@ -173,6 +248,8 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     }
   }
 
+  
+
   void _navigateToDetails(String selectedNetwork, int selectedOperatorId) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     Navigator.push(
@@ -197,6 +274,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
             ),
           ],
           onButtonPressed: _handlePinEntry,
+          onBiometricButtonPressed: _handleBiometricPinEntry,
         ),
       ),
     );
@@ -295,6 +373,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => TransactionReceiptWidget(
+                headerText: 'Transaction',
                 amount: currencyFormatter(_amountController.text..replaceAll(',', '')),
                 topDetails: [
                   TransactionDetail(

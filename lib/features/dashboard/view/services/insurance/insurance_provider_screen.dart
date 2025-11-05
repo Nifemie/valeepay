@@ -212,6 +212,7 @@ class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   TransactionReceiptWidget(
+                                                    headerText: 'Transaction',
                                                     amount:
                                                         '${(int.parse(amountController.text) + serviceFee)}',
                                                     topDetails: [

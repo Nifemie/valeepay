@@ -11,6 +11,7 @@ import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/receipt_share_screen.dart';
+import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
@@ -828,24 +829,24 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => ReuseableTransactionDetailsScreen(
-              saveBeneficiary: saveBeneficiary,
-              onSaveBeneficiaryChanged: (value) {
-                setState(() {
-                  saveBeneficiary = value;
-                });
-              },
-              hasBottom: false,
-              topTitleText: 'Transaction',
-              topTransactionsDetailsList: [
-                buildDetailRow('Recipient Number', _controller.text, isDark),
-                buildDetailRow('Provider', _selectedNetwork, isDark),
-                buildDetailRow('Data Plan', planDescription, isDark),
-                buildDetailRow('Amount', '₦${amountController.text}', isDark),
-              ],
-              onButtonPressed: _handlePinEntry,
-            ),
+        builder: (context) => ReuseableTransactionDetailsScreen(
+          saveBeneficiary: saveBeneficiary,
+          onSaveBeneficiaryChanged: (value) {
+            setState(() {
+              saveBeneficiary = value;
+            });
+          },
+          hasBottom: false,
+          topTitleText: 'Transaction',
+          topTransactionsDetailsList: [
+            buildDetailRow('Recipient Number', _controller.text, isDark),
+            buildDetailRow('Provider', _selectedNetwork, isDark),
+            buildDetailRow('Data Plan', planDescription, isDark),
+            buildDetailRow('Amount', '₦${amountController.text}', isDark),
+          ],
+          onButtonPressed: _handlePinEntry,
+          onBiometricButtonPressed: _handleBiometricPinEntry,
+        ),
       ),
     );
   }
@@ -854,12 +855,12 @@ class _DataScreenState extends ConsumerState<DataScreen> {
   Future<void> _handlePinEntry() async {
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(
-      context,
-      user?.wallets.first.balance.toString() ?? '0',
-      amountController.text.replaceAll(',', ''),
-    );
-    if (!hasEnoughBalance) return;
-    final pin = await BiometricTransactionPinModal.show(context);
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    amountController.text.replaceAll(',', ''));
+          if (!hasEnoughBalance) return;
+    final pin = await TransactionPinModal.show(context);
     if (pin == null || pin.length != 4) return;
 
     if (!mounted) return;
@@ -940,39 +941,25 @@ class _DataScreenState extends ConsumerState<DataScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (_) => TransactionReceiptWidget(
-                        amount: currencyFormatter(
-                          amountController.text..replaceAll(',', ''),
-                        ),
-                        topDetails: [
-                          TransactionDetail(
-                            label: 'Transaction ID',
-                            value:
-                                'TXN${DateTime.now().millisecondsSinceEpoch}',
-                            showCopyIcon: true,
-                          ),
-                          TransactionDetail(
-                            label: 'Recipient Number',
-                            value: _controller.text,
-                          ),
-                          TransactionDetail(
-                            label: 'Network',
-                            value: _selectedNetwork,
-                          ),
-                          TransactionDetail(
-                            label: 'Data Plan',
-                            value: planDescription,
-                          ),
-                          TransactionDetail(
-                            label: 'Amount',
-                            value: currencyFormatter(
-                              amountController.text..replaceAll(',', ''),
-                            ),
-                          ),
-                        ],
-                        onShareReceipt: _onShareTransactionReceiptPressed,
-                      ),
+                  builder: (_) => TransactionReceiptWidget(
+                    headerText: 'Transaction',
+                    amount: currencyFormatter(amountController.text..replaceAll(',', '')),
+                    topDetails: [
+                      TransactionDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                          showCopyIcon: true),
+                      TransactionDetail(
+                          label: 'Recipient Number', value: _controller.text),
+                      TransactionDetail(
+                          label: 'Network', value: _selectedNetwork),
+                      TransactionDetail(
+                          label: 'Data Plan', value: planDescription),
+                      TransactionDetail(
+                          label: 'Amount', value: currencyFormatter(amountController.text..replaceAll(',', ''))),
+                    ],
+                    onShareReceipt: _onShareTransactionReceiptPressed,
+                  ),
                 ),
               );
             } else if (state.message != null) {
@@ -996,4 +983,130 @@ class _DataScreenState extends ConsumerState<DataScreen> {
       }
     }
   }
+
+Future<void> _handleBiometricPinEntry() async {
+    final user = ref.read(userProvider);
+    final hasEnoughBalance = checkBalanceLeft(
+                                    context,
+                                    user?.wallets.first.balance.toString() ??
+                                        '0',
+                                    amountController.text.replaceAll(',', ''));
+          if (!hasEnoughBalance) return;
+    final pin = await BiometricTransactionPinModal.show(context);
+    if (pin == null || pin.length != 4) return;
+
+    if (!mounted) return;
+    Navigator.pop(context); // Close transaction details screen
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final amount = double.tryParse(amountController.text) ?? 0;
+
+      final request = DataPurchaseRequest(
+        walletPin: pin,
+        amount: amount,
+        operatorId: _selectedOperatorId,
+        phone: _controller.text,
+        currency: 'NGN',
+        addBeneficiary: false,
+      );
+
+      print('🔐 [Data] Initiating data purchase...');
+      await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
+      print('📤 [Data] Data purchase request sent');
+
+      // Use post frame callback to close dialog and navigate after frame completes
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            print('⚠️ [Data] Widget not mounted in postFrameCallback');
+            return;
+          }
+
+          // Close loading dialog
+          if (Navigator.canPop(context)) {
+            print('📤 [Data] Closing loading dialog');
+            Navigator.pop(context);
+          }
+
+          // Small delay to ensure loading dialog is fully closed
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (!mounted) {
+              print('⚠️ [Data] Widget not mounted after delay');
+              return;
+            }
+
+            // Check the state and navigate
+            final state = ref.read(dataPurchaseNotifierProvider);
+            print('🎧 [Data] State check:');
+            print('   - isDataAvailable: ${state.isDataAvailable}');
+            print('   - message: ${state.message}');
+            print('   - data: ${state.data}');
+
+            // Check for success via message (like airtime)
+            final isSuccessMessage = state.message != null &&
+                state.message!.toLowerCase().contains('success');
+
+            if ((state.isDataAvailable &&
+                    state.data != null &&
+                    state.data!.isNotEmpty) ||
+                isSuccessMessage) {
+              print('✅ [Data] Purchase successful, navigating to receipt');
+              // Get description for selected amount
+              final dataVariations =
+                  ref.read(dataVariationNotifierProvider).data ?? [];
+              final descriptions = dataVariations.isNotEmpty
+                  ? dataVariations.first.fixedAmountsDescriptions
+                  : <String, dynamic>{};
+              final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
+              final planDescription =
+                  descriptions[amountKey] ?? '₦ ${amountController.text} Data';
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TransactionReceiptWidget(
+                    headerText: 'Transaction',
+                    amount: currencyFormatter(amountController.text..replaceAll(',', '')),
+                    topDetails: [
+                      TransactionDetail(
+                          label: 'Transaction ID',
+                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                          showCopyIcon: true),
+                      TransactionDetail(
+                          label: 'Recipient Number', value: _controller.text),
+                      TransactionDetail(
+                          label: 'Network', value: _selectedNetwork),
+                      TransactionDetail(
+                          label: 'Data Plan', value: planDescription),
+                      TransactionDetail(
+                          label: 'Amount', value: currencyFormatter(amountController.text..replaceAll(',', ''))),
+                    ],
+                    onShareReceipt: _onShareTransactionReceiptPressed,
+                  ),
+                ),
+              );
+            } else if (state.message != null) {
+              AppMessenger.show(context,
+                  message: state.message!, type: MessageType.error);
+            }
+          });
+        });
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context); // close loading
+      if (mounted) {
+        AppMessenger.show(context,
+            message: 'Purchase failed: ${e.toString()}',
+            type: MessageType.error);
+      }
+    }
+
+}
 }
