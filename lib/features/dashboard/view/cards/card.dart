@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/dashboard/view/cards/get_physical_card.dart';
 import 'package:valarpay/features/dashboard/view/comming_soon.dart';
 
 class CardsScreen extends StatefulWidget {
@@ -124,7 +125,7 @@ class _CardsScreenState extends State<CardsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          "Earn",
+                          "Accepted At Millions of Locations Nationwide ",
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -132,7 +133,7 @@ class _CardsScreenState extends State<CardsScreen> {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          "Flexible spending with 15% annual interest",
+                          "Flexible spending with 10% annual interest",
                           style: TextStyle(color: Colors.grey, fontSize: 13),
                         ),
                       ],
@@ -165,7 +166,7 @@ class _CardsScreenState extends State<CardsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          "Security",
+                          "Manage Your Card Effortlessly in ValarPay App ",
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -173,7 +174,7 @@ class _CardsScreenState extends State<CardsScreen> {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          "CBN licensed, NDIC insured",
+                          "Fully securely & licensed",
                           style: TextStyle(color: Colors.grey, fontSize: 13),
                         ),
                       ],
@@ -181,38 +182,35 @@ class _CardsScreenState extends State<CardsScreen> {
                   ),
                 ],
               ),
-              // Description text
-
-              // const Spacer(),
-
-              // CTA button
-              // SizedBox(
-              //   width: double.infinity,
-              //   height: 52,
-              //   child: ElevatedButton(
-              //     onPressed: () {
-              //       Navigator.push(
-              //         context,
-              //         MaterialPageRoute(builder: (_) => GetPhysicalCardScreen()),
-              //       );
-              //     },
-              //     style: ElevatedButton.styleFrom(
-              //       backgroundColor: appTheme.primaryColor,
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(28),
-              //       ),
-              //       elevation: 0,
-              //     ),
-              //     child: const Text(
-              //       "Get Card Now",
-              //       style: TextStyle(
-              //         fontSize: 15,
-              //         fontWeight: FontWeight.w600,
-              //         color: Colors.white,
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GetPhysicalCardScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appTheme.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "Get Card Now",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 40),
             ],
           ),
