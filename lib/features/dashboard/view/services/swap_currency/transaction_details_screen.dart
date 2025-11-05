@@ -98,25 +98,25 @@ class SwapCurrencyTransactionDetailsScreen extends StatelessWidget {
 
                   // Payment methods
                   _buildPaymentMethod(
-                    'Vconnect Bank',
+                    'ValarPay Account',
                     Icons.account_balance,
                     Colors.orange,
                     isDark,
                   ),
-                  const SizedBox(height: 12),
-                  _buildPaymentMethod(
-                    'First Bank of Nigeria',
-                    Icons.account_balance,
-                    Colors.blue,
-                    isDark,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildPaymentMethod(
-                    'Wema Bank',
-                    Icons.account_balance,
-                    Colors.purple,
-                    isDark,
-                  ),
+                  // const SizedBox(height: 12),
+                  // _buildPaymentMethod(
+                  //   'First Bank of Nigeria',
+                  //   Icons.account_balance,
+                  //   Colors.blue,
+                  //   isDark,
+                  // ),
+                  // const SizedBox(height: 12),
+                  // _buildPaymentMethod(
+                  //   'Wema Bank',
+                  //   Icons.account_balance,
+                  //   Colors.purple,
+                  //   isDark,
+                  // ),
                 ],
               ),
             ),

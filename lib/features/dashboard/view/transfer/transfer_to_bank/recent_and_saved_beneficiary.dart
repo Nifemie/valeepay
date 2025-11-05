@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/beneficiary_transfer_amount_screen.dart';
-import 'package:valarpay/features/dashboard/view/transfer/transfer_to_bank/transfer_amount_screen.dart';
 import 'package:valarpay/features/models/transaction_model.dart';
-import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/beneficiary_notifier.dart';
-import 'package:valarpay/features/models/beneficiary_models.dart';
 import 'package:valarpay/features/notifiers/transaction_notifier.dart';
 
 class TransferToBankRecentAndSavedBeneficiaries extends ConsumerStatefulWidget {

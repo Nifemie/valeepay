@@ -197,7 +197,7 @@ class NeedHelpModal {
 
   static void _launchPhoneCall(BuildContext context) async {
     try {
-      final Uri phoneUri = Uri.parse('tel:+2348234146906');
+      final Uri phoneUri = Uri.parse('tel:+2342013309609');
 
       final bool launched = await launchUrl(
         phoneUri,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/services_widgets/profile_widgets/profile_header.dart';
 import '../../widgets/services_widgets/profile_widgets/profile_menu_item.dart';
 import 'personal_details_screen.dart';

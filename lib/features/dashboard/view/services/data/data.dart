@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,8 +37,9 @@ class DataScreen extends ConsumerStatefulWidget {
 
 class _DataScreenState extends ConsumerState<DataScreen> {
   final TextEditingController _controller = TextEditingController();
-  final TextEditingController amountController =
-      TextEditingController(text: '0');
+  final TextEditingController amountController = TextEditingController(
+    text: '0',
+  );
   bool _useCashback = false;
   String _selectedNetwork = '';
   int _selectedOperatorId = 0;
@@ -65,20 +68,27 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     // Extract unique networks from plans
     final uniqueNetworks =
         availablePlans.map((plan) => plan.network).toSet().toList();
-   // Listen for plan errors
-    ref.listen<DataState<DataPlanInfo>>(dataPlansNotifierProvider,
-        (prev, next) {
+    // Listen for plan errors
+    ref.listen<DataState<DataPlanInfo>>(dataPlansNotifierProvider, (
+      prev,
+      next,
+    ) {
       if (next.message != null &&
           !next.isInitialLoading &&
           !next.isDataAvailable) {
-        AppMessenger.show(context,
-            message: next.message!, type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: next.message!,
+          type: MessageType.error,
+        );
       }
     });
 
     // Listen for variation updates to set amount
-    ref.listen<DataState<DataPlan>>(dataVariationNotifierProvider,
-        (prev, next) {
+    ref.listen<DataState<DataPlan>>(dataVariationNotifierProvider, (
+      prev,
+      next,
+    ) {
       if (!next.isInitialLoading &&
           next.isDataAvailable &&
           next.data != null &&
@@ -86,22 +96,27 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         final variation = next.data!.first;
         if (variation.fixedAmounts.isNotEmpty) {
           setState(() {
-            amountController.text =
-                variation.fixedAmounts.first.toStringAsFixed(0);
+            amountController.text = variation.fixedAmounts.first
+                .toStringAsFixed(0);
           });
         }
       }
     });
 
     // Listen for purchase results
-    ref.listen<DataState<DataPurchaseResponse>>(dataPurchaseNotifierProvider,
-        (prev, next) {
+    ref.listen<DataState<DataPurchaseResponse>>(dataPurchaseNotifierProvider, (
+      prev,
+      next,
+    ) {
       if (!next.isInitialLoading &&
           next.message != null &&
           !next.isDataAvailable) {
         if (mounted) {
-          AppMessenger.show(context,
-              message: next.message!, type: MessageType.error);
+          AppMessenger.show(
+            context,
+            message: next.message!,
+            type: MessageType.error,
+          );
         }
       }
     });
@@ -115,147 +130,147 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         ),
         title: const Text(
           'Data',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
-        actions: isBvnVerified
-            ? [
-                TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Saved Beneficiary',
-                    style: TextStyle(
-                      color: appTheme.primaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ]
-            : null,
-      ),
-      body: !isBvnVerified
-          ? const KycNotSetWidget(
-              title: 'KYC Not Completed',
-              subtitle: 'Complete your KYC verification to purchase data',
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Phone Number',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ReuseableTextFieldWithCountry(
-                    controller: _controller,
-                    hintText: "123 567 890",
-                    countryCode: '+234',
-                    flagImagePath: 'assets/images/ngflag.png',
-                    isReadOnly: false,
-                    textInputType: TextInputType.phone,
-                    showCountryLabel: true,
-                    onChanged: (value) {
-                      // Auto-fetch plans when phone number is complete (10 digits)
-                      if (value.length >= 10) {
-                        // setState(() {
-                        //   availablePlans = [];
-                        // });
-                        ref
-                            .read(dataPlansNotifierProvider.notifier)
-                            .getPlans(phone: value, currency: 'NGN');
-                      }
-                    },
-                    suffixWidget: IconButton(
-                      onPressed: _showContactAccessDialog,
-                      icon: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: appTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+        actions:
+            isBvnVerified
+                ? [
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'Saved Beneficiary',
+                      style: TextStyle(
+                        color: appTheme.primaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Network Provider Selection
-                  _buildNetworkProviderSelector(
-                      plansState, uniqueNetworks, availablePlans),
-                  const SizedBox(height: 24),
-
-                  // Data Amount Selection (from fixed amounts)
-                  if (_selectedNetwork.isNotEmpty) ...[
-                    _buildDataAmountSection(),
+                ]
+                : null,
+      ),
+      body:
+          !isBvnVerified
+              ? const KycNotSetWidget(
+                title: 'KYC Not Completed',
+                subtitle: 'Complete your KYC verification to purchase data',
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Phone Number',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ReuseableTextFieldWithCountry(
+                      controller: _controller,
+                      hintText: "123 567 890",
+                      countryCode: '+234',
+                      flagImagePath: 'assets/images/ngflag.png',
+                      isReadOnly: false,
+                      textInputType: TextInputType.phone,
+                      showCountryLabel: true,
+                      onChanged: (value) {
+                        // Auto-fetch plans when phone number is complete (10 digits)
+                        if (value.length >= 10) {
+                          // setState(() {
+                          //   availablePlans = [];
+                          // });
+                          ref
+                              .read(dataPlansNotifierProvider.notifier)
+                              .getPlans(phone: value, currency: 'NGN');
+                        }
+                      },
+                      suffixWidget: IconButton(
+                        onPressed: _showContactAccessDialog,
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: appTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
+
+                    // Network Provider Selection
+                    _buildNetworkProviderSelector(
+                      plansState,
+                      uniqueNetworks,
+                      availablePlans,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Data Amount Selection (from fixed amounts)
+                    if (_selectedNetwork.isNotEmpty) ...[
+                      _buildDataAmountSection(),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // Cashback Section
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     const Expanded(
+                    //       child: Text(
+                    //         'Use Cashback',
+                    //         style: TextStyle(
+                    //           color: Colors.grey,
+                    //           fontSize: 14,
+                    //           fontWeight: FontWeight.w500,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     Row(
+                    //       mainAxisSize: MainAxisSize.min,
+                    //       children: [
+                    //         const Text(
+                    //           '₦50.00',
+                    //           style: TextStyle(
+                    //             color: Colors.grey,
+                    //             fontSize: 14,
+                    //           ),
+                    //         ),
+                    //         const SizedBox(width: 8),
+                    //         Switch(
+                    //           value: _useCashback,
+                    //           onChanged: (value) {
+                    //             setState(() {
+                    //               _useCashback = value;
+                    //             });
+                    //           },
+                    //           activeColor: appTheme.primaryColor,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ],
+                    // ),
+                    const SizedBox(height: 32),
+
+                    // Continue Button
+                    FullWidthButton(
+                      text: 'Continue',
+                      onPressed: _handleContinue,
+                      isEnabled: _isFormValid(),
+                    ),
+                    const SizedBox(height: 24),
+                    const DataServicesSection(),
                   ],
-
-                  // Cashback Section
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     const Expanded(
-                  //       child: Text(
-                  //         'Use Cashback',
-                  //         style: TextStyle(
-                  //           color: Colors.grey,
-                  //           fontSize: 14,
-                  //           fontWeight: FontWeight.w500,
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     Row(
-                  //       mainAxisSize: MainAxisSize.min,
-                  //       children: [
-                  //         const Text(
-                  //           '₦50.00',
-                  //           style: TextStyle(
-                  //             color: Colors.grey,
-                  //             fontSize: 14,
-                  //           ),
-                  //         ),
-                  //         const SizedBox(width: 8),
-                  //         Switch(
-                  //           value: _useCashback,
-                  //           onChanged: (value) {
-                  //             setState(() {
-                  //               _useCashback = value;
-                  //             });
-                  //           },
-                  //           activeColor: appTheme.primaryColor,
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ],
-                  // ),
-                  
-                  
-                  const SizedBox(height: 32),
-
-                  // Continue Button
-                  FullWidthButton(
-                    text: 'Continue',
-                    onPressed: _handleContinue,
-                    isEnabled: _isFormValid(),
-                  ),
-                  const SizedBox(height: 24),
-                  const DataServicesSection(),
-                ],
+                ),
               ),
-            ),
     );
   }
 
@@ -263,15 +278,16 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => ContactAccessDialog(
-        onAllow: () {
-          Navigator.of(context).pop();
-          _pickContact();
-        },
-        onCancel: () {
-          Navigator.of(context).pop();
-        },
-      ),
+      builder:
+          (context) => ContactAccessDialog(
+            onAllow: () {
+              Navigator.of(context).pop();
+              _pickContact();
+            },
+            onCancel: () {
+              Navigator.of(context).pop();
+            },
+          ),
     );
   }
 
@@ -313,9 +329,10 @@ class _DataScreenState extends ConsumerState<DataScreen> {
 
       if (Navigator.canPop(context)) Navigator.pop(context); // close loading
 
-      final contactList = contacts
-          .where((c) => (c.phones.isNotEmpty) || (c.emails.isNotEmpty))
-          .toList();
+      final contactList =
+          contacts
+              .where((c) => (c.phones.isNotEmpty) || (c.emails.isNotEmpty))
+              .toList();
 
       if (contactList.isEmpty) {
         AppMessenger.show(
@@ -344,13 +361,15 @@ class _DataScreenState extends ConsumerState<DataScreen> {
               void _filterContacts(String query) {
                 query = query.toLowerCase();
                 setModalState(() {
-                  filteredContacts = contactList.where((c) {
-                    final name = c.displayName.toLowerCase();
-                    final phone = c.phones.isNotEmpty
-                        ? c.phones.first.number.toLowerCase()
-                        : '';
-                    return name.contains(query) || phone.contains(query);
-                  }).toList();
+                  filteredContacts =
+                      contactList.where((c) {
+                        final name = c.displayName.toLowerCase();
+                        final phone =
+                            c.phones.isNotEmpty
+                                ? c.phones.first.number.toLowerCase()
+                                : '';
+                        return name.contains(query) || phone.contains(query);
+                      }).toList();
                 });
               }
 
@@ -378,15 +397,18 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                       // 🔍 Search Field
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         child: TextField(
                           controller: searchController,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search),
                             hintText: 'Search contact...',
                             filled: true,
-                            fillColor:
-                                Theme.of(context).cardColor.withOpacity(0.5),
+                            fillColor: Theme.of(
+                              context,
+                            ).cardColor.withOpacity(0.5),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -399,53 +421,61 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                       // Contact list
                       SizedBox(
                         height: 450,
-                        child: filteredContacts.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'No contacts found',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: filteredContacts.length,
-                                separatorBuilder: (_, __) =>
-                                    const Divider(height: 1),
-                                itemBuilder: (context, index) {
-                                  final c = filteredContacts[index];
-                                  final phone = c.phones.isNotEmpty
-                                      ? c.phones.first.number
-                                      : '';
-                                  final displayName = c.displayName.isNotEmpty
-                                      ? c.displayName
-                                      : phone;
+                        child:
+                            filteredContacts.isEmpty
+                                ? const Center(
+                                  child: Text(
+                                    'No contacts found',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                                : ListView.separated(
+                                  itemCount: filteredContacts.length,
+                                  separatorBuilder:
+                                      (_, __) => const Divider(height: 1),
+                                  itemBuilder: (context, index) {
+                                    final c = filteredContacts[index];
+                                    final phone =
+                                        c.phones.isNotEmpty
+                                            ? c.phones.first.number
+                                            : '';
+                                    final displayName =
+                                        c.displayName.isNotEmpty
+                                            ? c.displayName
+                                            : phone;
 
-                                  return ListTile(
-                                    title: Text(displayName),
-                                    subtitle: Text(phone),
-                                    onTap: () async {
-                                      final formatted = _formatTo11(phone);
-                                      setState(() {
-                                        _controller.text = formatted;
-                                      });
+                                    return ListTile(
+                                      title: Text(displayName),
+                                      subtitle: Text(phone),
+                                      onTap: () async {
+                                        final formatted = _formatTo11(phone);
+                                        setState(() {
+                                          _controller.text = formatted;
+                                        });
 
-                                      final digitsOnly = formatted.replaceAll(
-                                          RegExp(r'\D'), '');
-                                      if (digitsOnly.length >= 10) {
-                                        await ref
-                                            .read(dataPlansNotifierProvider
-                                                .notifier)
-                                            .getPlans(
+                                        final digitsOnly = formatted.replaceAll(
+                                          RegExp(r'\D'),
+                                          '',
+                                        );
+                                        if (digitsOnly.length >= 10) {
+                                          await ref
+                                              .read(
+                                                dataPlansNotifierProvider
+                                                    .notifier,
+                                              )
+                                              .getPlans(
                                                 phone: formatted,
-                                                currency: 'NGN');
-                                      }
+                                                currency: 'NGN',
+                                              );
+                                        }
 
-                                      if (Navigator.canPop(context)) {
-                                        Navigator.pop(context);
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
+                                        if (Navigator.canPop(context)) {
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
                       ),
                     ],
                   ),
@@ -487,8 +517,11 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     return digits;
   }
 
-  Widget _buildNetworkProviderSelector(DataState<DataPlanInfo>? plansState,
-      List<String> uniqueNetworks, List<DataPlanInfo> availablePlans) {
+  Widget _buildNetworkProviderSelector(
+    DataState<DataPlanInfo>? plansState,
+    List<String> uniqueNetworks,
+    List<DataPlanInfo> availablePlans,
+  ) {
     // Debug: Check if plans are loaded
     print('Available Plans Count: ${availablePlans.length}');
     print('Unique Networks: $uniqueNetworks');
@@ -545,46 +578,54 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             color: Theme.of(context).cardColor.withOpacity(0.4),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: (plansState?.isInitialLoading ?? false) &&
-                  availablePlans.isEmpty
-              ? const Center(child: CircularProgressIndicator())
-              : Builder(builder: (context) {
-                  // Map DataPlanInfo to NetworkProvider for the selector
-                  final providerModels = availablePlans
-                      .map((p) => NetworkProvider(
-                            id: p.id,
-                            planName: p.planName,
-                            network: p.network,
-                            countryISOCode: p.countryISOCode,
-                            operatorId: p.operatorId,
-                            createdAt: p.createdAt,
-                            updatedAt: p.updatedAt,
-                          ))
-                      .toList();
+          child:
+              (plansState?.isInitialLoading ?? false) && availablePlans.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : Builder(
+                    builder: (context) {
+                      // Map DataPlanInfo to NetworkProvider for the selector
+                      final providerModels =
+                          availablePlans
+                              .map(
+                                (p) => NetworkProvider(
+                                  id: p.id,
+                                  planName: p.planName,
+                                  network: p.network,
+                                  countryISOCode: p.countryISOCode,
+                                  operatorId: p.operatorId,
+                                  createdAt: p.createdAt,
+                                  updatedAt: p.updatedAt,
+                                ),
+                              )
+                              .toList();
 
-                  return NetworkProviderSelector(
-                    selectedNetwork: _selectedNetwork,
-                    providers: providerModels,
-                    onNetworkSelected: (value) async {
-                      if (value.isEmpty) return;
-                      try {
-                        final plan = availablePlans
-                            .firstWhere((p) => p.network == value);
-                        setState(() {
-                          _selectedNetwork = value;
-                          _selectedPlan = '';
-                          _selectedOperatorId = plan.operatorId;
-                        });
+                      return NetworkProviderSelector(
+                        selectedNetwork: _selectedNetwork,
+                        providers: providerModels,
+                        onNetworkSelected: (value) async {
+                          if (value.isEmpty) return;
+                          try {
+                            final plan = availablePlans.firstWhere(
+                              (p) => p.network == value,
+                            );
+                            setState(() {
+                              _selectedNetwork = value;
+                              _selectedPlan = '';
+                              _selectedOperatorId = plan.operatorId;
+                            });
 
-                        await ref
-                            .read(dataVariationNotifierProvider.notifier)
-                            .getVariation(operatorId: plan.operatorId);
-                      } catch (e) {
-                        print('⚠️ [Data] Selected provider not found: $value');
-                      }
+                            await ref
+                                .read(dataVariationNotifierProvider.notifier)
+                                .getVariation(operatorId: plan.operatorId);
+                          } catch (e) {
+                            print(
+                              '⚠️ [Data] Selected provider not found: $value',
+                            );
+                          }
+                        },
+                      );
                     },
-                  );
-                }),
+                  ),
         ),
       ],
     );
@@ -596,14 +637,16 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     final dataVariations = variationState.data ?? <DataPlan>[];
 
     // Get fixed amounts from the first variation (there's usually only one)
-    final fixedAmounts = dataVariations.isNotEmpty
-        ? dataVariations.first.fixedAmounts
-        : <double>[];
+    final fixedAmounts =
+        dataVariations.isNotEmpty
+            ? dataVariations.first.fixedAmounts
+            : <double>[];
 
     // Get descriptions if available
-    final descriptions = dataVariations.isNotEmpty
-        ? dataVariations.first.fixedAmountsDescriptions
-        : <String, dynamic>{};
+    final descriptions =
+        dataVariations.isNotEmpty
+            ? dataVariations.first.fixedAmountsDescriptions
+            : <String, dynamic>{};
 
     if (variationState.isInitialLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -627,7 +670,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Select Data Amount',
+          'Select Data Plan',
           style: TextStyle(
             color: Colors.grey,
             fontSize: 14,
@@ -645,7 +688,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             child: DropdownButton<String>(
               value: _selectedPlan.isEmpty ? null : _selectedPlan,
               hint: Text(
-                'Select Data Amount',
+                'Select Data Plan',
                 style: TextStyle(
                   color: isDark ? Colors.white70 : Colors.grey[600],
                 ),
@@ -656,29 +699,32 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black,
               ),
-              items: fixedAmounts.map((amount) {
-                final amountKey = amount.toStringAsFixed(0);
-                final description = descriptions[amountKey] ?? '';
-                final displayText = description.isNotEmpty
-                    ? '$description - ₦${amount.toStringAsFixed(0)}'
-                    : '₦${amount.toStringAsFixed(0)}';
+              items:
+                  fixedAmounts.map((amount) {
+                    final amountKey = amount.toStringAsFixed(2);
+                    final description = descriptions[amountKey] ?? '';
+                    final displayText =
+                        description.isNotEmpty
+                            ? '$description - ₦${amount.toStringAsFixed(0)}'
+                            : '₦${amount.toStringAsFixed(0)}';
 
-                return DropdownMenuItem<String>(
-                  value: amount.toString(),
-                  child: Text(
-                    displayText,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                );
-              }).toList(),
+                    return DropdownMenuItem<String>(
+                      value: amount.toString(),
+                      child: Text(
+                        displayText,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
                     _selectedPlan = value;
-                    amountController.text =
-                        double.parse(value).toStringAsFixed(0);
+                    amountController.text = double.parse(
+                      value,
+                    ).toStringAsFixed(0);
                   });
                 }
               },
@@ -697,69 +743,83 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         _selectedOperatorId > 0;
   }
 
-   _onShareTransactionReceiptPressed() {
-     final dataVariations =
-                  ref.read(dataVariationNotifierProvider).data ?? [];
-              final descriptions = dataVariations.isNotEmpty
-                  ? dataVariations.first.fixedAmountsDescriptions
-                  : <String, dynamic>{};
-              final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
-              final planDescription =
-                  descriptions[amountKey] ?? '₦ ${amountController.text} Data';
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => ReceiptShareScreen(
-                    date:
-                        '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                    transactionDetailList: [
-                      ShareableTransactionReceiptDetail(
-                          label: 'Amount',
-                          value:  currencyFormatter(amountController.text..replaceAll(',', ''))),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Currency', value: 'NGN'),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Transaction Type',
-                          value: 'Mobile Data Purchase'),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Provider',
-                          value: _selectedNetwork),
-                       ShareableTransactionReceiptDetail(
-                          label: 'Plan',
-                          value: planDescription),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Phone Number',
-                          value:
-                              _controller.text.trim()),
-                     
-                      
-                      ShareableTransactionReceiptDetail(
-                          label: 'Transaction ID',
-                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}'),
-                      ShareableTransactionReceiptDetail(
-                          label: 'Status',
-                          value: 'Successful',
-                          isSuccessful: true)
-                    ],
-                  )));
-    }
+  _onShareTransactionReceiptPressed() {
+    final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
+    final descriptions =
+        dataVariations.isNotEmpty
+            ? dataVariations.first.fixedAmountsDescriptions
+            : <String, dynamic>{};
+    final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
+    final planDescription =
+        descriptions[amountKey] ?? '₦ ${amountController.text} Data';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => ReceiptShareScreen(
+              date:
+                  '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+              transactionDetailList: [
+                ShareableTransactionReceiptDetail(
+                  label: 'Amount',
+                  value: currencyFormatter(
+                    amountController.text..replaceAll(',', ''),
+                  ),
+                ),
+                ShareableTransactionReceiptDetail(
+                  label: 'Currency',
+                  value: 'NGN',
+                ),
+                ShareableTransactionReceiptDetail(
+                  label: 'Transaction Type',
+                  value: 'Mobile Data Purchase',
+                ),
+                ShareableTransactionReceiptDetail(
+                  label: 'Provider',
+                  value: _selectedNetwork,
+                ),
+                ShareableTransactionReceiptDetail(
+                  label: 'Plan',
+                  value: planDescription,
+                ),
+                ShareableTransactionReceiptDetail(
+                  label: 'Phone Number',
+                  value: _controller.text.trim(),
+                ),
 
-   
+                ShareableTransactionReceiptDetail(
+                  label: 'Transaction ID',
+                  value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                ),
+                ShareableTransactionReceiptDetail(
+                  label: 'Status',
+                  value: 'Successful',
+                  isSuccessful: true,
+                ),
+              ],
+            ),
+      ),
+    );
+  }
 
   // Handle continue button press
   void _handleContinue() {
     if (!_isFormValid()) {
-      AppMessenger.show(context,
-          message: 'Please fill all required fields', type: MessageType.error);
+      AppMessenger.show(
+        context,
+        message: 'Please fill all required fields',
+        type: MessageType.error,
+      );
 
       return;
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
-    final descriptions = dataVariations.isNotEmpty
-        ? dataVariations.first.fixedAmountsDescriptions
-        : <String, dynamic>{};
+    final descriptions =
+        dataVariations.isNotEmpty
+            ? dataVariations.first.fixedAmountsDescriptions
+            : <String, dynamic>{};
 
     // Get description for selected amount
     final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
@@ -858,7 +918,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             print('   - data: ${state.data}');
 
             // Check for success via message (like airtime)
-            final isSuccessMessage = state.message != null &&
+            final isSuccessMessage =
+                state.message != null &&
                 state.message!.toLowerCase().contains('success');
 
             if ((state.isDataAvailable &&
@@ -869,9 +930,10 @@ class _DataScreenState extends ConsumerState<DataScreen> {
               // Get description for selected amount
               final dataVariations =
                   ref.read(dataVariationNotifierProvider).data ?? [];
-              final descriptions = dataVariations.isNotEmpty
-                  ? dataVariations.first.fixedAmountsDescriptions
-                  : <String, dynamic>{};
+              final descriptions =
+                  dataVariations.isNotEmpty
+                      ? dataVariations.first.fixedAmountsDescriptions
+                      : <String, dynamic>{};
               final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
               final planDescription =
                   descriptions[amountKey] ?? '₦ ${amountController.text} Data';
@@ -901,8 +963,11 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                 ),
               );
             } else if (state.message != null) {
-              AppMessenger.show(context,
-                  message: state.message!, type: MessageType.error);
+              AppMessenger.show(
+                context,
+                message: state.message!,
+                type: MessageType.error,
+              );
             }
           });
         });
@@ -910,9 +975,11 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     } catch (e) {
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
-        AppMessenger.show(context,
-            message: 'Purchase failed: ${e.toString()}',
-            type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: 'Purchase failed: ${e.toString()}',
+          type: MessageType.error,
+        );
       }
     }
   }
