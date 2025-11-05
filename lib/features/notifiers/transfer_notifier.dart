@@ -130,11 +130,6 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
     required bool saveBeneficiary,
     required String sessionId,
   }) async {
-    print('💰 TransferNotifier.initiateTransfer called');
-    print(
-      '   Bank: $bankCode, Account: $accountNumber, Amount: $amount, PIN length: ${pin.length}',
-    );
-
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final request = InitiateTransferRequest(
@@ -148,22 +143,16 @@ class TransferNotifier extends StateNotifier<DataState<TransferResponse>> {
         sessionId: sessionId,
       );
 
-      print('📤 Calling repository.initiateTransfer...');
       final res = await _repository.initiateTransfer(request);
 
-      print(
-        '✅ Transfer API response: ${res.message}, statusCode: ${res.statusCode}',
-      );
       state = state.copyWith(
         isInitialLoading: false,
         data: [res],
         isDataAvailable: true,
         message: res.message,
       );
-      print('✅ State updated successfully');
     } catch (e, stack) {
       log('[TransferNotifier initiateTransfer] $e\n$stack');
-      print('❌ Transfer error in notifier: $e');
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
@@ -313,8 +302,9 @@ final accountVerificationNotifierProvider = StateNotifierProvider<
 >((ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)));
 
 final beneficiaryAccountVerificationNotifierProvider = StateNotifierProvider<
-        AccountVerificationNotifier, DataState<AccountDetails>>(
-    (ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)));
+  AccountVerificationNotifier,
+  DataState<AccountDetails>
+>((ref) => AccountVerificationNotifier(ref.read(transferRepositoryProvider)));
 
 final internalAccountVerificationNotifierProvider = StateNotifierProvider<
   AccountVerificationNotifier,

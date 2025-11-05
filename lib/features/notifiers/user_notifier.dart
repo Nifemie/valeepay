@@ -247,9 +247,7 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
   Future<UserModel?> refreshUserProfile() async {
     try {
       log('[UserNotifier] Fetching user profile...');
-      print('🔍 [UserNotifier] About to call getUserProfile...');
       final user = await _repository.getUserProfile();
-      print('🔍 [UserNotifier] getUserProfile completed successfully');
       log('[UserNotifier] User profile fetched successfully');
       log('[UserNotifier] isPasscodeSet: ${user.isPasscodeSet}');
       log('[UserNotifier] isBvnVerified: ${user.isBvnVerified}');
@@ -270,8 +268,6 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       state = state.copyWith(data: [user], isDataAvailable: true);
       return user;
     } catch (e, stack) {
-      print('❌ [UserNotifier] ERROR in refreshUserProfile: $e');
-      print('❌ [UserNotifier] Stack trace: $stack');
       log('[UserNotifier Refresh Profile Error] $e\n$stack');
       return null;
     }
@@ -297,14 +293,14 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
       log('[UserNotifier] Starting NIN Tier 2 verification...');
       log('[UserNotifier] NIN: ${request.nin}');
       log('[UserNotifier] Selfie image length: ${request.selfieImage.length}');
-      
+
       final response = await _repository.verifyNinTier2(request);
-      
+
       log('[UserNotifier] NIN verification response:');
       log('  - Status Code: ${response.statusCode}');
       log('  - Message: ${response.message}');
       log('  - Is Success: ${response.isSuccess}');
-      
+
       return response;
     } catch (e, stack) {
       log('[UserNotifier NIN Verification Error] $e\n$stack');
@@ -321,13 +317,13 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
     try {
       log('[UserNotifier] Starting KYC Tier 3 submission...');
       log('[UserNotifier] Address data: $addressData');
-      
+
       final response = await _repository.submitKycTier3(addressData);
-      
+
       log('[UserNotifier] KYC Tier 3 response:');
       log('  - Status Code: ${response.statusCode}');
       log('  - Message: ${response.message}');
-      
+
       // Refresh user profile to get updated KYC status
       if (response.statusCode == 200 || response.statusCode == 201) {
         log('[UserNotifier] KYC Tier 3 successful, refreshing profile...');
@@ -344,33 +340,34 @@ class UserNotifier extends StateNotifier<DataState<UserModel>> {
     try {
       log('[UserNotifier] Starting NIN verification (no selfie)...');
       log('[UserNotifier] NIN: $nin');
-      
+
       // Create request without selfie image
       final request = NinVerificationRequest(
         nin: nin,
         selfieImage: '', // Empty string for no selfie
       );
-      
+
       final response = await _repository.verifyNinTier2(request);
-      
+
       log('[UserNotifier] NIN verification response:');
       log('  - Status Code: ${response.statusCode}');
       log('  - Message: ${response.message}');
       log('  - Is Success: ${response.isSuccess}');
-      
+
       // Refresh user profile to get updated KYC status
       if (response.isSuccess) {
-        log('[UserNotifier] NIN verification successful, refreshing profile...');
+        log(
+          '[UserNotifier] NIN verification successful, refreshing profile...',
+        );
         await refreshUserProfile();
       }
-      
+
       return response;
     } catch (e, stack) {
       log('[UserNotifier NIN Verification Error] $e\n$stack');
       rethrow;
     }
   }
-
 
   void reset() => state = DataState<UserModel>.initial();
 }

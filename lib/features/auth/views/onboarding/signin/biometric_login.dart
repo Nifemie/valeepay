@@ -62,8 +62,8 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       } else {
         _capitalizedUsername = 'User';
       }
-       log(jsonEncode(user));
-       
+      log(jsonEncode(user));
+
       if (user != null) {
         _accountNumber =
             user.wallets.isNotEmpty
@@ -117,17 +117,8 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
       final storedPasscode = await SecureStorageService.getPasscode();
       final storedUsername = await SecureStorageService.getUsername();
 
-      print(
-        '🔐 [BiometricLogin] Has stored passcode: ${storedPasscode != null}',
-      );
-      print(
-        '🔐 [BiometricLogin] Has stored username: ${storedUsername != null}',
-      );
-
       if (storedPasscode != null && storedUsername != null) {
         // Use passcode login API
-        print('🔐 [BiometricLogin] Logging in with stored passcode...');
-
         final ip = await DeviceUtils.getIpAddress();
         final deviceName = await DeviceUtils.getDeviceName();
         final os = await DeviceUtils.getDeviceOS();
@@ -178,7 +169,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         }
       } else {
         // Fallback to session-based login
-        print('🔐 [BiometricLogin] No stored passcode, checking session...');
         final userAccessToken = await SessionService.getAccessToken();
 
         if (userAccessToken == null) {
@@ -213,7 +203,6 @@ class _BiometricLoginScreenState extends ConsumerState<BiometricLoginScreen> {
         }
       }
     } catch (e) {
-      print('🔐 [BiometricLogin] Exception: $e');
       if (!context.mounted) return;
       AppMessenger.show(
         context,

@@ -73,7 +73,7 @@ class WalletRepository {
     }
   }
 
-  /// 💸 Get transfer fee
+  ///  Get transfer fee
   Future<Map<String, dynamic>> getTransferFee({
     required double amount,
     required String transferType,
@@ -91,7 +91,7 @@ class WalletRepository {
     }
   }
 
-  /// 🔍 Verify account
+  ///  Verify account
   Future<Map<String, dynamic>> verifyAccount({
     required String accountNumber,
     required String bankCode,

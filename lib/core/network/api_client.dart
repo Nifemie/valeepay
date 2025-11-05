@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/services/session_service.dart';
 
@@ -24,12 +26,12 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          print('[API REQUEST] => ${options.method} ${options.path}');
-          print('[API HEADERS] => ${options.headers}');
-          print('[API DATA] => ${options.data}');
+          log("Api call:${options.path}");
+          log("Request:${options.data.toString()}");
           return handler.next(options);
         },
         onResponse: (response, handler) {
+          log("Response: ${response.data}");
           if (response.statusCode == 200) {
             final data = response.data;
 
@@ -52,32 +54,12 @@ class ApiClient {
             }
           }
 
-          if (response.requestOptions.path.contains('/me')) {
-            print('[API /me RESPONSE] => Status: ${response.statusCode}');
-            print(
-              '[API /me RESPONSE] => Has wallet: ${response.data['wallet'] != null}',
-            );
-            if (response.data['wallet'] != null) {
-              print(
-                '[API /me RESPONSE] => Wallet type: ${response.data['wallet'].runtimeType}',
-              );
-              print(
-                '[API /me RESPONSE] => Wallet content: ${response.data['wallet']}',
-              );
-            }
-          }
-
-          print('[API RESPONSE] => ${response.statusCode} ${response.data}');
           return handler.next(response);
         },
         onError: (DioException e, handler) async {
-          print('[API ERROR] => ${e.response?.statusCode} ${e.message}');
-          print('[API ERROR RESPONSE] => ${e.response?.data}');
-
           // ✅ Handle 401 Unauthorized
           if (e.response?.statusCode == 401) {
-            print('[API ERROR] => Unauthorized! Logging out...');
-            // await _handleUnauthorized();
+            await SessionService.logout();
           }
 
           return handler.next(e);

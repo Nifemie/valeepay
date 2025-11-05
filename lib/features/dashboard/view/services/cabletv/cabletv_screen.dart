@@ -59,10 +59,17 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
     final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final totalAmount =
-        (int.parse(planAmount) +
-                double.parse(_verifyResponse?.fee.toString() ?? '0.0'))
-            .toString();
+
+    int totalAmount = 0;
+    try {
+      final planAmountInt = int.parse(
+        planAmount.replaceAll(RegExp(r'[^\d]'), ''),
+      );
+      final feeAmount = double.parse(_verifyResponse?.fee.toString() ?? '0.0');
+      totalAmount = (planAmountInt + feeAmount).toInt();
+    } catch (e) {
+      totalAmount = 0;
+    }
 
     // cable plans are read when needed (e.g. in modal builders)
 
@@ -123,7 +130,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       final hasEnoughBalance = checkBalanceLeft(
         context,
         user?.wallets.first.balance.toString() ?? '0',
-        totalAmount,
+        totalAmount.toString(),
       );
 
       if (!hasEnoughBalance) return;
@@ -192,7 +199,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                       ),
                       TransactionDetail(
                         label: 'Total Debit',
-                        value: currencyFormatter(totalAmount),
+                        value: currencyFormatter(totalAmount.toString()),
                       ),
                     ],
                     bottomDetails: [
@@ -241,11 +248,11 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       }
     }
 
-   _handleBiometricPinEntry() async {
+    _handleBiometricPinEntry() async {
       final hasEnoughBalance = checkBalanceLeft(
         context,
         user?.wallets.first.balance.toString() ?? '0',
-        totalAmount,
+        totalAmount.toString(),
       );
 
       if (!hasEnoughBalance) return;
@@ -314,7 +321,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                       ),
                       TransactionDetail(
                         label: 'Total Debit',
-                        value: currencyFormatter(totalAmount),
+                        value: currencyFormatter(totalAmount.toString()),
                       ),
                     ],
                     bottomDetails: [
@@ -363,7 +370,6 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       }
     }
 
-   
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -771,13 +777,14 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                     const Divider(),
                                     buildDetailRow(
                                       'Total Amount',
-                                      currencyFormatter(totalAmount),
+                                      currencyFormatter(totalAmount.toString()),
                                       isDark,
                                       isTotal: true,
                                     ),
                                   ],
                                   onButtonPressed: _handlePinEntry,
-                                  onBiometricButtonPressed: _handleBiometricPinEntry,
+                                  onBiometricButtonPressed:
+                                      _handleBiometricPinEntry,
                                 ),
                           ),
                         );

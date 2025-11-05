@@ -1,15 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/features/models/user.dart';
+import 'package:valarpay/features/providers/airtime_providers.dart';
 
 final userProvider = StateNotifierProvider<UserController, UserModel?>((ref) {
-  return UserController();
+  return UserController(ref);
 });
 
 class UserController extends StateNotifier<UserModel?> {
-  UserController() : super(null) {
+  final Ref ref;
+
+  UserController(this.ref) : super(null) {
     loadUser();
   }
+
   Future<void> loadUser() async {
     final user = await SessionService.getUser();
     if (user != null) {
@@ -24,5 +28,10 @@ class UserController extends StateNotifier<UserModel?> {
   Future<void> clearUser() async {
     state = null;
     await SessionService.logout();
+
+    // Invalidate all service-related providers to clear old data
+    ref.invalidate(airtimeUseCashbackProvider);
+    ref.invalidate(airtimeSelectedNetworkProvider);
+    ref.invalidate(airtimeSelectedOperatorIdProvider);
   }
 }

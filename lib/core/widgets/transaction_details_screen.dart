@@ -357,7 +357,7 @@ class _ReuseableTransactionDetailsScreenState
 
               // Subtitle
               Text(
-                "Choose your preferred method to complete your\ntransaction",
+                "Please confirm that these details are correct before proceeding.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600),
               ),

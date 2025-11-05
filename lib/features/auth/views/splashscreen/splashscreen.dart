@@ -56,9 +56,10 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _backgroundController, curve: Curves.easeInOut),
     );
 
-    _textOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeIn),
-    );
+    _textOpacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
 
     // Start animation and check session
     _startAnimationSequence();
@@ -74,58 +75,52 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkSession() async {
-    print('🚀 [SplashScreen] Checking session...');
-
     final loggedIn = await SessionService.isLoggedIn();
     final savedUsername = await SessionService.getUsername();
 
     // Check if auto-logout should happen
     final shouldLogout = await InactivityService.shouldLogoutOnResume();
 
-    print(
-        '🚀 [SplashScreen] Logged in: $loggedIn, Username: $savedUsername, Should logout: $shouldLogout');
-
     if (!mounted) return;
 
     // If should logout due to inactivity, clear session
     if (shouldLogout && loggedIn) {
-      print('🚀 [SplashScreen] Auto-logout triggered');
       await SessionService.logout();
 
       // Check if biometric is available
-      final fpEnabled =
-          await LocalStorageService.getBool('pref_biometric_fingerprint');
-      final faceEnabled =
-          await LocalStorageService.getBool('pref_biometric_faceid');
+      final fpEnabled = await LocalStorageService.getBool(
+        'pref_biometric_fingerprint',
+      );
+      final faceEnabled = await LocalStorageService.getBool(
+        'pref_biometric_faceid',
+      );
 
       if ((fpEnabled ?? false) || (faceEnabled ?? false)) {
-        print('🚀 [SplashScreen] Redirecting to biometric login');
         context.pushReplacement('/biometric-login');
       } else {
-        print('🚀 [SplashScreen] Redirecting to signin');
         context.pushReplacement('/signin');
       }
       return;
     }
 
     if (loggedIn && savedUsername != null) {
-      print('🚀 [SplashScreen] User is logged in');
       // User is logged in and has username saved
       // Check if they have biometric or passcode enabled
-      final fpEnabled =
-          await LocalStorageService.getBool('pref_biometric_fingerprint');
-      final faceEnabled =
-          await LocalStorageService.getBool('pref_biometric_faceid');
+      final fpEnabled = await LocalStorageService.getBool(
+        'pref_biometric_fingerprint',
+      );
+      final faceEnabled = await LocalStorageService.getBool(
+        'pref_biometric_faceid',
+      );
       final hasPasscode = await LocalStorageService.getBool('has_passcode');
 
       // Check auto-logout setting
-      final autoLogoutSetting =
-          await LocalStorageService.get('auto_logout_setting');
-      print('🚀 [SplashScreen] Auto-logout setting: $autoLogoutSetting');
+      final autoLogoutSetting = await LocalStorageService.get(
+        'auto_logout_setting',
+      );
 
       // If "Password Free Log in", go directly to home
       if (autoLogoutSetting == 'Password Free Log in') {
-        print('🚀 [SplashScreen] Password Free mode - Going to home');
         context.pushReplacement('/');
         return;
       }
@@ -134,21 +129,16 @@ class _SplashScreenState extends State<SplashScreen>
       if ((fpEnabled ?? false) ||
           (faceEnabled ?? false) ||
           (hasPasscode ?? false)) {
-        print('🚀 [SplashScreen] Lock enabled - Going to biometric login');
         context.pushReplacement('/biometric-login');
       } else {
         // No lock enabled, go directly to home
-        print('🚀 [SplashScreen] No lock - Going to home');
         context.pushReplacement('/');
       }
     } else if (savedUsername != null) {
       // Not logged in but has username (logged out)
-      print(
-          '🚀 [SplashScreen] Not logged in but has username - Going to biometric login');
       context.pushReplacement('/biometric-login');
     } else {
       // No session at all, show intro
-      print('🚀 [SplashScreen] No session - Going to intro');
       context.pushReplacement('/intro');
     }
   }

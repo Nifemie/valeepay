@@ -6,34 +6,34 @@ import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/features/repositories/airtime_repository.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
-/// Repository provider
 final airtimeRepositoryProvider = Provider<AirtimeRepository>((ref) {
   return AirtimeRepository(ref.read(apiClientProvider));
 });
 
-/// Providers
 class AirtimeProvidersNotifier
     extends StateNotifier<DataState<NetworkProvider>> {
   final AirtimeRepository _repository;
 
   AirtimeProvidersNotifier(this._repository)
-      : super(DataState<NetworkProvider>.initial());
+    : super(DataState<NetworkProvider>.initial());
 
   Future<void> fetchProviders() async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.getAirtimeNetworkProviders();
       state = state.copyWith(
-          isInitialLoading: false,
-          data: res.providers,
-          isDataAvailable: true,
-          message: res.message);
+        data: res.providers,
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[AirtimeProvidersNotifier fetchProviders] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load providers: ${e.toString()}');
+        isDataAvailable: false,
+        message: 'Failed to load providers: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -44,25 +44,31 @@ class AirtimePlanNotifier extends StateNotifier<DataState<AirtimePlan>> {
   final AirtimeRepository _repository;
 
   AirtimePlanNotifier(this._repository)
-      : super(DataState<AirtimePlan>.initial());
+    : super(DataState<AirtimePlan>.initial());
 
-  Future<void> getPlan(
-      {required String phone, required String currency}) async {
+  Future<void> getPlan({
+    required String phone,
+    required String currency,
+  }) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final res =
-          await _repository.getAirtimePlan(phone: phone, currency: currency);
+      final res = await _repository.getAirtimePlan(
+        phone: phone,
+        currency: currency,
+      );
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.plan],
-          isDataAvailable: true,
-          message: res.message);
+        data: [res.plan],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[AirtimePlanNotifier getPlan] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load plan: ${e.toString()}');
+        isDataAvailable: false,
+        message: 'Failed to load plan: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -71,16 +77,18 @@ class AirtimePlanNotifier extends StateNotifier<DataState<AirtimePlan>> {
     try {
       final res = await _repository.getAirtimeVariation(operatorId: operatorId);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.plan],
-          isDataAvailable: true,
-          message: res.message);
+        data: [res.plan],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[AirtimePlanNotifier getVariation] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load variation: ${e.toString()}');
+        isDataAvailable: false,
+        message: 'Failed to load variation: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -89,16 +97,18 @@ class AirtimePlanNotifier extends StateNotifier<DataState<AirtimePlan>> {
     try {
       final res = await _repository.getInternationalPlan(phone: phone);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.plan],
-          isDataAvailable: true,
-          message: res.message);
+        data: [res.plan],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[AirtimePlanNotifier getInternationalPlan] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load international plan: ${e.toString()}');
+        isDataAvailable: false,
+        message: 'Failed to load international plan: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -110,69 +120,66 @@ class AirtimePurchaseNotifier
   final AirtimeRepository _repository;
 
   AirtimePurchaseNotifier(this._repository)
-      : super(DataState<AirtimePurchaseResponse>.initial());
+    : super(DataState<AirtimePurchaseResponse>.initial());
 
   Future<void> purchase(AirtimePurchaseRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.payAirtime(request);
-      state = state.copyWith(
-          isInitialLoading: false,
+
+      if (res.success == true) {
+        state = state.copyWith(
           data: [res],
           isDataAvailable: true,
-          message: res.message);
+          message: res.message ?? 'Airtime purchase successful',
+        );
+      } else {
+        state = state.copyWith(
+          isDataAvailable: false,
+          message: res.message ?? 'Airtime purchase failed',
+        );
+      }
     } catch (e, stack) {
       log('[AirtimePurchaseNotifier purchase] $e\n$stack');
-      state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Purchase failed: ${e.toString()}');
+      state = state.copyWith(isDataAvailable: false, message: e.toString());
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
   void reset() => state = DataState<AirtimePurchaseResponse>.initial();
 }
 
-// Riverpod providers
-final airtimeProvidersNotifierProvider =
-    StateNotifierProvider<AirtimeProvidersNotifier, DataState<NetworkProvider>>(
-  (ref) => AirtimeProvidersNotifier(ref.read(airtimeRepositoryProvider)),
-);
-
-final airtimePlanNotifierProvider =
-    StateNotifierProvider<AirtimePlanNotifier, DataState<AirtimePlan>>(
-  (ref) => AirtimePlanNotifier(ref.read(airtimeRepositoryProvider)),
-);
-
-final airtimePurchaseNotifierProvider = StateNotifierProvider<
-    AirtimePurchaseNotifier, DataState<AirtimePurchaseResponse>>(
-  (ref) => AirtimePurchaseNotifier(ref.read(airtimeRepositoryProvider)),
-);
-
 class InternationalFxNotifier
     extends StateNotifier<DataState<InternationalFxRate>> {
   final AirtimeRepository _repository;
 
   InternationalFxNotifier(this._repository)
-      : super(DataState<InternationalFxRate>.initial());
+    : super(DataState<InternationalFxRate>.initial());
 
-  Future<void> getFxRate(
-      {required double amount, required int operatorId}) async {
+  Future<void> getFxRate({
+    required double amount,
+    required int operatorId,
+  }) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.getInternationalFxRate(
-          amount: amount, operatorId: operatorId);
+        amount: amount,
+        operatorId: operatorId,
+      );
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res.data],
-          isDataAvailable: true,
-          message: res.message);
+        data: [res.data],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[InternationalFxNotifier getFxRate] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to fetch FX rate: ${e.toString()}');
+        isDataAvailable: false,
+        message: 'Failed to fetch FX rate: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -184,35 +191,52 @@ class InternationalPurchaseNotifier
   final AirtimeRepository _repository;
 
   InternationalPurchaseNotifier(this._repository)
-      : super(DataState<AirtimePurchaseResponse>.initial());
+    : super(DataState<AirtimePurchaseResponse>.initial());
 
   Future<void> purchase(AirtimePurchaseRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.payInternationalAirtime(request);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res],
-          isDataAvailable: true,
-          message: res.message);
+        data: [res],
+        isDataAvailable: true,
+        message: res.message ?? 'International airtime purchase successful',
+      );
     } catch (e, stack) {
       log('[InternationalPurchaseNotifier purchase] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Purchase failed: ${e.toString()}');
+        isDataAvailable: false,
+        message: 'Purchase failed: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
   void reset() => state = DataState<AirtimePurchaseResponse>.initial();
 }
 
+final airtimeProvidersNotifierProvider =
+    StateNotifierProvider<AirtimeProvidersNotifier, DataState<NetworkProvider>>(
+      (ref) => AirtimeProvidersNotifier(ref.read(airtimeRepositoryProvider)),
+    );
+
+final airtimePlanNotifierProvider =
+    StateNotifierProvider<AirtimePlanNotifier, DataState<AirtimePlan>>(
+      (ref) => AirtimePlanNotifier(ref.read(airtimeRepositoryProvider)),
+    );
+
+final airtimePurchaseNotifierProvider = StateNotifierProvider<
+  AirtimePurchaseNotifier,
+  DataState<AirtimePurchaseResponse>
+>((ref) => AirtimePurchaseNotifier(ref.read(airtimeRepositoryProvider)));
+
 final internationalFxNotifierProvider = StateNotifierProvider<
-    InternationalFxNotifier, DataState<InternationalFxRate>>(
-  (ref) => InternationalFxNotifier(ref.read(airtimeRepositoryProvider)),
-);
+  InternationalFxNotifier,
+  DataState<InternationalFxRate>
+>((ref) => InternationalFxNotifier(ref.read(airtimeRepositoryProvider)));
 
 final internationalPurchaseNotifierProvider = StateNotifierProvider<
-    InternationalPurchaseNotifier, DataState<AirtimePurchaseResponse>>(
-  (ref) => InternationalPurchaseNotifier(ref.read(airtimeRepositoryProvider)),
-);
+  InternationalPurchaseNotifier,
+  DataState<AirtimePurchaseResponse>
+>((ref) => InternationalPurchaseNotifier(ref.read(airtimeRepositoryProvider)));

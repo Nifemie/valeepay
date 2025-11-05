@@ -30,6 +30,8 @@ class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
         isDataAvailable: false,
         message: e.toString(),
       );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -50,6 +52,8 @@ class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
         isDataAvailable: false,
         message: e.toString(),
       );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -69,6 +73,8 @@ class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
         isDataAvailable: false,
         message: e.toString(),
       );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -89,6 +95,8 @@ class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
         isDataAvailable: false,
         message: e.toString(),
       );
+    } finally {
+      state = state.copyWith(isInitialLoading: false);
     }
   }
 
@@ -97,12 +105,11 @@ class AuthNotifier extends StateNotifier<DataState<LoginResponse>> {
 
 // 🔹 Providers
 
-
 final authRepositoryProvider = Provider(
   (ref) => AuthRepository(ref.read(apiClientProvider)),
 );
 
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, DataState<LoginResponse>>(
-  (ref) => AuthNotifier(ref.read(authRepositoryProvider)),
-);
+      (ref) => AuthNotifier(ref.read(authRepositoryProvider)),
+    );
