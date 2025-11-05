@@ -6,7 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
-// app_messenger not used here
+import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
@@ -20,11 +20,9 @@ import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
 import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/airtime_services_section.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
-import 'package:valarpay/features/dashboard/widgets/services_widgets/network_provider_selector.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/providers/airtime_providers.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
-import 'package:valarpay/features/models/network_provider.dart';
 import 'package:valarpay/features/models/airtime_models.dart';
 import 'package:valarpay/features/notifiers/airtime_notifier.dart';
 
@@ -235,6 +233,87 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     );
   }
 
+  /// Build network provider section with placeholder
+  Widget _buildNetworkProviderSection(
+    DataState<AirtimePlan> planState,
+    AirtimePlan? plan,
+  ) {
+    // Show placeholder if no phone number entered yet
+    if (_controller.text.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.blue),
+        ),
+        child: const Text(
+          'Enter phone number to see available networks',
+          style: TextStyle(color: Colors.blue),
+        ),
+      );
+    }
+
+    // Show loading if fetching
+    if (planState.isInitialLoading && plan == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Show placeholder if no plan found
+    if (plan == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.orange),
+        ),
+        child: const Text(
+          'No network provider available for this number',
+          style: TextStyle(color: Colors.orange),
+        ),
+      );
+    }
+
+    // Show single provider extracted from plan
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: appTheme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: appTheme.primaryColor),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Network',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  plan.name,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.check_circle, color: appTheme.primaryColor, size: 24),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
@@ -243,8 +322,11 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     final selectedNetwork = ref.watch(airtimeSelectedNetworkProvider);
     final selectedOperatorId = ref.watch(airtimeSelectedOperatorIdProvider);
 
-    final providersState = ref.watch(airtimeProvidersNotifierProvider);
-    final networkProviders = providersState.data ?? <NetworkProvider>[];
+    final planState = ref.watch(airtimePlanNotifierProvider);
+    final plans = planState.data ?? <AirtimePlan>[];
+
+    // Extract provider info from plan (should be single plan for single network per phone)
+    final plan = plans.isNotEmpty ? plans.first : null;
 
     _onShareTransactionReceiptPressed() {
       Navigator.push(
@@ -446,11 +528,33 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                         ),
                         onChanged: (value) {
                           setState(() {});
-                          // Auto-fetch providers when phone number is complete (10 digits)
+                          // Auto-fetch plan (which includes provider) when phone number is complete (10 digits)
                           if (value.length >= 10) {
                             ref
-                                .read(airtimeProvidersNotifierProvider.notifier)
-                                .fetchProviders();
+                                .read(airtimePlanNotifierProvider.notifier)
+                                .getPlan(phone: value, currency: 'NGN')
+                                .then((_) {
+                                  // After plan is fetched, update selected network and operator ID
+                                  final planState = ref.read(
+                                    airtimePlanNotifierProvider,
+                                  );
+                                  if (planState.isDataAvailable &&
+                                      planState.data!.isNotEmpty) {
+                                    final plan = planState.data!.first;
+                                    ref
+                                        .read(
+                                          airtimeSelectedNetworkProvider
+                                              .notifier,
+                                        )
+                                        .state = plan.name;
+                                    ref
+                                        .read(
+                                          airtimeSelectedOperatorIdProvider
+                                              .notifier,
+                                        )
+                                        .state = plan.operatorId;
+                                  }
+                                });
                           }
                         },
                       ),
@@ -470,54 +574,10 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor.withOpacity(0.4),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child:
-                            providersState.isInitialLoading &&
-                                    networkProviders.isEmpty
-                                ? const Center(
-                                  child: CircularProgressIndicator(),
-                                )
-                                : NetworkProviderSelector(
-                                  selectedNetwork: selectedNetwork,
-                                  providers: networkProviders,
-                                  onNetworkSelected: (value) async {
-                                    if (value.isEmpty) return;
-                                    try {
-                                      final provider = networkProviders
-                                          .firstWhere(
-                                            (p) => p.network == value,
-                                          );
-                                      // update selected network and operator id
-                                      ref
-                                          .read(
-                                            airtimeSelectedNetworkProvider
-                                                .notifier,
-                                          )
-                                          .state = value;
-                                      ref
-                                          .read(
-                                            airtimeSelectedOperatorIdProvider
-                                                .notifier,
-                                          )
-                                          .state = provider.operatorId;
-
-                                      if (_controller.text.isNotEmpty) {
-                                        await ref
-                                            .read(
-                                              airtimePlanNotifierProvider
-                                                  .notifier,
-                                            )
-                                            .getPlan(
-                                              phone: _controller.text,
-                                              currency: 'NGN',
-                                            );
-                                      }
-                                    } catch (e) {
-                                      // provider not found or other error - ignore silently
-                                    }
-                                  },
-                                ),
+                        child: _buildNetworkProviderSection(planState, plan),
                       ),
                       const SizedBox(height: 24),
                       const Text(

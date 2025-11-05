@@ -76,6 +76,10 @@ class SessionService {
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userDetailsKey);
+    await prefs.remove(_usernameKey);
+    await prefs.remove(_userFullnameKey);
+    await prefs.remove(_userActualUsernameKey);
+    await prefs.remove(_userPhoneNumberKey);
     // Do NOT remove access token so biometric login can work after logout
     // await prefs.remove(_userAccessToken);
   }

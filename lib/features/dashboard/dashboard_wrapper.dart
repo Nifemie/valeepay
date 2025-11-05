@@ -12,21 +12,18 @@ import '/features/dashboard/widgets/navbar.dart';
 class DashboardWrapper extends ConsumerStatefulWidget {
   final Widget child;
 
-  const DashboardWrapper({
-    super.key,
-    required this.child,
-  });
+  const DashboardWrapper({super.key, required this.child});
 
   @override
   ConsumerState<DashboardWrapper> createState() => _DashboardWrapperState();
 }
 
-class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with WidgetsBindingObserver {
+class _DashboardWrapperState extends ConsumerState<DashboardWrapper>
+    with WidgetsBindingObserver {
   bool _hasShownPasscodePrompt = false;
   DateTime? _lastPausedTime;
   static const _biometricGracePeriod = Duration(seconds: 5);
   static bool _isBiometricInProgress = false;
-  
 
   @override
   void initState() {
@@ -46,85 +43,75 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    print('🔄 [DashboardWrapper] App lifecycle state: $state');
-    print('🔐 [DashboardWrapper] Biometric in progress: $_isBiometricInProgress');
-    
     if (state == AppLifecycleState.inactive) {
       // App is inactive (biometric prompt, system dialog, etc.)
       // Don't do anything, just log it
-      print('⏸️ [DashboardWrapper] App inactive (likely biometric prompt)');
       return;
     } else if (state == AppLifecycleState.paused) {
       // Save activity time when app goes to background
       _lastPausedTime = DateTime.now();
-      print('⏸️ [DashboardWrapper] App paused at: $_lastPausedTime');
       InactivityService.recordActivity();
     } else if (state == AppLifecycleState.resumed) {
       // PRIORITY 1: Check if transaction biometric is in progress
       if (BiometricTransactionTracker.isInProgress()) {
-        print('🔐 [DashboardWrapper] Transaction biometric in progress, skipping logout check');
         InactivityService.recordActivity();
         return;
       }
-      
+
       // PRIORITY 2: Check if biometric authentication flag is set
       if (_isBiometricInProgress) {
-        print('🔐 [DashboardWrapper] Biometric flag set, skipping logout check');
         InactivityService.recordActivity();
         _isBiometricInProgress = false; // Reset flag
         return;
       }
-      
+
       // PRIORITY 3: Check if this is a quick resume (likely biometric authentication)
       final now = DateTime.now();
-      final pauseDuration = _lastPausedTime != null 
-          ? now.difference(_lastPausedTime!) 
-          : null;
-      
-      print('▶️ [DashboardWrapper] App resumed. Pause duration: ${pauseDuration?.inSeconds ?? 'unknown'} seconds');
-      
-      final isQuickResume = pauseDuration != null && 
-          pauseDuration < _biometricGracePeriod;
-      
+      final pauseDuration =
+          _lastPausedTime != null ? now.difference(_lastPausedTime!) : null;
+
+      final isQuickResume =
+          pauseDuration != null && pauseDuration < _biometricGracePeriod;
+
       if (isQuickResume) {
         // This is likely biometric authentication, don't logout
-        print('🔐 [DashboardWrapper] Quick resume detected (${pauseDuration.inSeconds}s < 5s), skipping logout check');
         InactivityService.recordActivity();
         return;
       }
-      
-      print('⏱️ [DashboardWrapper] Long pause detected, checking logout settings...');
-      
+
       // Check if user should be logged out based on settings
       final shouldLogout = await InactivityService.shouldLogoutOnResume();
-      
+
       if (shouldLogout && mounted) {
-        print('🚪 [DashboardWrapper] Auto-logout triggered on resume');
-        
         // Wait a bit to ensure any ongoing operations complete
         await Future.delayed(const Duration(milliseconds: 300));
-        
+
         if (!mounted) return;
-        
+
         // Close any open dialogs/modals before navigating
-        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
-        
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).popUntil((route) => route.isFirst);
+
         // Small delay after closing modals
         await Future.delayed(const Duration(milliseconds: 100));
-        
+
         if (!mounted) return;
-        
+
         // Check if biometric is enabled
-        final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
-        final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
-        
+        final hasBiometric =
+            await LocalStorageService.getBool('pref_biometric_fingerprint') ??
+            false;
+        final hasFaceId =
+            await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
+
         if (hasBiometric || hasFaceId) {
           context.go('/biometric-login');
         } else {
           context.go('/signin');
         }
       } else {
-        print('✅ [DashboardWrapper] No logout needed, recording activity');
         // Just record activity if no logout needed
         InactivityService.recordActivity();
       }
@@ -137,10 +124,13 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
     final user = ref.read(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
     final hasPasscode = user?.isPasscodeSet ?? false;
-    
+
     // Check if biometric is already enabled
-    final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
-    final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
+    final hasBiometric =
+        await LocalStorageService.getBool('pref_biometric_fingerprint') ??
+        false;
+    final hasFaceId =
+        await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
     final biometricEnabled = hasBiometric || hasFaceId;
 
     _hasShownPasscodePrompt = true;
@@ -178,32 +168,41 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
       enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _KycVerificationModal(
-        onComplete: () async {
-          Navigator.pop(context);
-          // After KYC modal is closed, check if we need to show passcode modal
-          final user = ref.read(userProvider);
-          final hasPasscode = user?.isPasscodeSet ?? false;
-          if (!hasPasscode) {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                _showPasscodeSetupModal();
-              }
-            });
-          } else {
-            // Check if biometric is enabled
-            final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
-            final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
-            if (!hasBiometric && !hasFaceId) {
-              Future.delayed(const Duration(milliseconds: 500), () {
-                if (mounted) {
-                  _showBiometricSetupModal();
+      builder:
+          (context) => _KycVerificationModal(
+            onComplete: () async {
+              Navigator.pop(context);
+              // After KYC modal is closed, check if we need to show passcode modal
+              final user = ref.read(userProvider);
+              final hasPasscode = user?.isPasscodeSet ?? false;
+              if (!hasPasscode) {
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (mounted) {
+                    _showPasscodeSetupModal();
+                  }
+                });
+              } else {
+                // Check if biometric is enabled
+                final hasBiometric =
+                    await LocalStorageService.getBool(
+                      'pref_biometric_fingerprint',
+                    ) ??
+                    false;
+                final hasFaceId =
+                    await LocalStorageService.getBool(
+                      'pref_biometric_faceid',
+                    ) ??
+                    false;
+                if (!hasBiometric && !hasFaceId) {
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (mounted) {
+                      _showBiometricSetupModal();
+                    }
+                  });
                 }
-              });
-            }
-          }
-        },
-      ),
+              }
+            },
+          ),
     );
   }
 
@@ -214,21 +213,28 @@ class _DashboardWrapperState extends ConsumerState<DashboardWrapper> with Widget
       enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _PasscodeSetupModal(
-        onComplete: () async {
-          Navigator.pop(context);
-          // After passcode modal is closed, check if we need to show biometric modal
-          final hasBiometric = await LocalStorageService.getBool('pref_biometric_fingerprint') ?? false;
-          final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
-          if (!hasBiometric && !hasFaceId) {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                _showBiometricSetupModal();
+      builder:
+          (context) => _PasscodeSetupModal(
+            onComplete: () async {
+              Navigator.pop(context);
+              // After passcode modal is closed, check if we need to show biometric modal
+              final hasBiometric =
+                  await LocalStorageService.getBool(
+                    'pref_biometric_fingerprint',
+                  ) ??
+                  false;
+              final hasFaceId =
+                  await LocalStorageService.getBool('pref_biometric_faceid') ??
+                  false;
+              if (!hasBiometric && !hasFaceId) {
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (mounted) {
+                    _showBiometricSetupModal();
+                  }
+                });
               }
-            });
-          }
-        },
-      ),
+            },
+          ),
     );
   }
 
@@ -262,7 +268,7 @@ class _KycVerificationModal extends StatelessWidget {
   final VoidCallback onComplete;
 
   const _KycVerificationModal({Key? key, required this.onComplete})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -367,10 +373,7 @@ class _KycVerificationModal extends StatelessWidget {
                   ),
                   child: const Text(
                     'Verify Now',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -411,11 +414,7 @@ class _KycBenefitItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: appTheme.primaryColor,
-          size: 20,
-        ),
+        Icon(icon, color: appTheme.primaryColor, size: 20),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -434,7 +433,7 @@ class _KycBenefitItem extends StatelessWidget {
 /// ---------- Passcode Setup Modal ----------
 class _PasscodeSetupModal extends StatelessWidget {
   final VoidCallback? onComplete;
-  
+
   const _PasscodeSetupModal({Key? key, this.onComplete}) : super(key: key);
 
   @override
@@ -528,10 +527,7 @@ class _PasscodeSetupModal extends StatelessWidget {
                   ),
                   child: const Text(
                     'Set Up Passcode',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -657,10 +653,7 @@ class _BiometricSetupModal extends StatelessWidget {
                   ),
                   child: const Text(
                     'Enable Biometric',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -701,11 +694,7 @@ class _BenefitItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: appTheme.primaryColor,
-          size: 20,
-        ),
+        Icon(icon, color: appTheme.primaryColor, size: 20),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
