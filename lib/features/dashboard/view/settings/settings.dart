@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:valarpay/core/services/session_service.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
+import 'package:valarpay/features/providers/user_provider.dart';
 import '../../widgets/home_widgets/settings_widgets.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -84,7 +86,7 @@ class SettingsScreen extends StatelessWidget {
               SettingsListTile(
                 icon: Icons.logout_outlined,
                 title: 'Logout',
-                onTap: () => _showLogoutDialog(context),
+                onTap: () => _showLogoutDialog(context, ref),
               ),
             ],
           ),
@@ -93,44 +95,46 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  /// 🔒 Logout confirmation dialog
-  void _showLogoutDialog(BuildContext context) {
+  ///  Logout confirmation dialog
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Logout'),
+            content: const Text('Are you sure you want to logout?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  // Clear user state from Riverpod (this also invalidates service providers)
+                  await ref.read(userProvider.notifier).clearUser();
+                  AppMessenger.show(
+                    context,
+                    message: 'You have been logged out successfully',
+                    type: MessageType.success,
+                  );
+                  if (context.mounted) {
+                    String? username = await SessionService.getUsername();
+                    if (username != null) {
+                      context.push('/biometric-login');
+                    } else {
+                      context.go('/signin');
+                    }
+                  }
+                },
+                child: const Text('Logout'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: appTheme.primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await SessionService.logout();
-              AppMessenger.show(
-                context,
-                message: 'You have been logged out successfully',
-                type: MessageType.success,
-              );
-              if (context.mounted) {
-                String? username = await SessionService.getUsername();
-                if (username != null) {
-                  context.push('/biometric-login');
-                } else {
-                  context.go('/signin');
-                }
-              }
-            },
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
     );
   }
 }

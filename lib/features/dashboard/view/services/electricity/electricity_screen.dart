@@ -57,22 +57,31 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       if (text.isEmpty) return;
 
       // Prevent recursive updates
-      final newText = formatter.format(int.parse(text));
-      if (newText != amountController.text) {
-        final cursorPos = newText.length;
-        amountController.value = TextEditingValue(
-          text: newText,
-          selection: TextSelection.collapsed(offset: cursorPos),
-        );
+      try {
+        final newText = formatter.format(int.parse(text));
+        if (newText != amountController.text) {
+          final cursorPos = newText.length;
+          amountController.value = TextEditingValue(
+            text: newText,
+            selection: TextSelection.collapsed(offset: cursorPos),
+          );
+        }
+      } catch (e) {
+        // Invalid number format, skip formatting
       }
-      if (double.parse(text) < verifyMeterNumberData!.minimum) {
-        setState(() {
-          isNotMinimumAmount = true;
-        });
-      } else {
-        setState(() {
-          isNotMinimumAmount = false;
-        });
+
+      try {
+        if (double.parse(text) < verifyMeterNumberData!.minimum) {
+          setState(() {
+            isNotMinimumAmount = true;
+          });
+        } else {
+          setState(() {
+            isNotMinimumAmount = false;
+          });
+        }
+      } catch (e) {
+        // Invalid number format
       }
     });
   }
@@ -87,8 +96,15 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
     final paymentState = ref.watch(electricityPaymentNotifierProvider);
     final state = ref.read(electricityPaymentNotifierProvider);
     final paymentResponse = state.singleData;
-    final totalAmount =
-        '${int.parse(amountController.text.replaceAll(',', '')) + int.parse(serviceFee)}';
+
+    int totalAmount = 0;
+    try {
+      totalAmount =
+          int.parse(amountController.text.replaceAll(',', '')) +
+          int.parse(serviceFee);
+    } catch (e) {
+      totalAmount = 0;
+    }
 
     _onShareTransactionReceiptPressed() {
       Navigator.push(
@@ -360,7 +376,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       final hasEnoughBalance = checkBalanceLeft(
         context,
         user?.wallets.first.balance.toString() ?? '0',
-        totalAmount,
+        totalAmount.toString(),
       );
 
       if (!hasEnoughBalance) return;
@@ -374,7 +390,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       final hasEnoughBalance = checkBalanceLeft(
         context,
         user?.wallets.first.balance.toString() ?? '0',
-        totalAmount,
+        totalAmount.toString(),
       );
 
       if (!hasEnoughBalance) return;
@@ -733,13 +749,16 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                           ),
                                           buildDetailRow(
                                             'Total Amount',
-                                            currencyFormatter(totalAmount),
+                                            currencyFormatter(
+                                              totalAmount.toString(),
+                                            ),
                                             isDark,
                                             isTotal: true,
                                           ),
                                         ],
                                         onButtonPressed: _handlePinEntry,
-                                        onBiometricButtonPressed: _handleBiometricPinEntry,
+                                        onBiometricButtonPressed:
+                                            _handleBiometricPinEntry,
                                       ),
                             ),
                           );

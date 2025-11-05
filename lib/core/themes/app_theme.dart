@@ -23,7 +23,7 @@ class AppTheme {
         titleTextStyle: TextStyle(
             fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black),
       ),
-      bottomAppBarTheme: const BottomAppBarThemeData(color: Colors.white),
+      bottomAppBarTheme: const BottomAppBarTheme(color: Colors.white),
       cardColor: Colors.grey[200],
       textTheme: const TextTheme(
         labelSmall: TextStyle(color: Colors.black),
@@ -59,7 +59,7 @@ class AppTheme {
         titleTextStyle: const TextStyle(
             fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
       ),
-      bottomAppBarTheme: const BottomAppBarThemeData(color: Colors.black),
+      bottomAppBarTheme: const BottomAppBarTheme(color: Colors.black),
       cardColor: const Color(0xFF2B2725),
       textTheme: const TextTheme(
         labelSmall: TextStyle(color: Color(0xFFF9FAFB)),

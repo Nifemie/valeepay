@@ -39,7 +39,7 @@ class BiometricTransactionPinModal {
       return await TransactionPinModal.show(context);
     }
 
-    // ✅ Show only biometric dialog first
+    //  Show only biometric dialog first
     final result = await _showBiometricDialogFirst(context);
 
     if (result == BiometricAuthResult.fallback) {
@@ -96,22 +96,11 @@ class _BiometricTransactionDialogState
       if (result == BiometricAuthResult.success) {
         // Get stored wallet PIN
         final storedPin = await SecureStorageService.getWalletPin();
-        print(
-          '🔐 [BiometricModal] Retrieved stored PIN: ${storedPin != null ? "****" : "null"}, length: ${storedPin?.length}',
-        );
-
-        if (storedPin != null && storedPin.length == 4) {
-          print(
-            '🔐 [BiometricModal] PIN format check: starts with "${storedPin[0]}", ends with "${storedPin[3]}"',
-          );
-        }
 
         if (storedPin != null && mounted) {
-          print('🔐 [BiometricModal] Returning stored PIN to caller');
           Navigator.of(context).pop(storedPin);
         } else if (mounted) {
           // Stored PIN not found, show fallback
-          print('⚠️ [BiometricModal] No stored PIN found, showing fallback');
           setState(() {
             _showFallback = true;
           });

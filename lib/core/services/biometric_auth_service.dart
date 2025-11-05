@@ -12,20 +12,13 @@ class BiometricAuthService {
       final canCheck = await _auth.canCheckBiometrics;
       final isDeviceSupported = await _auth.isDeviceSupported();
 
-      print(
-        '🔐 Biometric Check - canCheck: $canCheck, isDeviceSupported: $isDeviceSupported',
-      );
-
       if (!canCheck || !isDeviceSupported) {
-        print('🔐 Biometric not available - returning fallback');
         return BiometricAuthResult.fallback;
       }
 
       final available = await _auth.getAvailableBiometrics();
-      print('🔐 Available biometrics: $available');
 
       if (available.isEmpty) {
-        print('🔐 No biometrics enrolled - returning fallback');
         return BiometricAuthResult.fallback;
       }
 
@@ -38,10 +31,6 @@ class BiometricAuthService {
           supportsFingerprint = true;
         }
       }
-
-      print(
-        '🔐 Attempting authentication - Face: $supportsFace, Fingerprint: $supportsFingerprint',
-      );
 
       final success = await _auth.authenticate(
         authMessages: [
@@ -59,12 +48,8 @@ class BiometricAuthService {
         ),
       );
 
-      print('🔐 Authentication result: $success');
-
       return success ? BiometricAuthResult.success : BiometricAuthResult.failed;
     } catch (e) {
-      print('🔐 Authentication error: $e');
-
       return BiometricAuthResult.failed;
     }
   }

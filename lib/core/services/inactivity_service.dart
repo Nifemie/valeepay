@@ -17,10 +17,6 @@ class InactivityService {
     _lastActivityTime = DateTime.now();
     await _saveLastActivityTime();
     _scheduleInactivityCheck(context);
-    
-    print('🔔 [InactivityService] Started monitoring');
-    final setting = await LocalStorageService.get('auto_logout_setting');
-    print('🔔 [InactivityService] Current setting: $setting');
   }
 
   /// Stop monitoring (when user logs out)
@@ -29,7 +25,6 @@ class InactivityService {
     _inactivityTimer = null;
     _lastActivityTime = null;
     _isActive = false;
-    print('🔔 [InactivityService] Stopped monitoring');
   }
 
   /// Record user activity
@@ -55,20 +50,14 @@ class InactivityService {
   static Future<Duration?> _getTimeoutDuration() async {
     final setting = await LocalStorageService.get('auto_logout_setting');
     
-    print('🔔 [InactivityService] Getting timeout for setting: $setting');
-    
     switch (setting) {
       case 'Password Free Log in':
-        print('🔔 [InactivityService] No timeout - Password Free');
         return null; // No timeout
       case '60 Minutes Password Free Log in':
-        print('🔔 [InactivityService] Timeout: 60 minutes');
         return const Duration(minutes: 60);
       case 'Always Require Password to Log in':
-        print('🔔 [InactivityService] No timeout - Only logout on app background');
         return null; // Don't auto-logout while using app, only on app resume
       default:
-        print('🔔 [InactivityService] Timeout: Default 60 minutes');
         return const Duration(minutes: 60); // Default
     }
   }
@@ -82,7 +71,6 @@ class InactivityService {
       
       // No timeout means password-free login
       if (timeout == null) {
-        print('🔔 [InactivityService] No timeout check - Password Free mode');
         return;
       }
 
@@ -90,10 +78,7 @@ class InactivityService {
       final lastActivity = _lastActivityTime ?? now;
       final inactiveDuration = now.difference(lastActivity);
 
-      print('🔔 [InactivityService] Inactive for: ${inactiveDuration.inMinutes} minutes');
-
       if (inactiveDuration >= timeout) {
-        print('⚠️ [InactivityService] Timeout reached! Logging out...');
         timer.cancel();
         await _handleAutoLogout(context);
       }
@@ -102,17 +87,13 @@ class InactivityService {
 
   /// Handle auto-logout
   static Future<void> _handleAutoLogout(BuildContext context) async {
-    print('🚪 [InactivityService] Handling auto-logout');
     stopMonitoring();
     
     final setting = await LocalStorageService.get('auto_logout_setting');
     
     // Logout user but keep biometric credentials for quick re-login
     if (setting == 'Always Require Password to Log in') {
-      print('🚪 [InactivityService] Clearing session (Always Require Password mode)');
       await SessionService.logout();
-    } else {
-      print('🚪 [InactivityService] Keeping session (60 min mode)');
     }
     
     if (context.mounted) {
@@ -121,10 +102,8 @@ class InactivityService {
       final hasFaceId = await LocalStorageService.getBool('pref_biometric_faceid') ?? false;
       
       if (hasBiometric || hasFaceId) {
-        print('🚪 [InactivityService] Redirecting to biometric login');
         context.go('/biometric-login');
       } else {
-        print('🚪 [InactivityService] Redirecting to signin');
         context.go('/signin');
       }
     }
@@ -134,32 +113,25 @@ class InactivityService {
   static Future<bool> shouldLogoutOnResume() async {
     final setting = await LocalStorageService.get('auto_logout_setting');
     
-    print('🔄 [InactivityService] Checking logout on resume. Setting: $setting');
-    
     // Password Free - never logout
     if (setting == 'Password Free Log in' || setting == null) {
-      print('🔄 [InactivityService] Password Free mode - No logout');
       return false;
     }
     
     // Always Require Password - always logout
     if (setting == 'Always Require Password to Log in') {
-      print('🔄 [InactivityService] Always Require Password - Logout required');
       return true;
     }
     
     // 60 Minutes - check if timeout exceeded
     final lastActivity = await _getLastActivityTime();
     if (lastActivity == null) {
-      print('🔄 [InactivityService] No last activity found');
       return false;
     }
     
     final now = DateTime.now();
     final inactiveDuration = now.difference(lastActivity);
     final shouldLogout = inactiveDuration >= const Duration(minutes: 60);
-    
-    print('🔄 [InactivityService] Inactive for: ${inactiveDuration.inMinutes} minutes. Logout: $shouldLogout');
     
     return shouldLogout;
   }
