@@ -50,14 +50,20 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => WillPopScope(
+        onWillPop: () async => false,
+        child: const Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 
   void _hideLoading() {
-    if (!_loadingShown || !mounted) return;
-    if (Navigator.canPop(context)) Navigator.pop(context);
+    if (!_loadingShown) return;
     _loadingShown = false;
+
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 
   bool _isFormValid(String network, int operatorId) =>
@@ -76,16 +82,16 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     if (!hasEnough) return;
 
     final pin =
-        biometric
-            ? await BiometricTransactionPinModal.show(context)
-            : await TransactionPinModal.show(context);
+    biometric
+        ? await BiometricTransactionPinModal.show(context)
+        : await TransactionPinModal.show(context);
 
     if (pin == null || pin.length != 4 || !mounted) return;
     final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
 
-    try {
-      _showLoading();
+    _showLoading();
 
+    try {
       final request = AirtimePurchaseRequest(
         walletPin: pin,
         amount: Helpers.parsedAmount(_amountController.text),
@@ -98,28 +104,52 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
+
+      _hideLoading();
+
+      if (!mounted) return;
+
       final state = ref.read(airtimePurchaseNotifierProvider);
 
       if (state.isDataAvailable) {
         _navigateToReceipt();
       } else {
+        // Check if the error message indicates incorrect PIN
+        final errorMessage = state.message ?? 'Transaction failed. Please try again.';
+
+        // Common patterns for incorrect PIN errors
+        final isIncorrectPin = errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
+
         AppMessenger.show(
           context,
-          message: state.message ?? 'Transaction failed. Please try again.',
+          message: isIncorrectPin ? 'Incorrect PIN. Please try again.' : errorMessage,
           type: MessageType.error,
         );
       }
     } catch (e) {
+      _hideLoading();
+
+      if (!mounted) return;
+
+      // Check if the exception message indicates incorrect PIN
+      final errorMessage = e.toString();
+      final isIncorrectPin = errorMessage.toLowerCase().contains('incorrect pin') ||
+          errorMessage.toLowerCase().contains('wrong pin') ||
+          errorMessage.toLowerCase().contains('invalid pin') ||
+          errorMessage.toLowerCase().contains('pin is incorrect');
+
       AppMessenger.show(
         context,
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: isIncorrectPin
+            ? 'Incorrect PIN. Please try again.'
+            : 'An unexpected error occurred: $errorMessage',
         type: MessageType.error,
       );
-    } finally {
-      _hideLoading();
     }
   }
-
 
 
   // ------------------- Navigation -------------------
