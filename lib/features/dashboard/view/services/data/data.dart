@@ -203,44 +203,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Cashback Section
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     const Expanded(
-                  //       child: Text(
-                  //         'Use Cashback',
-                  //         style: TextStyle(
-                  //           color: Colors.grey,
-                  //           fontSize: 14,
-                  //           fontWeight: FontWeight.w500,
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     Row(
-                  //       mainAxisSize: MainAxisSize.min,
-                  //       children: [
-                  //         const Text(
-                  //           '₦50.00',
-                  //           style: TextStyle(
-                  //             color: Colors.grey,
-                  //             fontSize: 14,
-                  //           ),
-                  //         ),
-                  //         const SizedBox(width: 8),
-                  //         Switch(
-                  //           value: _useCashback,
-                  //           onChanged: (value) {
-                  //             setState(() {
-                  //               _useCashback = value;
-                  //             });
-                  //           },
-                  //           activeColor: appTheme.primaryColor,
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ],
-                  // ),
+      
                   
                   
                   const SizedBox(height: 32),
@@ -301,14 +264,14 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         return;
       }
 
-      // ✅ Show loading dialog
+      //  Show loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      // ✅ Fetch contacts
+      //  Fetch contacts
       final contacts = await FlutterContacts.getContacts(withProperties: true);
 
       if (Navigator.canPop(context)) Navigator.pop(context); // close loading
@@ -489,9 +452,6 @@ class _DataScreenState extends ConsumerState<DataScreen> {
 
   Widget _buildNetworkProviderSelector(DataState<DataPlanInfo>? plansState,
       List<String> uniqueNetworks, List<DataPlanInfo> availablePlans) {
-    // Debug: Check if plans are loaded
-    print('Available Plans Count: ${availablePlans.length}');
-    print('Unique Networks: $uniqueNetworks');
 
     if ((plansState?.isInitialLoading ?? false) && availablePlans.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -580,7 +540,6 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                             .read(dataVariationNotifierProvider.notifier)
                             .getVariation(operatorId: plan.operatorId);
                       } catch (e) {
-                        print('⚠️ [Data] Selected provider not found: $value');
                       }
                     },
                   );
@@ -825,37 +784,28 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         addBeneficiary: false,
       );
 
-      print('🔐 [Data] Initiating data purchase...');
       await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
-      print('📤 [Data] Data purchase request sent');
 
       // Use post frame callback to close dialog and navigate after frame completes
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) {
-            print('⚠️ [Data] Widget not mounted in postFrameCallback');
             return;
           }
 
           // Close loading dialog
           if (Navigator.canPop(context)) {
-            print('📤 [Data] Closing loading dialog');
             Navigator.pop(context);
           }
 
           // Small delay to ensure loading dialog is fully closed
           Future.delayed(const Duration(milliseconds: 100), () {
             if (!mounted) {
-              print('⚠️ [Data] Widget not mounted after delay');
               return;
             }
 
             // Check the state and navigate
             final state = ref.read(dataPurchaseNotifierProvider);
-            print('🎧 [Data] State check:');
-            print('   - isDataAvailable: ${state.isDataAvailable}');
-            print('   - message: ${state.message}');
-            print('   - data: ${state.data}');
 
             // Check for success via message (like airtime)
             final isSuccessMessage = state.message != null &&
@@ -865,7 +815,6 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                     state.data != null &&
                     state.data!.isNotEmpty) ||
                 isSuccessMessage) {
-              print('✅ [Data] Purchase successful, navigating to receipt');
               // Get description for selected amount
               final dataVariations =
                   ref.read(dataVariationNotifierProvider).data ?? [];
@@ -950,37 +899,28 @@ Future<void> _handleBiometricPinEntry() async {
         addBeneficiary: false,
       );
 
-      print('🔐 [Data] Initiating data purchase...');
       await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
-      print('📤 [Data] Data purchase request sent');
 
       // Use post frame callback to close dialog and navigate after frame completes
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) {
-            print('⚠️ [Data] Widget not mounted in postFrameCallback');
             return;
           }
 
           // Close loading dialog
           if (Navigator.canPop(context)) {
-            print('📤 [Data] Closing loading dialog');
             Navigator.pop(context);
           }
 
           // Small delay to ensure loading dialog is fully closed
           Future.delayed(const Duration(milliseconds: 100), () {
             if (!mounted) {
-              print('⚠️ [Data] Widget not mounted after delay');
               return;
             }
 
             // Check the state and navigate
             final state = ref.read(dataPurchaseNotifierProvider);
-            print('🎧 [Data] State check:');
-            print('   - isDataAvailable: ${state.isDataAvailable}');
-            print('   - message: ${state.message}');
-            print('   - data: ${state.data}');
 
             // Check for success via message (like airtime)
             final isSuccessMessage = state.message != null &&
@@ -990,7 +930,6 @@ Future<void> _handleBiometricPinEntry() async {
                     state.data != null &&
                     state.data!.isNotEmpty) ||
                 isSuccessMessage) {
-              print('✅ [Data] Purchase successful, navigating to receipt');
               // Get description for selected amount
               final dataVariations =
                   ref.read(dataVariationNotifierProvider).data ?? [];

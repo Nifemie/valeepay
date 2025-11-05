@@ -61,15 +61,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           selection: TextSelection.collapsed(offset: cursorPos),
         );
       }
-      // if (int.parse(text) < 50) {
-      //   setState(() {
-      //     isNotMinimumAmount = true;
-      //   });
-      // } else {
-      //   setState(() {
-      //     isNotMinimumAmount = false;
-      //   });
-      // }
+ 
     });
   
   }
@@ -101,7 +93,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   }
 
   Future<void> _handlePinEntry() async {
-    print('🔑 [Airtime] _handlePinEntry called');
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(
                                     context,
@@ -110,21 +101,11 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                     _amountController.text.replaceAll(',', ''));
           if (!hasEnoughBalance) return;
     final pin = await TransactionPinModal.show(context);
-    print(
-        '🔑 [Airtime] PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}');
-
-    // Log first and last character for debugging (without exposing full PIN)
-    if (pin != null && pin.length == 4) {
-      print(
-          '🔑 [Airtime] PIN format check: starts with "${pin[0]}", ends with "${pin[3]}"');
-    }
 
     if (pin == null || pin.length != 4) {
-      print('⚠️ [Airtime] Invalid PIN, returning');
       return;
     }
     if (!mounted) {
-      print('⚠️ [Airtime] Widget not mounted, returning');
       return;
     }
 
@@ -143,8 +124,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
       // Ensure PIN is a string
       final pinString = pin.toString();
-      print(
-          '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
 
       final request = AirtimePurchaseRequest(
         walletPin: pinString,
@@ -155,17 +134,10 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         addBeneficiary: saveBeneficiary,
       );
 
-      print('🔐 Initiating airtime purchase...');
-      print(
-          '🔐 Request details: amount=${request.amount}, operatorId=${request.operatorId}, phone=${request.phone}');
-      print(
-          '🔐 Request walletPin type: ${request.walletPin.runtimeType}, value: ${request.walletPin}');
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
-      print('📤 Airtime purchase request sent');
     } catch (e) {
-      print('❌ Airtime purchase error: $e');
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
         AppMessenger.show(context,
@@ -175,7 +147,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   }
 
   Future<void> _handleBiometricPinEntry() async {
-    print('🔑 [Airtime] _handlePinEntry called');
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(
                                     context,
@@ -184,21 +155,11 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                     _amountController.text.replaceAll(',', ''));
           if (!hasEnoughBalance) return;
     final pin = await BiometricTransactionPinModal.show(context);
-    print(
-        '🔑 [Airtime] PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}');
-
-    // Log first and last character for debugging (without exposing full PIN)
-    if (pin != null && pin.length == 4) {
-      print(
-          '🔑 [Airtime] PIN format check: starts with "${pin[0]}", ends with "${pin[3]}"');
-    }
 
     if (pin == null || pin.length != 4) {
-      print('⚠️ [Airtime] Invalid PIN, returning');
       return;
     }
     if (!mounted) {
-      print('⚠️ [Airtime] Widget not mounted, returning');
       return;
     }
 
@@ -217,8 +178,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
       // Ensure PIN is a string
       final pinString = pin.toString();
-      print(
-          '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}');
 
       final request = AirtimePurchaseRequest(
         walletPin: pinString,
@@ -229,17 +188,10 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         addBeneficiary: saveBeneficiary,
       );
 
-      print('🔐 Initiating airtime purchase...');
-      print(
-          '🔐 Request details: amount=${request.amount}, operatorId=${request.operatorId}, phone=${request.phone}');
-      print(
-          '🔐 Request walletPin type: ${request.walletPin.runtimeType}, value: ${request.walletPin}');
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
-      print('📤 Airtime purchase request sent');
     } catch (e) {
-      print('❌ Airtime purchase error: $e');
       if (mounted) Navigator.pop(context); // close loading
       if (mounted) {
         AppMessenger.show(context,
@@ -330,15 +282,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
     // Listen to airtime purchase state
     ref.listen(airtimePurchaseNotifierProvider, (previous, next) {
-      print('🎧 [Airtime Listener] State changed:');
-      print('   - isDataAvailable: ${next.isDataAvailable}');
-      print('   - isLoading: ${next.isInitialLoading}');
-      print('   - message: ${next.message}');
-      print('   - data: ${next.data}');
-      print('   - data length: ${next.data?.length}');
-
       if (!mounted) {
-        print('⚠️ [Airtime Listener] Widget not mounted, skipping');
         return;
       }
 
@@ -350,25 +294,16 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
           (next.isDataAvailable && hasData) || (hasData && hasSuccessMessage) || next.message != null && !next.isInitialLoading;
 
       if (isSuccess) {
-        // Purchase successful - close loading and navigate to receipt
-        print(
-            '✅ [Airtime Listener] Purchase successful, navigating to receipt');
-
-        // Close loading dialog
+        
         if (Navigator.canPop(context)) {
-          print('📤 [Airtime Listener] Closing loading dialog');
           Navigator.pop(context);
         }
 
         // Small delay to ensure loading dialog is closed
         Future.delayed(const Duration(milliseconds: 100), () {
           if (!mounted) {
-            print(
-                '⚠️ [Airtime Listener] Widget not mounted after delay, skipping navigation');
             return;
           }
-
-          print('🧾 [Airtime Listener] Navigating to receipt screen');
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -398,7 +333,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         });
       }  else if (!next.isDataAvailable) {
           // Purchase failed
-          print('❌ [Airtime Listener] Purchase failed: ${next.message}');
 
           // Close loading dialog
           if (Navigator.canPop(context)) {
@@ -535,8 +469,6 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                   }
                                 } catch (e) {
                                   // provider not found or other error - ignore silently
-                                  print(
-                                      '⚠️ [Airtime] Selected provider not found: $value');
                                 }
                               },
                             ),
@@ -557,40 +489,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                       hintText: '500',
                       onChanged: (unnamed) => setState(() {}),
                     ),
-                    // const SizedBox(height: 24),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     const Expanded(
-                    //       child: Text(
-                    //         'Use Cashback',
-                    //         style: TextStyle(
-                    //           color: Colors.grey,
-                    //           fontSize: 14,
-                    //           fontWeight: FontWeight.w500,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //     Row(
-                    //       mainAxisSize: MainAxisSize.min,
-                    //       children: [
-                    //         const Text(
-                    //           '₦50.00',
-                    //           style:
-                    //               TextStyle(color: Colors.grey, fontSize: 14),
-                    //         ),
-                    //         const SizedBox(width: 8),
-                    //         Switch(
-                    //           value: useCashback,
-                    //           onChanged: (v) => ref
-                    //               .read(airtimeUseCashbackProvider.notifier)
-                    //               .state = v,
-                    //           activeTrackColor: appTheme.primaryColor,
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ],
-                    // ),
+                   
 
                     const SizedBox(height: 32),
                     FullWidthButton(
@@ -635,14 +534,14 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         return;
       }
 
-      // ✅ Show loading dialog
+      // Show loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      // ✅ Fetch contacts
+      //  Fetch contacts
       final contacts = await FlutterContacts.getContacts(withProperties: true);
 
       if (Navigator.canPop(context)) Navigator.pop(context); // close loading

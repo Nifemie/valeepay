@@ -41,7 +41,6 @@ class _CreatePasscodeScreenState extends ConsumerState<CreatePasscodeScreen> {
           if (username != null) {
             await SecureStorageService.saveUsername(username);
           }
-          print('🔐 [CreatePasscode] Passcode saved securely for biometric login');
 
           AppMessenger.show(
             context,

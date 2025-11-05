@@ -68,10 +68,6 @@ class TransferRepository {
           e.response?.data['error'] ??
           e.response?.data['errors']?.toString() ??
           'Transfer processing failed';
-      print(
-        '❌ Transfer repository error: Status ${e.response?.statusCode}, Message: $message',
-      );
-      print('❌ Full error response: ${e.response?.data}');
       throw Exception(message);
     }
   }

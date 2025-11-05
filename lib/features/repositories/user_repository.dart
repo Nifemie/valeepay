@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:valarpay/core/constants/api_endpoints.dart';
@@ -62,10 +61,6 @@ class UserRepository {
         data: request.toJson(),
       );
 
-      // Log full response to confirm structure
-      print('[UserRepo] Response code: ${response.statusCode}');
-      print('[UserRepo] Response data: ${response.data}');
-
       // Handle expected structure gracefully
       if (response.statusCode == 200 && response.data != null) {
         return ApiResponse.fromJson(response.data);
@@ -77,10 +72,8 @@ class UserRepository {
           e.response?.data != null
               ? e.response?.data['message'] ?? 'User existance check failed'
               : 'User existance check failed';
-      print('[UserRepo] DioException: $serverMessage');
       throw Exception(serverMessage);
     } catch (e) {
-      print('[UserRepo] Unexpected error: $e');
       throw Exception('User existance check failed');
     }
   }
@@ -197,31 +190,10 @@ class UserRepository {
 
   Future<UserModel> getUserProfile() async {
     try {
-      log('[UserRepository] Calling GET ${ApiEndpoints.getUserProfile}');
       final response = await apiClient.get(ApiEndpoints.getUserProfile);
-      log('[UserRepository] Response status: ${response.statusCode}');
-      log(
-        '[UserRepository] 🔍 Has wallet field: ${response.data['wallet'] != null}',
-      );
-      if (response.data['wallet'] != null) {
-        log(
-          '[UserRepository] 🔍 Wallet type: ${response.data['wallet'].runtimeType}',
-        );
-        log('[UserRepository] 🔍 Wallet content: ${response.data['wallet']}');
-      } else {
-        log('[UserRepository] ⚠️ WARNING: wallet field is NULL in response!');
-      }
-
       final user = UserModel.fromJson(response.data);
-      log(
-        '[UserRepository] Parsed user - isPasscodeSet: ${user.isPasscodeSet}',
-      );
-      log(
-        '[UserRepository] Parsed user - wallets count: ${user.wallets.length}',
-      );
       return user;
     } on DioException catch (e) {
-      log('[UserRepository] Error fetching profile: ${e.response?.data}');
       throw Exception(
         e.response?.data['message'] ?? 'Failed to fetch user profile',
       );
@@ -232,15 +204,12 @@ class UserRepository {
     VerifyWalletPinRequest request,
   ) async {
     try {
-      log('[UserRepository] Verifying wallet PIN...');
       final response = await apiClient.post(
         ApiEndpoints.verifyWalletPin,
         data: request.toJson(),
       );
-      log('[UserRepository] PIN verification response: ${response.statusCode}');
       return VerifyWalletPinResponse.fromJson(response.data);
     } on DioException catch (e) {
-      log('[UserRepository] PIN verification failed: ${e.response?.data}');
       throw Exception(
         e.response?.data['message'] ?? 'Failed to verify wallet PIN',
       );
@@ -286,22 +255,13 @@ class UserRepository {
     NinVerificationRequest request,
   ) async {
     try {
-      log('[UserRepository] Verifying NIN for Tier 2...');
-      log('[UserRepository] NIN: ${request.nin}');
-      log('[UserRepository] Selfie length: ${request.selfieImage.length}');
-
       final response = await apiClient.post(
         ApiEndpoints.kycTier2,
         data: request.toJson(),
       );
 
-      log('[UserRepository] NIN verification response: ${response.statusCode}');
-      log('[UserRepository] Response data: ${response.data}');
-
       return NinVerificationResponse.fromJson(response.data);
     } on DioException catch (e) {
-      log('[UserRepository] NIN verification failed: ${e.response?.data}');
-
       // Return error response with proper structure
       return NinVerificationResponse(
         message: e.response?.data['message'] ?? 'NIN verification failed',
@@ -309,7 +269,6 @@ class UserRepository {
         statusCode: e.response?.statusCode ?? 400,
       );
     } catch (e) {
-      log('[UserRepository] Unexpected error: $e');
       return NinVerificationResponse(
         message: 'Unexpected error: $e',
         error: 'Internal Error',
@@ -321,15 +280,10 @@ class UserRepository {
   /// Submit address for Tier 3 KYC upgrade
   Future<ApiResponse> submitKycTier3(Map<String, dynamic> addressData) async {
     try {
-      log('[UserRepository] Submitting KYC Tier 3...');
-      log('[UserRepository] Address data: $addressData');
-
       final response = await apiClient.post(
         ApiEndpoints.kycTier3,
         data: addressData,
       );
-
-      log('[UserRepository] KYC Tier 3 response: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return ApiResponse.fromJson(response.data);
@@ -339,11 +293,6 @@ class UserRepository {
         );
       }
     } on DioException catch (e) {
-      log('[UserRepository] KYC Tier 3 DioException:');
-      log('  Status Code: ${e.response?.statusCode}');
-      log('  Response Data: ${e.response?.data}');
-      log('  Error Message: ${e.message}');
-
       // Try to extract the error message from the response
       String errorMessage = 'Failed to submit address verification';
       if (e.response?.data != null) {
@@ -359,7 +308,6 @@ class UserRepository {
 
       throw Exception(errorMessage);
     } catch (e) {
-      log('[UserRepository] KYC Tier 3 unexpected error: $e');
       throw Exception('Failed to submit address verification: $e');
     }
   }
