@@ -195,8 +195,11 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
               // call backend to change pin
               _submitChangePin();
             } else {
-              AppMessenger.show(context,
-                  message: 'Pins do not match', type: MessageType.error);
+              AppMessenger.show(
+                context,
+                message: 'Pins do not match',
+                type: MessageType.error,
+              );
               // reset new pin steps
               setState(() {
                 newPin = '';
@@ -280,16 +283,16 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
   //           await SessionService.saveSession(loginResponse!);
 
   //           // 🔥 FIX: Fetch fresh user data with wallet from /me endpoint
-  //           print('🔥 [PasscodeLogin] About to call refreshUserProfile...');
+  //           AppLogger.log('🔥 [PasscodeLogin] About to call refreshUserProfile...');
   //           final freshUser =
   //               await ref
   //                   .read(userNotifierProvider.notifier)
   //                   .refreshUserProfile();
-  //           print(
+  //           AppLogger.log(
   //             '🔥 [PasscodeLogin] refreshUserProfile returned: ${freshUser != null}',
   //           );
   //           if (freshUser != null) {
-  //             print(
+  //             AppLogger.log(
   //               '🔥 [PasscodeLogin] Fresh user has ${freshUser.wallets.length} wallets',
   //             );
   //           }
@@ -381,22 +384,27 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
     setState(() => _isProcessing = true);
     try {
       final client = ApiClient();
-      final resp = await client.put('/api/v1/user/change-pin', data: {
-        'oldPin': currentPin,
-        'newPin': newPin,
-      });
+      final resp = await client.put(
+        '/api/v1/user/change-pin',
+        data: {'oldPin': currentPin, 'newPin': newPin},
+      );
 
       if (resp.statusCode == 200) {
-        AppMessenger.show(context,
-            message: 'PIN changed successfully', type: MessageType.success);
+        AppMessenger.show(
+          context,
+          message: 'PIN changed successfully',
+          type: MessageType.success,
+        );
         // pop back after a short delay to show message
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) Navigator.of(context).pop();
         });
       } else {
-        AppMessenger.show(context,
-            message: resp.statusMessage ?? 'Failed to change PIN',
-            type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: resp.statusMessage ?? 'Failed to change PIN',
+          type: MessageType.error,
+        );
         // reset to new pin step so user can try again
         setState(() {
           newPin = '';
@@ -414,8 +422,11 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
         step = 2;
       });
     } catch (e) {
-      AppMessenger.show(context,
-          message: e.toString(), type: MessageType.error);
+      AppMessenger.show(
+        context,
+        message: e.toString(),
+        type: MessageType.error,
+      );
       setState(() {
         newPin = '';
         confirmPin = '';

@@ -6,15 +6,15 @@ import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/models/kyc_address_request.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart';
 
+import '../../../../core/utils/logger.dart';
+
 final proofOfAddressImageProvider = StateProvider<File?>((ref) => null);
 
 class ProofOfAddressPage extends ConsumerStatefulWidget {
   final KycAddressRequest addressRequest;
 
-  const ProofOfAddressPage({
-    Key? key,
-    required this.addressRequest,
-  }) : super(key: key);
+  const ProofOfAddressPage({Key? key, required this.addressRequest})
+    : super(key: key);
 
   @override
   _ProofOfAddressPageState createState() => _ProofOfAddressPageState();
@@ -39,9 +39,9 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
@@ -50,63 +50,64 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Select Image Source',
-                    style: TextStyle(
-                      fontFamily: 'SF Pro',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-            const SizedBox(height: 20),
-            _buildSourceOption(
-              icon: Icons.camera_alt_outlined,
-              title: 'Camera',
-              subtitle: 'Take a photo',
-              onTap: () => _pickImage(ImageSource.camera),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Select Image Source',
+                        style: TextStyle(
+                          fontFamily: 'SF Pro',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildSourceOption(
+                  icon: Icons.camera_alt_outlined,
+                  title: 'Camera',
+                  subtitle: 'Take a photo',
+                  onTap: () => _pickImage(ImageSource.camera),
+                ),
+                const Divider(height: 1),
+                _buildSourceOption(
+                  icon: Icons.photo_library_outlined,
+                  title: 'Gallery',
+                  subtitle: 'Select an image',
+                  onTap: () => _pickImage(ImageSource.gallery),
+                ),
+                const Divider(height: 1),
+                _buildSourceOption(
+                  icon: Icons.folder_outlined,
+                  title: 'Internal Storage',
+                  subtitle: 'Browse image from storage',
+                  onTap: () => _pickImage(ImageSource.gallery),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
-            const Divider(height: 1),
-            _buildSourceOption(
-              icon: Icons.photo_library_outlined,
-              title: 'Gallery',
-              subtitle: 'Select an image',
-              onTap: () => _pickImage(ImageSource.gallery),
-            ),
-            const Divider(height: 1),
-            _buildSourceOption(
-              icon: Icons.folder_outlined,
-              title: 'Internal Storage',
-              subtitle: 'Browse image from storage',
-              onTap: () => _pickImage(ImageSource.gallery),
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -149,10 +150,7 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Color(0xFF9CA3AF),
-            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
           ],
         ),
       ),
@@ -168,9 +166,7 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Compress and encode image (optional - can be used for local storage)
@@ -178,17 +174,15 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
 
       // Prepare API request data matching the endpoint format
       final addressData = widget.addressRequest.toJson();
-      
+
       // Log the data being sent
-      print('📤 [ProofOfAddress] Sending data to API:');
-      print('   City: ${addressData['city']}');
-      print('   State: ${addressData['state']}');
-      print('   Address: ${addressData['address']}');
+      AppLogger.log('📤 [ProofOfAddress] Sending data to API:');
+      AppLogger.log('   City: ${addressData['city']}');
+      AppLogger.log('   State: ${addressData['state']}');
+      AppLogger.log('   Address: ${addressData['address']}');
 
       // Submit to API
-      await ref
-          .read(userNotifierProvider.notifier)
-          .submitKycTier3(addressData);
+      await ref.read(userNotifierProvider.notifier).submitKycTier3(addressData);
 
       if (mounted) {
         Navigator.pop(context); // Close loading
@@ -212,7 +206,9 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text(
+              'Error: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -275,9 +271,10 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
                     vertical: 24,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1F2937)
-                        : const Color(0xFFFAFBFC),
+                    color:
+                        isDark
+                            ? const Color(0xFF1F2937)
+                            : const Color(0xFFFAFBFC),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: const Color(0xFF9CA3AF),
@@ -285,76 +282,74 @@ class _ProofOfAddressPageState extends ConsumerState<ProofOfAddressPage> {
                       style: BorderStyle.solid,
                     ),
                   ),
-                  child: selectedImage == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Upload Icon
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE5E7EB),
-                                borderRadius: BorderRadius.circular(24),
+                  child:
+                      selectedImage == null
+                          ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Upload Icon
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE5E7EB),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: const Icon(
+                                  Icons.file_upload_outlined,
+                                  color: Color(0xFF6B7280),
+                                  size: 24,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.file_upload_outlined,
-                                color: Color(0xFF6B7280),
-                                size: 24,
+                              const SizedBox(height: 16),
+                              // Upload Text
+                              const Text(
+                                'Upload',
+                                style: TextStyle(
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF6B7280),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            // Upload Text
-                            const Text(
-                              'Upload',
-                              style: TextStyle(
-                                fontFamily: 'SF Pro',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF6B7280),
+                              const SizedBox(height: 8),
+                              // Subtitle
+                              const Text(
+                                'A utility bill not older than 3 months',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xFF9CA3AF),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Subtitle
-                            const Text(
-                              'A utility bill not older than 3 months',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'SF Pro',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF9CA3AF),
+                            ],
+                          )
+                          : Column(
+                            children: [
+                              // Show selected image
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  selectedImage,
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            // Show selected image
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                selectedImage,
-                                height: 200,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
+                              const SizedBox(height: 16),
+                              // Change image button
+                              TextButton.icon(
+                                onPressed: _showImageSourceModal,
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                label: const Text('Change Image'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFFFF6905),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            // Change image button
-                            TextButton.icon(
-                              onPressed: _showImageSourceModal,
-                              icon: const Icon(
-                                Icons.edit_outlined,
-                                size: 18,
-                              ),
-                              label: const Text('Change Image'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFFFF6905),
-                              ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                 ),
               ),
               const SizedBox(height: 40),

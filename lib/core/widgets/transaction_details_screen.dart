@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:valarpay/core/services/local_storage_service.dart';
+import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -18,12 +19,14 @@ Widget buildDetailRow(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isDark ? Colors.white70 : Colors.grey[600],
-            fontSize: 12,
-            fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.grey[600],
+              fontSize: 12,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -35,7 +38,8 @@ Widget buildDetailRow(
               fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
             ),
             textAlign: TextAlign.right,
-            overflow: TextOverflow.visible,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 3,
             softWrap: true,
           ),
         ),
@@ -52,9 +56,11 @@ class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
   final List<Widget>? bottomTransactionsDetailsList;
   final Function()? onButtonPressed;
   final Function()? onBiometricButtonPressed;
+  final Function()? onAutomaticallyShowBiometric;
   final bool showActions;
   bool saveBeneficiary;
   Function(bool) onSaveBeneficiaryChanged;
+  final double totalAmount;
 
   ReuseableTransactionDetailsScreen({
     super.key,
@@ -68,6 +74,8 @@ class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
     this.showActions = true,
     required this.saveBeneficiary,
     required this.onSaveBeneficiaryChanged,
+    required this.totalAmount,
+    this.onAutomaticallyShowBiometric,
   });
 
   @override
@@ -77,7 +85,7 @@ class ReuseableTransactionDetailsScreen extends ConsumerStatefulWidget {
 
 class _ReuseableTransactionDetailsScreenState
     extends ConsumerState<ReuseableTransactionDetailsScreen> {
-  String selectedPaymentMethod = 'Vconnect Bank'; // Default selection
+  String selectedPaymentMethod = 'ValarPay Account'; // Default selection
   late bool _saveBeneficiary;
   @override
   void initState() {
@@ -227,7 +235,16 @@ class _ReuseableTransactionDetailsScreenState
                 FullWidthButton(
                   text: 'Confirm',
                   onPressed: () {
-                    showConfirmPaymentSheet(context);
+                    if (balance < widget.totalAmount) {
+                      AppMessenger.show(
+                        context,
+                        message:
+                            'Insufficient account balance, kindly top up and continue',
+                        type: MessageType.error,
+                      );
+                    } else {
+                      showConfirmPaymentSheet(context);
+                    }
                   },
                 ),
               ],
@@ -324,6 +341,11 @@ class _ReuseableTransactionDetailsScreenState
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
       ),
       builder: (context) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (biometricEnabled) {
+            widget.onAutomaticallyShowBiometric?.call();
+          }
+        });
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,

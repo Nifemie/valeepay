@@ -101,11 +101,11 @@ Future<void> refreshUserProfile() async {
     final response = await _userRepository.getUserProfile();
     if (response is DataSuccess) {
       state = AsyncData(response.data);
-      print('✅ User profile refreshed successfully');
-      print('📊 Wallet data: ${response.data?.wallets}');
+      AppLogger.log('✅ User profile refreshed successfully');
+      AppLogger.log('📊 Wallet data: ${response.data?.wallets}');
     }
   } catch (e) {
-    print('❌ Error refreshing user profile: $e');
+    AppLogger.log('❌ Error refreshing user profile: $e');
   }
 }
 ```

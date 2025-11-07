@@ -38,11 +38,17 @@ class _TransferToValarPayScreenState
       setState(() {
         _accountController.text = clipboardData.text!;
       });
-      AppMessenger.show(context,
-          type: MessageType.success, message: 'ValarPay pasted from clipboard');
+      AppMessenger.show(
+        context,
+        type: MessageType.success,
+        message: 'ValarPay pasted from clipboard',
+      );
     } else {
-      AppMessenger.show(context,
-          type: MessageType.error, message: 'Clipboard is empty');
+      AppMessenger.show(
+        context,
+        type: MessageType.error,
+        message: 'Clipboard is empty',
+      );
     }
   }
 
@@ -74,18 +80,14 @@ class _TransferToValarPayScreenState
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final isBvnVerified = user?.isBvnVerified ?? false;
 
-    final accountVerificationState =
-        ref.watch(internalAccountVerificationNotifierProvider);
-
-
-        
+    final accountVerificationState = ref.watch(
+      internalAccountVerificationNotifierProvider,
+    );
 
     // Listen to account verification state
     ref.listen(internalAccountVerificationNotifierProvider, (previous, next) {
@@ -102,8 +104,11 @@ class _TransferToValarPayScreenState
           hasError = true;
         });
       } else if (next.message != null && !next.isDataAvailable) {
-        AppMessenger.show(context,
-            message: next.message!, type: MessageType.error);
+        AppMessenger.show(
+          context,
+          message: next.message!,
+          type: MessageType.error,
+        );
 
         setState(() {
           verifiedAccount = null;
@@ -119,213 +124,228 @@ class _TransferToValarPayScreenState
         ),
         title: Text(
           'Transfer to ValarPay Account',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
       ),
-      body: !isBvnVerified
-          ? const KycNotSetWidget(
-              title: 'KYC Not Completed',
-              subtitle:
-                  'Complete your KYC verification to transfer money to ValarPay accounts',
-            )
-          : SafeArea(
-              child: Padding(
-                padding: EdgeInsets.all(20.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.bolt, color: Colors.blue, size: 18.sp),
-                          SizedBox(width: 6),
-                          Text(
-                            'Quick, Free, No-delays',
-                            style: TextStyle(
-                              color: Colors.blue[800],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    SnapAndSendMoneyCard(
-                      onPressed: () async {
-                        // Open camera scanner and await detected 10-digit account number
-                        final result = await Navigator.push<String?>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CameraScanScreen(),
-                          ),
-                        );
-
-                        if (result != null && result.isNotEmpty) {
-                          // populate account field and trigger matching
-                          setState(() {
-                            _accountController.text = result;
-                          });
-                          // directly trigger matching for immediate feedback
-                          if (_accountController.text.length == 10) {
-                            _verifyAccount();
-                          }
-                        }
-                      },
-                    ),
-                    SizedBox(height: 20),
-
-                    Text(
-                      'Recipient Account Number',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    TextField(
-                      controller: _accountController,
-                      onChanged: (value) {
-                        if (value.length == 10) {
-                          _verifyAccount();
-                        } else {
-                          setState(() {
-                            hasError = false;
-                          });
-                        }
-                      },
-                      keyboardType: TextInputType.number,
-                      maxLength: 10,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        hintText: 'Enter ValarPay account name/number',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 14,
+      body:
+          !isBvnVerified
+              ? const KycNotSetWidget(
+                title: 'KYC Not Completed',
+                subtitle:
+                    'Complete your KYC verification to transfer money to ValarPay accounts',
+              )
+              : SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.all(20.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 8.h,
                         ),
-                        suffixIcon: _accountController.text.isEmpty
-                            ? IconButton(
-                                onPressed: () {
-                                  pasteFromClipboard();
-                                },
-                                icon: Icon(
-                                  Icons.content_paste,
-                                  color: Colors.grey[500],
-                                ))
-                            : null,
-                        filled: true,
-                        fillColor:
-                            Theme.of(context).cardColor.withValues(alpha: 0.5),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 14.w,
-                          vertical: 14.h,
-                        ),
-                        border: OutlineInputBorder(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(10.r),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bolt, color: Colors.blue, size: 18.sp),
+                            SizedBox(width: 6),
+                            Text(
+                              'Quick, Free, No-delays',
+                              style: TextStyle(
+                                color: Colors.blue[800],
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    SizedBox(height: 16.h),
-                    // Selected Recipient
-                    if (isVerifying)
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  appTheme.primaryColor),
+                      SizedBox(height: 10),
+                      SnapAndSendMoneyCard(
+                        onPressed: () async {
+                          // Open camera scanner and await detected 10-digit account number
+                          final result = await Navigator.push<String?>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CameraScanScreen(),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Verifying account...",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.orange,
-                            ),
-                          ),
+                          );
+
+                          if (result != null && result.isNotEmpty) {
+                            // populate account field and trigger matching
+                            setState(() {
+                              _accountController.text = result;
+                            });
+                            // directly trigger matching for immediate feedback
+                            if (_accountController.text.length == 10) {
+                              _verifyAccount();
+                            }
+                          }
+                        },
+                      ),
+                      SizedBox(height: 20),
+
+                      Text(
+                        'Recipient Account Number',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      TextField(
+                        controller: _accountController,
+                        onChanged: (value) {
+                          if (value.length == 10) {
+                            _verifyAccount();
+                          } else {
+                            setState(() {
+                              hasError = false;
+                            });
+                          }
+                        },
+                        keyboardType: TextInputType.number,
+                        maxLength: 10,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
                         ],
-                      )
-                    else if (verifiedAccount != null)
-                      Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              color: appTheme.primaryColor),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              verifiedAccount!.accountName,
+                        decoration: InputDecoration(
+                          counterText: '',
+                          hintText: 'Enter ValarPay account name/number',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                          suffixIcon:
+                              _accountController.text.isEmpty
+                                  ? IconButton(
+                                    onPressed: () {
+                                      pasteFromClipboard();
+                                    },
+                                    icon: Icon(
+                                      Icons.content_paste,
+                                      color: Colors.grey[500],
+                                    ),
+                                  )
+                                  : null,
+                          filled: true,
+                          fillColor: Theme.of(
+                            context,
+                          ).cardColor.withValues(alpha: 0.5),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 14.w,
+                            vertical: 14.h,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.r),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      // Selected Recipient
+                      if (isVerifying)
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  appTheme.primaryColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Verifying account...",
                               style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        )
+                      else if (verifiedAccount != null)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              color: appTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                verifiedAccount!.accountName,
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: appTheme.primaryColor),
+                                  color: appTheme.primaryColor,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    else if (_accountController.text.length == 10 &&
-                            !hasError ||
-                        accountVerificationState.data == null && !hasError)
-                      Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: Colors.red),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Account verification failed",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.red,
+                          ],
+                        )
+                      else if (_accountController.text.length == 10 &&
+                              !hasError ||
+                          accountVerificationState.data == null && !hasError)
+                        Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Account verification failed",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                    const SizedBox(height: 25),
+                      const SizedBox(height: 25),
 
-                    // Continue Button
-                    FullWidthButton(
+                      // Continue Button
+                      FullWidthButton(
                         text: 'Continue',
                         onPressed: () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => InternalTransferAmountScreen(
-                                      accountDetails: verifiedAccount!)));
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => InternalTransferAmountScreen(
+                                    accountDetails: verifiedAccount!,
+                                  ),
+                            ),
+                          );
                         },
-                        isEnabled: verifiedAccount != null),
-                    SizedBox(height: 25),
-                    InternalRecentAndSavedBeneficiary(
-                      onSelectAccount: (selectedAccount) {
-                        // Populate the account controller and trigger matching
-                        setState(() {
-                          _accountController.text = selectedAccount;
-                        });
-                        if (_accountController.text.length == 10) {
-                          _verifyAccount();
-                        }
-                      },
-                    )
-                  ],
+                        isEnabled: verifiedAccount != null,
+                      ),
+                      SizedBox(height: 25),
+                      InternalRecentAndSavedBeneficiary(
+                        onSelectAccount: (selectedAccount) {
+                          // Populate the account controller and trigger matching
+                          setState(() {
+                            _accountController.text = selectedAccount;
+                          });
+                          if (_accountController.text.length == 10) {
+                            _verifyAccount();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

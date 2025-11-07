@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:valarpay/core/utils/logger.dart';
 
 // State class for the PIN
 @immutable
@@ -58,8 +59,11 @@ class PinNotifier extends StateNotifier<PinState> {
     }
   }
 
-  void submitConfirmPin(BuildContext context,
-      {required VoidCallback onSuccess, required VoidCallback onError}) {
+  void submitConfirmPin(
+    BuildContext context, {
+    required VoidCallback onSuccess,
+    required VoidCallback onError,
+  }) {
     if (isConfirmPinValid()) {
       if (doPinsMatch()) {
         onSuccess();
@@ -75,10 +79,10 @@ class PinNotifier extends StateNotifier<PinState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('wallet_pin', pin);
-      print('Saving PIN securely: $pin');
-      print('✅ PIN saved to local storage');
+      AppLogger.log('Saving PIN securely: $pin');
+      AppLogger.log('✅ PIN saved to local storage');
     } catch (e) {
-      print('❌ Error saving PIN: $e');
+      AppLogger.log('❌ Error saving PIN: $e');
     }
   }
 
@@ -87,7 +91,7 @@ class PinNotifier extends StateNotifier<PinState> {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString('wallet_pin');
     } catch (e) {
-      print('❌ Error reading PIN: $e');
+      AppLogger.log('❌ Error reading PIN: $e');
       return null;
     }
   }
@@ -101,15 +105,16 @@ class PinNotifier extends StateNotifier<PinState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('wallet_pin');
-      print('✅ PIN cleared from local storage');
+      AppLogger.log('✅ PIN cleared from local storage');
     } catch (e) {
-      print('❌ Error clearing PIN: $e');
+      AppLogger.log('❌ Error clearing PIN: $e');
     }
   }
 }
 
 // PIN Controller Provider
-final pinControllerProvider =
-    StateNotifierProvider<PinNotifier, PinState>((ref) {
+final pinControllerProvider = StateNotifierProvider<PinNotifier, PinState>((
+  ref,
+) {
   return PinNotifier();
 });

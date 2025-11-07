@@ -30,6 +30,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
 
     // Extract wallet data
     final accountNumber = wallet?.accountNumber ?? '00000000';
+    final fullName = user?.fullname ?? 'User';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -55,21 +56,23 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                 backgroundColor:
                     isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
                 child: ClipOval(
-                  child: user?.profileImageUrl != null &&
-                          user!.profileImageUrl!.isNotEmpty
-                      ? Image.network(
-                          user.profileImageUrl!,
-                          width: 72,
-                          height: 72,
-                          fit: BoxFit.cover,
-                        )
-                      : Icon(
-                          Icons.person,
-                          size: 36,
-                          color: isDark
-                              ? const Color(0xFF9CA3AF)
-                              : const Color(0xFF6B7280),
-                        ),
+                  child:
+                      user?.profileImageUrl != null &&
+                              user!.profileImageUrl!.isNotEmpty
+                          ? Image.network(
+                            user.profileImageUrl!,
+                            width: 72,
+                            height: 72,
+                            fit: BoxFit.cover,
+                          )
+                          : Icon(
+                            Icons.person,
+                            size: 36,
+                            color:
+                                isDark
+                                    ? const Color(0xFF9CA3AF)
+                                    : const Color(0xFF6B7280),
+                          ),
                 ),
               ),
               Positioned(
@@ -100,19 +103,21 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                                     title: const Text('Take photo'),
                                     onTap: () async {
                                       Navigator.of(dialogContext).pop();
-                                      final XFile? picked =
-                                          await ImagePicker().pickImage(
-                                        source: ImageSource.camera,
-                                        imageQuality: 80,
-                                      );
+                                      final XFile? picked = await ImagePicker()
+                                          .pickImage(
+                                            source: ImageSource.camera,
+                                            imageQuality: 80,
+                                          );
                                       if (picked != null) {
                                         // show loading
                                         showDialog(
                                           context: widget.context,
                                           barrierDismissible: false,
-                                          builder: (_) => const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
+                                          builder:
+                                              (_) => const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
                                         );
                                         final ok = await ref
                                             .read(
@@ -126,11 +131,13 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                                           widget.context,
                                         ).pop(); // dismiss loading
                                         if (ok) {
-                                          final updated = await ref
-                                              .read(
-                                                userNotifierProvider.notifier,
-                                              )
-                                              .refreshUserProfile();
+                                          final updated =
+                                              await ref
+                                                  .read(
+                                                    userNotifierProvider
+                                                        .notifier,
+                                                  )
+                                                  .refreshUserProfile();
                                           if (updated != null) {
                                             ref
                                                 .read(userProvider.notifier)
@@ -147,7 +154,8 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                                         } else {
                                           AppMessenger.show(
                                             widget.context,
-                                            message: ref
+                                            message:
+                                                ref
                                                     .read(
                                                       profileNotifierProvider,
                                                     )
@@ -164,18 +172,20 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                                     title: const Text('Choose from gallery'),
                                     onTap: () async {
                                       Navigator.of(dialogContext).pop();
-                                      final XFile? picked =
-                                          await ImagePicker().pickImage(
-                                        source: ImageSource.gallery,
-                                        imageQuality: 80,
-                                      );
+                                      final XFile? picked = await ImagePicker()
+                                          .pickImage(
+                                            source: ImageSource.gallery,
+                                            imageQuality: 80,
+                                          );
                                       if (picked != null) {
                                         showDialog(
                                           context: widget.context,
                                           barrierDismissible: false,
-                                          builder: (_) => const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
+                                          builder:
+                                              (_) => const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
                                         );
                                         final ok = await ref
                                             .read(
@@ -189,11 +199,13 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                                           widget.context,
                                         ).pop(); // dismiss loading
                                         if (ok) {
-                                          final updated = await ref
-                                              .read(
-                                                userNotifierProvider.notifier,
-                                              )
-                                              .refreshUserProfile();
+                                          final updated =
+                                              await ref
+                                                  .read(
+                                                    userNotifierProvider
+                                                        .notifier,
+                                                  )
+                                                  .refreshUserProfile();
                                           if (updated != null) {
                                             ref
                                                 .read(userProvider.notifier)
@@ -210,7 +222,8 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                                         } else {
                                           AppMessenger.show(
                                             widget.context,
-                                            message: ref
+                                            message:
+                                                ref
                                                     .read(
                                                       profileNotifierProvider,
                                                     )
@@ -249,24 +262,28 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
           if (accountNumber.isNotEmpty && accountNumber != '00000000')
             const SizedBox(height: 12),
 
-          // User Info
-          if (accountNumber.isNotEmpty && accountNumber != '00000000')
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  accountNumber,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-                SizedBox(width: 10),
-                InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: accountNumber));
-                  },
-                  child: Icon(Icons.copy, size: 14),
-                ),
-              ],
-            ),
+          // User Info - Display Full Name
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                fullName,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(width: 10),
+              InkWell(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: accountNumber));
+                  AppMessenger.show(
+                    context,
+                    message: 'Account number copied',
+                    type: MessageType.success,
+                  );
+                },
+                child: Icon(Icons.copy, size: 14),
+              ),
+            ],
+          ),
           TextButton(
             onPressed: () {
               Navigator.push(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/logger.dart';
 
 // Education service model
 class EducationService {
@@ -8,12 +9,14 @@ class EducationService {
   EducationService({required this.name});
 }
 
-final educationServicesProvider = StateProvider<List<EducationService>>((ref) => [
-  EducationService(name: 'JAMB'),
-  EducationService(name: 'WAEC'),
-  EducationService(name: 'NECO'),
-  EducationService(name: 'NABTEB'),
-]);
+final educationServicesProvider = StateProvider<List<EducationService>>(
+  (ref) => [
+    EducationService(name: 'JAMB'),
+    EducationService(name: 'WAEC'),
+    EducationService(name: 'NECO'),
+    EducationService(name: 'NABTEB'),
+  ],
+);
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -26,12 +29,16 @@ class EducationPaymentPage extends ConsumerWidget {
     final searchQuery = ref.watch(searchQueryProvider);
 
     // Filter services based on search
-    final filteredServices = searchQuery.isEmpty
-        ? services
-        : services
-        .where((service) =>
-        service.name.toLowerCase().contains(searchQuery.toLowerCase()))
-        .toList();
+    final filteredServices =
+        searchQuery.isEmpty
+            ? services
+            : services
+                .where(
+                  (service) => service.name.toLowerCase().contains(
+                    searchQuery.toLowerCase(),
+                  ),
+                )
+                .toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -60,7 +67,7 @@ class EducationPaymentPage extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () {
                   // Navigate to saved beneficiary
-                  print('Saved Beneficiary tapped');
+                  AppLogger.log('Saved Beneficiary tapped');
                 },
                 child: const Text(
                   'Saved Beneficiary',
@@ -87,7 +94,10 @@ class EducationPaymentPage extends ConsumerWidget {
               Container(
                 width: 335,
                 height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(24),
@@ -147,7 +157,7 @@ class EducationPaymentPage extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         // Navigate to payment details
-        print('${service.name} tapped');
+        AppLogger.log('${service.name} tapped');
       },
       child: Container(
         width: 335,

@@ -146,7 +146,9 @@ class _BiometricTransactionDialogState
       return Container(); // Empty container while transitioning
     }
 
-    return AlertDialog(
+    return SizedBox.shrink();
+
+    AlertDialog(
       backgroundColor: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       content: Container(
@@ -172,14 +174,16 @@ class _BiometricTransactionDialogState
             const SizedBox(height: 24),
 
             // Title
-            Text( 'Authenticating...',
+            Text(
+              'Authenticating...',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
 
             // Subtitle
-            Text( 'Please wait while we verify your identity',
+            Text(
+              'Please wait while we verify your identity',
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),

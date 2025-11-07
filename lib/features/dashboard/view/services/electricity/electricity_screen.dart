@@ -11,7 +11,6 @@ import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/kyc_not_set_widget.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
-import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/electricity.dart';
 import 'package:valarpay/features/notifiers/electricity_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
@@ -30,19 +29,18 @@ class ElectricityScreen extends ConsumerStatefulWidget {
 }
 
 class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
-  ElectricityPlan? selectedDisco;
-  ElectricityBillInfo? selectedMeterType;
-  final TextEditingController meterNumberController = TextEditingController();
-  final TextEditingController amountController = TextEditingController();
-  final NumberFormat formatter = NumberFormat('#,###');
-  bool saveBeneficiary = false;
+  final TextEditingController _meterNumberController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final NumberFormat _formatter = NumberFormat('#,###');
+  bool _saveBeneficiary = false;
 
-  VerifyMeterNumberData? verifyMeterNumberData;
-  String serviceFee = '500';
-  String customerName = '';
-  bool isMeterVerified = false;
-  bool hasError = false;
-  bool isNotMinimumAmount = false;
+  VerifyMeterNumberData? _verifyMeterNumberData;
+  String _serviceFee = '500';
+  String _customerName = '';
+  bool _isMeterVerified = false;
+  bool _hasError = false;
+  bool _isNotMinimumAmount = false;
+  bool _loadingShown = false;
 
   @override
   void initState() {
@@ -52,16 +50,15 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
           .read(electricityNotifierProvider.notifier)
           .getElectricityPlans(currency: 'NGN');
     });
-    amountController.addListener(() {
-      final text = amountController.text.replaceAll(',', '');
+    _amountController.addListener(() {
+      final text = _amountController.text.replaceAll(',', '');
       if (text.isEmpty) return;
 
-      // Prevent recursive updates
       try {
-        final newText = formatter.format(int.parse(text));
-        if (newText != amountController.text) {
+        final newText = _formatter.format(int.parse(text));
+        if (newText != _amountController.text) {
           final cursorPos = newText.length;
-          amountController.value = TextEditingValue(
+          _amountController.value = TextEditingValue(
             text: newText,
             selection: TextSelection.collapsed(offset: cursorPos),
           );
@@ -71,13 +68,13 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       }
 
       try {
-        if (double.parse(text) < verifyMeterNumberData!.minimum) {
+        if (double.parse(text) < _verifyMeterNumberData!.minimum) {
           setState(() {
-            isNotMinimumAmount = true;
+            _isNotMinimumAmount = true;
           });
         } else {
           setState(() {
-            isNotMinimumAmount = false;
+            _isNotMinimumAmount = false;
           });
         }
       } catch (e) {
@@ -94,36 +91,37 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
     final electricityState = ref.watch(electricityNotifierProvider);
     final billInfoState = ref.watch(electricityBillInfoNotifierProvider);
     final paymentState = ref.watch(electricityPaymentNotifierProvider);
-    final state = ref.read(electricityPaymentNotifierProvider);
-    final paymentResponse = state.singleData;
 
-    int totalAmount = 0;
+    int _totalAmount = 0;
     try {
-      totalAmount =
-          int.parse(amountController.text.replaceAll(',', '')) +
-          int.parse(serviceFee);
+      _totalAmount =
+          int.parse(_amountController.text.replaceAll(',', '')) +
+          int.parse(_serviceFee);
     } catch (e) {
-      totalAmount = 0;
+      _totalAmount = 0;
     }
 
     _onShareTransactionReceiptPressed() {
+      final paymentResponse =
+          ref.read(electricityPaymentNotifierProvider).singleData;
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (_) => ReceiptShareScreen(
                 date:
-                    '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 transactionDetailList: [
                   ShareableTransactionReceiptDetail(
                     label: 'Amount',
                     value: currencyFormatter(
-                      amountController.text..replaceAll(',', ''),
+                      _amountController.text..replaceAll(',', ''),
                     ),
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Fee',
-                    value: currencyFormatter(serviceFee),
+                    value: currencyFormatter(_serviceFee),
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Currency',
@@ -140,15 +138,17 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                   ShareableTransactionReceiptDetail(
                     label: 'Meter Details',
                     value:
-                        '${meterNumberController.text.trim()}\n${selectedMeterType?.categoryName}',
+                        '${_meterNumberController.text.trim()}\n${ref.read(electricitySelectedMeterTypeProvider)?.categoryName}',
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Customer Name',
-                    value: verifyMeterNumberData?.name ?? '',
+                    value: _verifyMeterNumberData?.name ?? '',
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Discos',
-                    value: selectedDisco?.planName ?? '',
+                    value:
+                        ref.read(electricitySelectedDiscoProvider)?.planName ??
+                        '',
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Transaction ID',
@@ -166,26 +166,31 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
     }
 
     bool _canProceed() {
-      return selectedDisco != null &&
-          selectedMeterType != null &&
-          meterNumberController.text.isNotEmpty &&
-          amountController.text.isNotEmpty &&
-          isMeterVerified &&
-          verifyMeterNumberData != null &&
-          !isNotMinimumAmount;
+      return ref.read(electricitySelectedDiscoProvider) != null &&
+          ref.read(electricitySelectedMeterTypeProvider) != null &&
+          _meterNumberController.text.isNotEmpty &&
+          _amountController.text.isNotEmpty &&
+          _isMeterVerified &&
+          _verifyMeterNumberData != null &&
+          !_isNotMinimumAmount;
     }
 
     void _verifyMeterNumber() async {
-      if (selectedMeterType == null || selectedDisco == null) return;
+      if (ref.read(electricitySelectedMeterTypeProvider) == null ||
+          ref.read(electricitySelectedDiscoProvider) == null)
+        return;
 
       setState(() {
-        hasError = false;
+        _hasError = false;
       });
 
+      final selectedMeterType = ref.read(electricitySelectedMeterTypeProvider)!;
+      final selectedDisco = ref.read(electricitySelectedDiscoProvider)!;
+
       final request = VerifyMeterNumberRequest(
-        itemCode: selectedMeterType!.itemCode,
-        billerCode: selectedDisco!.billerCode,
-        billerNumber: meterNumberController.text,
+        itemCode: selectedMeterType.itemCode,
+        billerCode: selectedDisco.billerCode,
+        billerNumber: _meterNumberController.text,
       );
 
       final response = await ref
@@ -199,119 +204,189 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
             response.data!.responseMessage.toLowerCase().contains('success');
         if (success) {
           setState(() {
-            isMeterVerified = true;
+            _isMeterVerified = true;
             // update service fee from API if provided
-            verifyMeterNumberData = response.data;
-            customerName = verifyMeterNumberData?.name ?? '';
+            _verifyMeterNumberData = response.data;
+            _customerName = _verifyMeterNumberData?.name ?? '';
             try {
               final feeInt = response.data!.fee.toInt();
-              serviceFee = feeInt.toString();
+              _serviceFee = feeInt.toString();
             } catch (_) {}
           });
           return;
         }
       } else {
         setState(() {
-          hasError = true;
-          isMeterVerified = false;
-          customerName = '';
+          _hasError = true;
+          _isMeterVerified = false;
+          _customerName = '';
         });
       }
+    }
+
+    void _showLoading() {
+      if (_loadingShown) return;
+      _loadingShown = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+      );
+    }
+
+    void _hideLoading() {
+      if (!_loadingShown) return;
+      _loadingShown = false;
+
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    }
+
+    void _navigateToReceipt() {
+      final paymentResponse =
+          ref.read(electricityPaymentNotifierProvider).singleData;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => TransactionReceiptWidget(
+                headerText: 'Transaction',
+                amount:
+                    '${int.parse(_amountController.text) + int.parse(_serviceFee)}',
+                topDetails: [
+                  TransactionDetail(
+                    label: 'Token',
+                    value: paymentResponse!.data.rechargeToken,
+                    showCopyIcon: true,
+                  ),
+                  TransactionDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(_amountController.text),
+                  ),
+                  TransactionDetail(
+                    label: 'Fee',
+                    value: currencyFormatter(_serviceFee),
+                  ),
+                  TransactionDetail(
+                    label: 'Total Debit',
+                    value: currencyFormatter(
+                      '${int.parse(_amountController.text) + int.parse(_serviceFee)}',
+                    ),
+                  ),
+                ],
+                bottomDetails: [
+                  TransactionDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    showCopyIcon: true,
+                  ),
+                  TransactionDetail(
+                    label: 'Meter Details',
+                    value:
+                        '${_meterNumberController.text} | ${ref.read(electricitySelectedMeterTypeProvider)?.categoryName}',
+                  ),
+                  TransactionDetail(
+                    label: 'Customer Name',
+                    value: _customerName,
+                  ),
+                  TransactionDetail(
+                    label: 'Disco',
+                    value:
+                        ref.read(electricitySelectedDiscoProvider)?.planName ??
+                        '',
+                  ),
+                  TransactionDetail(
+                    label: 'Payment Source',
+                    value: 'ValarPay Account',
+                  ),
+                  TransactionDetail(
+                    label: 'Date & Time',
+                    value:
+                        '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  ),
+                ],
+                onShareReceipt: _onShareTransactionReceiptPressed,
+              ),
+        ),
+      );
     }
 
     Future<void> _processPayment(String pin) async {
       if (!_canProceed()) return;
 
+      final selectedMeterType = ref.read(electricitySelectedMeterTypeProvider)!;
+      final selectedDisco = ref.read(electricitySelectedDiscoProvider)!;
+
       final request = ElectricityPaymentRequest(
         walletPin: pin,
-        itemCode: selectedMeterType!.itemCode,
-        billerCode: selectedDisco!.billerCode,
+        itemCode: selectedMeterType.itemCode,
+        billerCode: selectedDisco.billerCode,
         currency: 'NGN',
-        billerNumber: meterNumberController.text,
-        amount: double.parse(amountController.text.replaceAll(',', '')),
+        billerNumber: _meterNumberController.text,
+        amount: double.parse(_amountController.text.replaceAll(',', '')),
       );
 
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      _showLoading();
 
-      await ref
-          .read(electricityPaymentNotifierProvider.notifier)
-          .payElectricity(request);
+      try {
+        await ref
+            .read(electricityPaymentNotifierProvider.notifier)
+            .payElectricity(request);
 
-      Navigator.pop(context);
+        _hideLoading();
 
-      final state = ref.read(electricityPaymentNotifierProvider);
-      if (state.isDataAvailable && state.singleData != null) {
-        final paymentResponse = state.singleData;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => TransactionReceiptWidget(
-                  headerText: 'Transaction',
-                  amount:
-                      '${int.parse(amountController.text) + int.parse(serviceFee)}',
-                  topDetails: [
-                    TransactionDetail(
-                      label: 'Token',
-                      value: paymentResponse!.data.rechargeToken,
-                      showCopyIcon: true,
-                    ),
-                    TransactionDetail(
-                      label: 'Amount',
-                      value: currencyFormatter(amountController.text),
-                    ),
-                    TransactionDetail(
-                      label: 'Fee',
-                      value: currencyFormatter(serviceFee),
-                    ),
-                    TransactionDetail(
-                      label: 'Total Debit',
-                      value: currencyFormatter(
-                        '${int.parse(amountController.text) + int.parse(serviceFee)}',
-                      ),
-                    ),
-                  ],
-                  bottomDetails: [
-                    TransactionDetail(
-                      label: 'Transaction ID',
-                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                      showCopyIcon: true,
-                    ),
-                    TransactionDetail(
-                      label: 'Meter Details',
-                      value:
-                          '${meterNumberController.text} | ${selectedMeterType?.categoryName}',
-                    ),
-                    TransactionDetail(
-                      label: 'Customer Name',
-                      value: customerName,
-                    ),
-                    TransactionDetail(
-                      label: 'Disco',
-                      value: selectedDisco?.planName ?? '',
-                    ),
-                    TransactionDetail(
-                      label: 'Payment Source',
-                      value: 'ValarPay Account',
-                    ),
-                    TransactionDetail(
-                      label: 'Date & Time',
-                      value:
-                          '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                    ),
-                  ],
-                  onShareReceipt: _onShareTransactionReceiptPressed,
-                ),
-          ),
-        );
-      } else {
+        if (!mounted) return;
+
+        final state = ref.read(electricityPaymentNotifierProvider);
+
+        if (state.isDataAvailable && state.singleData != null) {
+          _navigateToReceipt();
+        } else {
+          final errorMessage =
+              state.message ?? 'Payment failed. Please try again.';
+
+          // Check if the error message indicates incorrect PIN
+          final isIncorrectPin =
+              errorMessage.toLowerCase().contains('incorrect pin') ||
+              errorMessage.toLowerCase().contains('wrong pin') ||
+              errorMessage.toLowerCase().contains('invalid pin') ||
+              errorMessage.toLowerCase().contains('pin is incorrect');
+
+          AppMessenger.show(
+            context,
+            message:
+                isIncorrectPin
+                    ? 'Incorrect PIN. Please try again.'
+                    : errorMessage,
+            type: MessageType.error,
+          );
+        }
+      } catch (e) {
+        _hideLoading();
+
+        if (!mounted) return;
+
+        final errorMessage = e.toString();
+
+        // Check if the exception message indicates incorrect PIN
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
+
         AppMessenger.show(
           context,
-          message: state.message ?? 'An error ocured please try again',
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : 'Payment failed: $errorMessage',
           type: MessageType.error,
         );
       }
@@ -328,14 +403,15 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         builder:
             (context) => DiscoSelectorModal(
               discos: electricityState.data!,
-              selectedDisco: selectedDisco,
+              selectedDisco: ref.read(electricitySelectedDiscoProvider),
               onDiscoSelected: (disco) {
+                ref.read(electricitySelectedDiscoProvider.notifier).state =
+                    disco;
+                ref.read(electricitySelectedMeterTypeProvider.notifier).state =
+                    null;
                 setState(() {
-                  selectedDisco = disco;
-                  selectedMeterType =
-                      null; // Reset meter type when disco changes
-                  isMeterVerified = false;
-                  customerName = '';
+                  _isMeterVerified = false;
+                  _customerName = '';
                 });
                 // Load bill info for selected disco
                 ref
@@ -356,15 +432,16 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
         builder:
             (context) => MeterTypeModal(
               meterTypes: billInfoState.data!,
-              selectedType: selectedMeterType,
+              selectedType: ref.read(electricitySelectedMeterTypeProvider),
               onTypeSelected: (type) {
+                ref.read(electricitySelectedMeterTypeProvider.notifier).state =
+                    type;
                 setState(() {
-                  selectedMeterType = type;
-                  isMeterVerified = false;
-                  customerName = '';
+                  _isMeterVerified = false;
+                  _customerName = '';
                 });
                 // Verify meter number if already entered
-                if (meterNumberController.text.length >= 10) {
+                if (_meterNumberController.text.length >= 10) {
                   _verifyMeterNumber();
                 }
               },
@@ -372,32 +449,29 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       );
     }
 
-    _handlePinEntry() async {
+    _handlePin({bool biometric = false}) async {
+      final user = ref.read(userProvider);
       final hasEnoughBalance = checkBalanceLeft(
         context,
         user?.wallets.first.balance.toString() ?? '0',
-        totalAmount.toString(),
+        _totalAmount.toString(),
       );
 
       if (!hasEnoughBalance) return;
-      final pin = await TransactionPinModal.show(context);
-      if (pin != null && pin.length == 4 && mounted) {
-        await _processPayment(pin);
-      }
-    }
 
-    _handleBiometricPinEntry() async {
-      final hasEnoughBalance = checkBalanceLeft(
-        context,
-        user?.wallets.first.balance.toString() ?? '0',
-        totalAmount.toString(),
-      );
+      final pin =
+          biometric
+              ? await BiometricTransactionPinModal.show(context)
+              : await TransactionPinModal.show(context);
 
-      if (!hasEnoughBalance) return;
-      final pin = await BiometricTransactionPinModal.show(context);
-      if (pin != null && pin.length == 4 && mounted) {
-        await _processPayment(pin);
-      }
+      if (pin == null || pin.length != 4 || !mounted) return;
+
+      // ✅ Close the transaction details screen FIRST
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // ✅ THEN process payment
+      await _processPayment(pin);
     }
 
     return Scaffold(
@@ -469,11 +543,19 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              selectedDisco?.planName ?? 'Select Disco',
+                              ref
+                                      .watch(electricitySelectedDiscoProvider)
+                                      ?.planName ??
+                                  'Select Disco',
                               style: TextStyle(
                                 fontSize: 16,
                                 color:
-                                    selectedDisco == null ? Colors.grey : null,
+                                    ref.watch(
+                                              electricitySelectedDiscoProvider,
+                                            ) ==
+                                            null
+                                        ? Colors.grey
+                                        : null,
                               ),
                             ),
                             electricityState.isInitialLoading
@@ -525,11 +607,19 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              selectedMeterType?.name ?? 'Select Meter Type',
+                              ref
+                                      .watch(
+                                        electricitySelectedMeterTypeProvider,
+                                      )
+                                      ?.name ??
+                                  'Select Meter Type',
                               style: TextStyle(
                                 fontSize: 16,
                                 color:
-                                    selectedMeterType == null
+                                    ref.watch(
+                                              electricitySelectedMeterTypeProvider,
+                                            ) ==
+                                            null
                                         ? Colors.grey
                                         : null,
                               ),
@@ -566,20 +656,24 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                     ),
                     const SizedBox(height: 8),
                     ReuseableTextFieldWithCountry(
-                      controller: meterNumberController,
+                      controller: _meterNumberController,
                       hintText: 'Enter Meter Number',
                       isReadOnly:
-                          selectedDisco == null || selectedMeterType == null,
+                          ref.watch(electricitySelectedDiscoProvider) == null ||
+                          ref.watch(electricitySelectedMeterTypeProvider) ==
+                              null,
                       textInputType: TextInputType.number,
                       showCountryLabel: false,
                       onChanged: (value) {
-                        if (value.length >= 10 && selectedMeterType != null) {
+                        if (value.length >= 10 &&
+                            ref.read(electricitySelectedMeterTypeProvider) !=
+                                null) {
                           _verifyMeterNumber();
                         } else {
                           setState(() {
-                            isMeterVerified = false;
-                            customerName = '';
-                            hasError = false;
+                            _isMeterVerified = false;
+                            _customerName = '';
+                            _hasError = false;
                           });
                         }
                       },
@@ -587,23 +681,23 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                     const SizedBox(height: 24),
 
                     // Meter verification status
-                    if (meterNumberController.text.isNotEmpty &&
-                        selectedMeterType != null)
+                    if (_meterNumberController.text.isNotEmpty &&
+                        ref.watch(electricitySelectedMeterTypeProvider) != null)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color:
-                              isMeterVerified
+                              _isMeterVerified
                                   ? Colors.green.withOpacity(0.1)
-                                  : hasError
+                                  : _hasError
                                   ? Colors.red.withOpacity(0.1)
                                   : Colors.orange.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color:
-                                isMeterVerified
+                                _isMeterVerified
                                     ? Colors.green
-                                    : hasError
+                                    : _hasError
                                     ? Colors.red
                                     : Colors.orange,
                             width: 1,
@@ -612,11 +706,13 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              isMeterVerified ? Icons.check_circle : Icons.info,
+                              _isMeterVerified
+                                  ? Icons.check_circle
+                                  : Icons.info,
                               color:
-                                  isMeterVerified
+                                  _isMeterVerified
                                       ? Colors.green
-                                      : hasError
+                                      : _hasError
                                       ? Colors.red
                                       : Colors.orange,
                               size: 20,
@@ -624,19 +720,19 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                isMeterVerified
-                                    ? 'Account Name: $customerName \nMinimum: ${currencyFormatter(verifyMeterNumberData?.minimum.toString() ?? '')} \nAddress: ${verifyMeterNumberData?.address}'
+                                _isMeterVerified
+                                    ? 'Account Name: $_customerName \nMinimum: ${currencyFormatter(_verifyMeterNumberData?.minimum.toString() ?? '')} \nAddress: ${_verifyMeterNumberData?.address}'
                                     : paymentState.isInitialLoading
                                     ? 'Verifying meter number...'
-                                    : hasError
+                                    : _hasError
                                     ? paymentState.message ??
                                         'Error verifying meter number'
                                     : 'Enter valid meter number to verify',
                                 style: TextStyle(
                                   color:
-                                      isMeterVerified
+                                      _isMeterVerified
                                           ? Colors.green
-                                          : hasError
+                                          : _hasError
                                           ? Colors.red
                                           : Colors.orange,
                                   fontSize: 14,
@@ -659,13 +755,13 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                     ),
                     const SizedBox(height: 8),
                     ReuseableAmountTextfield(
-                      amountController: amountController,
+                      amountController: _amountController,
                       prefixText: '₦',
-                      isReadOnly: verifyMeterNumberData == null,
+                      isReadOnly: _verifyMeterNumberData == null,
                       hintText: '10,000',
                     ),
-                    if (isNotMinimumAmount) SizedBox(height: 12),
-                    if (isNotMinimumAmount)
+                    if (_isNotMinimumAmount) SizedBox(height: 12),
+                    if (_isNotMinimumAmount)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -679,7 +775,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Please enter a value greater or equal to ${currencyFormatter(verifyMeterNumberData!.minimum.toString())}',
+                                'Please enter a value greater or equal to ${currencyFormatter(_verifyMeterNumberData!.minimum.toString())}',
                                 style: TextStyle(
                                   color: Colors.red,
                                   fontSize: 14,
@@ -702,64 +798,75 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (context) =>
-                                      ReuseableTransactionDetailsScreen(
-                                        saveBeneficiary: saveBeneficiary,
-                                        onSaveBeneficiaryChanged: (value) {
-                                          setState(() {
-                                            saveBeneficiary = value;
-                                          });
-                                        },
-                                        hasBottom: false,
-                                        topTitleText: 'Transaction',
-                                        topTransactionsDetailsList: [
-                                          buildDetailRow(
-                                            'Meter Number',
-                                            meterNumberController.text,
-                                            isDark,
-                                          ),
-                                          buildDetailRow(
-                                            'Disco',
-                                            selectedDisco?.planName ?? '',
-                                            isDark,
-                                          ),
-                                          buildDetailRow(
-                                            'Meter Type',
-                                            selectedMeterType?.categoryName ??
-                                                '',
-                                            isDark,
-                                          ),
-                                          buildDetailRow(
-                                            'Customer Name',
-                                            customerName,
-                                            isDark,
-                                          ),
-                                          buildDetailRow(
-                                            'Amount',
-                                            currencyFormatter(
-                                              amountController.text
-                                                ..replaceAll(',', ''),
-                                            ),
-                                            isDark,
-                                          ),
-                                          buildDetailRow(
-                                            'Fee',
-                                            currencyFormatter(serviceFee),
-                                            isDark,
-                                          ),
-                                          buildDetailRow(
-                                            'Total Amount',
-                                            currencyFormatter(
-                                              totalAmount.toString(),
-                                            ),
-                                            isDark,
-                                            isTotal: true,
-                                          ),
-                                        ],
-                                        onButtonPressed: _handlePinEntry,
-                                        onBiometricButtonPressed:
-                                            _handleBiometricPinEntry,
+                                  (
+                                    context,
+                                  ) => ReuseableTransactionDetailsScreen(
+                                    totalAmount: double.parse(_totalAmount.toString()),
+                                    saveBeneficiary: _saveBeneficiary,
+                                    onSaveBeneficiaryChanged: (value) {
+                                      setState(() {
+                                        _saveBeneficiary = value;
+                                      });
+                                    },
+                                    hasBottom: false,
+                                    topTitleText: 'Transaction',
+                                    topTransactionsDetailsList: [
+                                      buildDetailRow(
+                                        'Meter Number',
+                                        _meterNumberController.text,
+                                        isDark,
                                       ),
+                                      buildDetailRow(
+                                        'Disco',
+                                        ref
+                                                .read(
+                                                  electricitySelectedDiscoProvider,
+                                                )
+                                                ?.planName ??
+                                            '',
+                                        isDark,
+                                      ),
+                                      buildDetailRow(
+                                        'Meter Type',
+                                        ref
+                                                .read(
+                                                  electricitySelectedMeterTypeProvider,
+                                                )
+                                                ?.categoryName ??
+                                            '',
+                                        isDark,
+                                      ),
+                                      buildDetailRow(
+                                        'Customer Name',
+                                        _customerName,
+                                        isDark,
+                                      ),
+                                      buildDetailRow(
+                                        'Amount',
+                                        currencyFormatter(
+                                          _amountController.text
+                                            ..replaceAll(',', ''),
+                                        ),
+                                        isDark,
+                                      ),
+                                      buildDetailRow(
+                                        'Fee',
+                                        currencyFormatter(_serviceFee),
+                                        isDark,
+                                      ),
+                                      buildDetailRow(
+                                        'Total Amount',
+                                        currencyFormatter(
+                                          _totalAmount.toString(),
+                                        ),
+                                        isDark,
+                                        isTotal: true,
+                                      ),
+                                    ],
+                                    onButtonPressed: () => _handlePin(),
+                                    onBiometricButtonPressed:
+                                        () => _handlePin(biometric: true),
+                                  ),
                             ),
                           );
                         }

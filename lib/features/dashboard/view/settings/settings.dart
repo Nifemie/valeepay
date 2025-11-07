@@ -96,45 +96,44 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   ///  Logout confirmation dialog
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Are you sure you want to logout?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  // Clear user state from Riverpod (this also invalidates service providers)
-                  await ref.read(userProvider.notifier).clearUser();
-                  AppMessenger.show(
-                    context,
-                    message: 'You have been logged out successfully',
-                    type: MessageType.success,
-                  );
-                  if (context.mounted) {
-                    String? username = await SessionService.getUsername();
-                    if (username != null) {
-                      context.push('/biometric-login');
-                    } else {
-                      context.go('/signin');
-                    }
-                  }
-                },
-                child: const Text('Logout'),
-              ),
-            ],
-          ),
-    );
-  }
+ void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  final parentContext = context; // store router context
+
+  showDialog(
+    context: context,
+    builder: (dialogCtx) => AlertDialog(
+      title: const Text('Logout'),
+      content: const Text('Are you sure you want to logout?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogCtx).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            Navigator.of(dialogCtx).pop();
+
+            await ref.read(userProvider.notifier).clearUser();
+
+            AppMessenger.show(
+              parentContext,
+              message: 'You have been logged out successfully',
+              type: MessageType.success,
+            );
+
+            if (parentContext.mounted) {
+              final username = await SessionService.getUsername();
+              if (username != null) {
+                parentContext.push('/biometric-login');
+              } else {
+                parentContext.go('/signin');
+              }
+            }
+          },
+          child: const Text('Logout'),
+        ),
+      ],
+    ),
+  );
+}
 }

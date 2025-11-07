@@ -162,6 +162,7 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
                     MaterialPageRoute(
                       builder:
                           (context) => ReuseableTransactionDetailsScreen(
+                            totalAmount: double.parse(amountController.text),
                             saveBeneficiary: saveBeneficiary,
                             onSaveBeneficiaryChanged: (value) {
                               setState(() {

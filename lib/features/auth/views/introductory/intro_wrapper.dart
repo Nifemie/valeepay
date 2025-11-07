@@ -121,9 +121,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       style: Theme.of(
                         context,
                       ).textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
 
@@ -224,17 +224,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     const SizedBox(height: 20),
 
                     // Get Help
-                    TextButton(
-                      onPressed: () {
-                        // Handle help
-                      },
-                      child: const Text(
-                        'Get Help',
-                        style: TextStyle(fontSize: 14, color: Colors.white),
-                      ),
-                    ),
+                    // TextButton(
+                    //   onPressed: () {
+                    //     // Handle help
+                    //   },
+                    //   child: const Text(
+                    //     'Get Help',
+                    //     style: TextStyle(fontSize: 14, color: Colors.white),
+                    //   ),
+                    // ),
 
-                    const SizedBox(height: 20),
+                    // const SizedBox(height: 20),
                   ],
                 ),
               ),

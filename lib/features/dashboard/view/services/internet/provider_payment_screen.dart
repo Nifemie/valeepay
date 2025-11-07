@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
@@ -12,7 +13,6 @@ import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
-import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/notifiers/internet_notifier.dart';
 import 'package:valarpay/features/models/internet_models.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/cabletv_widgets/provider_selector_modal.dart';
@@ -31,24 +31,26 @@ class InternetProviderPaymentScreen extends ConsumerStatefulWidget {
 
 class _InternetProviderPaymentScreenState
     extends ConsumerState<InternetProviderPaymentScreen> {
-  String selectedProvider = '';
-  final TextEditingController accountController = TextEditingController();
-  String selectedPlan = '';
-  final TextEditingController amountController = TextEditingController(
+  final TextEditingController _accountController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController(
     text: '0',
   );
-  String serviceFee = '0';
-  bool saveBeneficiary = false;
+
+  String _selectedProvider = '';
+  String _selectedPlan = '';
+  String _serviceFee = '0';
+  bool _saveBeneficiary = false;
+  bool _loadingShown = false;
 
   @override
   void initState() {
     super.initState();
-    selectedProvider = widget.providerName;
+    _selectedProvider = widget.providerName;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final plans = ref.read(internetPlansNotifierProvider).data;
       if (plans != null && plans.isNotEmpty) {
         final match = plans.firstWhere(
-          (p) => p.planName == selectedProvider,
+          (p) => p.planName == _selectedProvider,
           orElse: () => plans.first,
         );
         ref
@@ -60,8 +62,8 @@ class _InternetProviderPaymentScreenState
 
   @override
   void dispose() {
-    accountController.dispose();
-    amountController.dispose();
+    _accountController.dispose();
+    _amountController.dispose();
     super.dispose();
   }
 
@@ -79,12 +81,12 @@ class _InternetProviderPaymentScreenState
           builder:
               (_) => ReceiptShareScreen(
                 date:
-                    '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 transactionDetailList: [
                   ShareableTransactionReceiptDetail(
                     label: 'Amount',
                     value: currencyFormatter(
-                      amountController.text..replaceAll(',', ''),
+                      _amountController.text..replaceAll(',', ''),
                     ),
                   ),
                   ShareableTransactionReceiptDetail(
@@ -96,12 +98,12 @@ class _InternetProviderPaymentScreenState
                     value: 'Internet',
                   ),
                   ShareableTransactionReceiptDetail(
-                    label: 'Beneficiay Number',
-                    value: accountController.text.trim(),
+                    label: 'Beneficiary Number',
+                    value: _accountController.text.trim(),
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Provider',
-                    value: selectedProvider,
+                    value: _selectedProvider,
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Transaction ID',
@@ -118,135 +120,87 @@ class _InternetProviderPaymentScreenState
       );
     }
 
-    _handlePinEntry() async {
-      final totalAmount =
-          int.parse(amountController.text) + int.parse(serviceFee);
-      final user = ref.read(userProvider);
-      final hasEnoughBalance = checkBalanceLeft(
-        context,
-        user?.wallets.first.balance.toString() ?? '0',
-        totalAmount.toString(),
-      );
-      if (!hasEnoughBalance) return;
-      final pin = await TransactionPinModal.show(context);
-      if (pin == null || pin.length != 4) return;
-
-      final variations = ref.read(internetVariationNotifierProvider).data;
-      if (variations == null || variations.isEmpty) {
-        AppMessenger.show(
-          context,
-          message: 'Plan not available',
-          type: MessageType.error,
-        );
-
-        return;
-      }
-
+    void _showLoading() {
+      if (_loadingShown) return;
+      _loadingShown = true;
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
-      final selectedVar = variations.firstWhere(
-        (v) => v.name == selectedPlan,
-        orElse: () => variations.first,
-      );
-
-      try {
-        await ref
-            .read(internetPaymentNotifierProvider.notifier)
-            .payInternet(
-              InternetPayRequest(
-                walletPin: pin,
-                itemCode: selectedVar.itemCode,
-                billerCode: selectedVar.billerCode,
-                currency: 'NGN',
-                amount: selectedVar.payAmount ?? selectedVar.amount,
-                billerNumber: accountController.text,
-              ),
-            );
-        final state = ref.read(internetPaymentNotifierProvider);
-
-        if (state.isDataAvailable &&
-            state.data != null &&
-            state.data!.isNotEmpty &&
-            mounted) {
-          Navigator.pop(context); // Close the loading dialog
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => TransactionReceiptWidget(
-                    headerText: 'Transaction',
-                    amount:
-                        (selectedVar.payAmount ?? selectedVar.amount)
-                            .toString(),
-                    topDetails: [
-                      TransactionDetail(label: 'Plan', value: selectedPlan),
-                      TransactionDetail(
-                        label: 'Provider',
-                        value: selectedProvider,
-                      ),
-                      TransactionDetail(
-                        label: 'Amount',
-                        value: currencyFormatter(amountController.text),
-                      ),
-                    ],
-                    bottomDetails: [
-                      TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true,
-                      ),
-                      TransactionDetail(
-                        label: 'Account Number',
-                        value: accountController.text,
-                      ),
-                      TransactionDetail(
-                        label: 'Payment Source',
-                        value: 'ValarPay Account',
-                      ),
-                      TransactionDetail(
-                        label: 'Date & Time',
-                        value:
-                            '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                      ),
-                    ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
-                  ),
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: const Center(child: CircularProgressIndicator()),
             ),
-          );
-        } else {
-          Navigator.pop(context); // Close the dialog
-          AppMessenger.show(
-            context,
-            message: state.message ?? 'Payment failed',
-            type: MessageType.error,
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          AppMessenger.show(
-            context,
-            message: e.toString(),
-            type: MessageType.error,
-          );
-        }
+      );
+    }
+
+    void _hideLoading() {
+      if (!_loadingShown) return;
+      _loadingShown = false;
+
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context, rootNavigator: true).pop();
       }
     }
 
-    _handleBiometricPinEntry() async {
-      final totalAmount =
-          int.parse(amountController.text) + int.parse(serviceFee);
-      final user = ref.read(userProvider);
-      final hasEnoughBalance = checkBalanceLeft(
-        context,
-        user?.wallets.first.balance.toString() ?? '0',
-        totalAmount.toString(),
+    void _navigateToReceipt() {
+      final variations = ref.read(internetVariationNotifierProvider).data;
+      if (variations == null || variations.isEmpty) return;
+
+      final selectedVar = variations.firstWhere(
+        (v) => v.name == _selectedPlan,
+        orElse: () => variations.first,
       );
-      if (!hasEnoughBalance) return;
-      final pin = await BiometricTransactionPinModal.show(context);
-      if (pin == null || pin.length != 4) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => TransactionReceiptWidget(
+                headerText: 'Transaction',
+                amount:
+                    (selectedVar.payAmount ?? selectedVar.amount).toString(),
+                topDetails: [
+                  TransactionDetail(label: 'Plan', value: _selectedPlan),
+                  TransactionDetail(
+                    label: 'Provider',
+                    value: _selectedProvider,
+                  ),
+                  TransactionDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(_amountController.text),
+                  ),
+                ],
+                bottomDetails: [
+                  TransactionDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    showCopyIcon: true,
+                  ),
+                  TransactionDetail(
+                    label: 'Account Number',
+                    value: _accountController.text,
+                  ),
+                  TransactionDetail(
+                    label: 'Payment Source',
+                    value: 'ValarPay Account',
+                  ),
+                  TransactionDetail(
+                    label: 'Date & Time',
+                    value:
+                        '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  ),
+                ],
+                onShareReceipt: _onShareTransactionReceiptPressed,
+              ),
+        ),
+      );
+    }
+
+    Future<void> _processPayment(String pin) async {
+      if (_accountController.text.isEmpty || _selectedPlan.isEmpty) {
+        return;
+      }
 
       final variations = ref.read(internetVariationNotifierProvider).data;
       if (variations == null || variations.isEmpty) {
@@ -255,19 +209,15 @@ class _InternetProviderPaymentScreenState
           message: 'Plan not available',
           type: MessageType.error,
         );
-
         return;
       }
 
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
       final selectedVar = variations.firstWhere(
-        (v) => v.name == selectedPlan,
+        (v) => v.name == _selectedPlan,
         orElse: () => variations.first,
       );
+
+      _showLoading();
 
       try {
         await ref
@@ -279,77 +229,86 @@ class _InternetProviderPaymentScreenState
                 billerCode: selectedVar.billerCode,
                 currency: 'NGN',
                 amount: selectedVar.payAmount ?? selectedVar.amount,
-                billerNumber: accountController.text,
+                billerNumber: _accountController.text,
               ),
             );
+
+        _hideLoading();
+
+        if (!mounted) return;
+
         final state = ref.read(internetPaymentNotifierProvider);
 
         if (state.isDataAvailable &&
             state.data != null &&
-            state.data!.isNotEmpty &&
-            mounted) {
-          Navigator.pop(context); // Close the loading dialog
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => TransactionReceiptWidget(
-                    headerText: 'Transaction',
-                    amount:
-                        (selectedVar.payAmount ?? selectedVar.amount)
-                            .toString(),
-                    topDetails: [
-                      TransactionDetail(label: 'Plan', value: selectedPlan),
-                      TransactionDetail(
-                        label: 'Provider',
-                        value: selectedProvider,
-                      ),
-                      TransactionDetail(
-                        label: 'Amount',
-                        value: currencyFormatter(amountController.text),
-                      ),
-                    ],
-                    bottomDetails: [
-                      TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true,
-                      ),
-                      TransactionDetail(
-                        label: 'Account Number',
-                        value: accountController.text,
-                      ),
-                      TransactionDetail(
-                        label: 'Payment Source',
-                        value: 'ValarPay Account',
-                      ),
-                      TransactionDetail(
-                        label: 'Date & Time',
-                        value:
-                            '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                      ),
-                    ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
-                  ),
-            ),
-          );
+            state.data!.isNotEmpty) {
+          _navigateToReceipt();
         } else {
-          Navigator.pop(context); // Close the dialog
+          final errorMessage =
+              state.message ?? 'Payment failed. Please try again.';
+
+          final isIncorrectPin =
+              errorMessage.toLowerCase().contains('incorrect pin') ||
+              errorMessage.toLowerCase().contains('wrong pin') ||
+              errorMessage.toLowerCase().contains('invalid pin') ||
+              errorMessage.toLowerCase().contains('pin is incorrect');
+
           AppMessenger.show(
             context,
-            message: state.message ?? 'Payment failed',
+            message:
+                isIncorrectPin
+                    ? 'Incorrect PIN. Please try again.'
+                    : errorMessage,
             type: MessageType.error,
           );
         }
       } catch (e) {
-        if (mounted) {
-          AppMessenger.show(
-            context,
-            message: e.toString(),
-            type: MessageType.error,
-          );
-        }
+        _hideLoading();
+
+        if (!mounted) return;
+
+        final errorMessage = e.toString();
+
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
+
+        AppMessenger.show(
+          context,
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : 'Payment failed: $errorMessage',
+          type: MessageType.error,
+        );
       }
+    }
+
+    _handlePin({bool biometric = false}) async {
+      final totalAmount =
+          int.parse(_amountController.text) + int.parse(_serviceFee);
+      final user = ref.read(userProvider);
+      final hasEnoughBalance = checkBalanceLeft(
+        context,
+        user?.wallets.first.balance.toString() ?? '0',
+        totalAmount.toString(),
+      );
+
+      if (!hasEnoughBalance) return;
+
+      final pin =
+          biometric
+              ? await BiometricTransactionPinModal.show(context)
+              : await TransactionPinModal.show(context);
+
+      if (pin == null || pin.length != 4 || !mounted) return;
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      await _processPayment(pin);
     }
 
     return Scaffold(
@@ -396,7 +355,7 @@ class _InternetProviderPaymentScreenState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(selectedProvider),
+                    Text(_selectedProvider),
                     Icon(
                       Icons.keyboard_arrow_down,
                       color: isDark ? Colors.white70 : Colors.grey[600],
@@ -415,7 +374,7 @@ class _InternetProviderPaymentScreenState
             ),
             const SizedBox(height: 8),
             ReuseableTextFieldWithCountry(
-              controller: accountController,
+              controller: _accountController,
               hintText: 'Account/Subscriber Number',
               isReadOnly: false,
               textInputType: TextInputType.number,
@@ -444,7 +403,7 @@ class _InternetProviderPaymentScreenState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(selectedPlan.isEmpty ? 'Select Plan' : selectedPlan),
+                    Text(_selectedPlan.isEmpty ? 'Select Plan' : _selectedPlan),
                     variationsState.isInitialLoading
                         ? SizedBox(
                           width: 20,
@@ -461,14 +420,14 @@ class _InternetProviderPaymentScreenState
             ),
             const SizedBox(height: 24),
             CurrentRateWidget(
-              price: amountController.text.trim(),
+              price: _amountController.text.trim(),
               text: 'Current Rate',
             ),
             const SizedBox(height: 60),
             FullWidthButton(
               text: 'Continue',
               onPressed: () {
-                if (accountController.text.isEmpty || selectedPlan.isEmpty) {
+                if (_accountController.text.isEmpty || _selectedPlan.isEmpty) {
                   return;
                 }
                 Navigator.push(
@@ -476,47 +435,50 @@ class _InternetProviderPaymentScreenState
                   MaterialPageRoute(
                     builder:
                         (context) => ReuseableTransactionDetailsScreen(
+                          totalAmount: double.parse((int.parse(_amountController.text) + int.parse(_serviceFee)).toString()),
                           hasBottom: false,
-                          saveBeneficiary: saveBeneficiary,
+                          saveBeneficiary: _saveBeneficiary,
                           onSaveBeneficiaryChanged: (value) {
                             setState(() {
-                              saveBeneficiary = value;
+                              _saveBeneficiary = value;
                             });
                           },
                           topTitleText: 'Transaction',
                           topTransactionsDetailsList: [
                             buildDetailRow(
                               'Account',
-                              accountController.text,
+                              _accountController.text,
                               isDark,
                             ),
                             buildDetailRow(
                               'Provider',
-                              selectedProvider,
+                              _selectedProvider,
                               isDark,
                             ),
-                            buildDetailRow('Package', selectedPlan, isDark),
+                            buildDetailRow('Package', _selectedPlan, isDark),
                             buildDetailRow(
                               'Amount',
-                              currencyFormatter(amountController.text),
+                              currencyFormatter(_amountController.text),
                               isDark,
                             ),
                             buildDetailRow(
                               'Fee',
-                              currencyFormatter(serviceFee),
+                              currencyFormatter(_serviceFee),
                               isDark,
                             ),
                             buildDetailRow(
                               'Total Amount',
                               currencyFormatter(
-                                '${int.parse(amountController.text) + int.parse(serviceFee)}',
+                                '${int.parse(_amountController.text) + int.parse(_serviceFee)}',
                               ),
                               isDark,
                               isTotal: true,
                             ),
                           ],
-                          onButtonPressed: _handlePinEntry,
-                          onBiometricButtonPressed: _handleBiometricPinEntry,
+                          onButtonPressed: () => _handlePin(),
+                          onBiometricButtonPressed:
+                              () => _handlePin(biometric: true),
+                          onAutomaticallyShowBiometric:  () => _handlePin(biometric: true),
                         ),
                   ),
                 );
@@ -536,11 +498,11 @@ class _InternetProviderPaymentScreenState
       backgroundColor: Colors.transparent,
       builder:
           (context) => CableTvProviderSelectorModal(
-            selectedProvider: selectedProvider,
+            selectedProvider: _selectedProvider,
             providers: providers,
             onProviderSelected: (provider) {
               setState(() {
-                selectedProvider = provider;
+                _selectedProvider = provider;
                 widget.providerName = provider;
               });
               final match = plans.firstWhere(
@@ -561,11 +523,11 @@ class _InternetProviderPaymentScreenState
       backgroundColor: Colors.transparent,
       builder:
           (context) => CableTvPlanSelectorModal(
-            selectedPlan: selectedPlan,
+            selectedPlan: _selectedPlan,
             plans: planNames,
             onPlanSelected: (plan) {
               setState(() {
-                selectedPlan = plan;
+                _selectedPlan = plan;
                 final variations =
                     ref.read(internetVariationNotifierProvider).data;
                 if (variations != null && variations.isNotEmpty) {
@@ -573,7 +535,7 @@ class _InternetProviderPaymentScreenState
                     (v) => v.name == plan,
                     orElse: () => variations.first,
                   );
-                  amountController.text = (selectedVar.payAmount ??
+                  _amountController.text = (selectedVar.payAmount ??
                           selectedVar.amount)
                       .toStringAsFixed(0);
                 }

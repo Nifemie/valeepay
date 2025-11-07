@@ -15,10 +15,11 @@ import 'package:valarpay/core/widgets/reuseable_amount_textfield.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
-import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
+
+import '../../../../../core/utils/logger.dart';
 
 class InternalTransferAmountScreen extends ConsumerStatefulWidget {
   final AccountDetails accountDetails;
@@ -31,55 +32,81 @@ class InternalTransferAmountScreen extends ConsumerStatefulWidget {
 
 class _InternalTransferAmountScreenState
     extends ConsumerState<InternalTransferAmountScreen> {
-  final NumberFormat formatter = NumberFormat('#,###');
+  final NumberFormat _formatter = NumberFormat('#,###');
 
-  TextEditingController amountController = TextEditingController();
-  TextEditingController narrationController = TextEditingController();
-  bool isNotMinimumAmount = false;
-  bool saveBeneficiary = false;
+  TextEditingController _amountController = TextEditingController();
+  TextEditingController _narrationController = TextEditingController();
+  bool _isNotMinimumAmount = false;
+  bool _saveBeneficiary = false;
+  bool _loadingShown = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    amountController.addListener(() {
-      final text = amountController.text.replaceAll(',', '');
+    _amountController.addListener(() {
+      final text = _amountController.text.replaceAll(',', '');
       if (text.isEmpty) return;
 
       // Prevent recursive updates
-      final newText = formatter.format(int.parse(text));
-      if (newText != amountController.text) {
+      final newText = _formatter.format(int.parse(text));
+      if (newText != _amountController.text) {
         final cursorPos = newText.length;
-        amountController.value = TextEditingValue(
+        _amountController.value = TextEditingValue(
           text: newText,
           selection: TextSelection.collapsed(offset: cursorPos),
         );
       }
       if (int.parse(text) < 50) {
         setState(() {
-          isNotMinimumAmount = true;
+          _isNotMinimumAmount = true;
         });
       } else {
         setState(() {
-          isNotMinimumAmount = false;
+          _isNotMinimumAmount = false;
         });
       }
     });
   }
 
-  void _initiateTransfer(String pin, double amount) async {
-    Navigator.pop(context); // Close pin modal
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _narrationController.dispose();
+    super.dispose();
+  }
 
-    // Show loading
+  void _showLoading() {
+    if (_loadingShown) return;
+    _loadingShown = true;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder:
+          (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
     );
+  }
+
+  void _hideLoading() {
+    if (!_loadingShown) return;
+    _loadingShown = false;
+
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  void _initiateTransfer(String pin, double amount) async {
+    Navigator.pop(context); // Close pin modal
+
+    _showLoading();
 
     try {
-      print('🔐 Initiating ValarPay transfer with PIN...');
-      print(
+      AppLogger.log('🔐 Initiating ValarPay transfer with PIN...');
+      AppLogger.log(
         '📤 Transfer details - Account: ${widget.accountDetails.accountNumber}, Amount: $amount',
       );
 
@@ -92,97 +119,106 @@ class _InternalTransferAmountScreenState
             accountNumber: widget.accountDetails.accountNumber,
             amount: amount,
             currency: 'NGN',
-            description: narrationController.text.trim(),
+            description: _narrationController.text.trim(),
             pin: pin,
-            saveBeneficiary: true,
+            saveBeneficiary: _saveBeneficiary,
             sessionId: widget.accountDetails.sessionId,
           );
 
-      Navigator.pop(context); // Close loading
+      _hideLoading();
 
-      print('✅ ValarPay transfer completed successfully');
+      if (!mounted) return;
+
+      final state = ref.read(transferNotifierProvider);
+
+      if (state.isDataAvailable) {
+        Navigator.pop(context);
+      } else {
+        // Check if the error message indicates incorrect PIN
+        final errorMessage =
+            state.message ?? 'Transaction failed. Please try again.';
+
+        // Common patterns for incorrect PIN errors
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
+
+        AppMessenger.show(
+          context,
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : errorMessage,
+          type: MessageType.error,
+        );
+      }
     } catch (e) {
-      Navigator.pop(context); // Close loading
-      print('❌ ValarPay transfer error: $e');
+      _hideLoading();
+
+      if (!mounted) return;
+
+      // Check if the exception message indicates incorrect PIN
+      final errorMessage = e.toString();
+      final isIncorrectPin =
+          errorMessage.toLowerCase().contains('incorrect pin') ||
+          errorMessage.toLowerCase().contains('wrong pin') ||
+          errorMessage.toLowerCase().contains('invalid pin') ||
+          errorMessage.toLowerCase().contains('pin is incorrect');
+
       AppMessenger.show(
         context,
-        message: 'Transfer failed: ${e.toString()}',
+        message:
+            isIncorrectPin
+                ? 'Incorrect PIN. Please try again.'
+                : 'An unexpected error occurred: $errorMessage',
         type: MessageType.error,
       );
     }
   }
 
-  _handlePinEntry() async {
-    final amount =
-        double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
-    print('🔘 ValarPay transfer button pressed, amount: $amount');
-    final pin = await TransactionPinModal.show(context);
-    print(
-      '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-    );
+  _handlePinEntry({bool biometric = false}) async {
+     final amount =
+        double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;
+    final user = ref.watch(userProvider);
+      final wallet =
+          user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+      final balance = wallet?.balance ?? 0.0;
+      final hasEnoughBalance = checkBalanceLeft(
+        context,
+        balance.toString(),
+        amount.toString()
+      );
+
+      if (!hasEnoughBalance) return;
+    final pin = biometric ? await BiometricTransactionPinModal.show(context) : await TransactionPinModal.show(context);
 
     if (pin != null && pin.length == 4) {
       // Ensure PIN is a string
       final pinString = pin.toString();
-      print(
-        '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}',
-      );
-
+      Navigator.pop(context);
       if (mounted) {
-        print('✅ PIN valid, calling _initiateTransfer');
         _initiateTransfer(pinString, amount);
       }
     } else {
-      print('❌ PIN invalid or cancelled');
-    }
-  }
-
-  _handleBiometricPinEntry() async {
-    final amount =
-        double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
-    print('🔘 ValarPay transfer button pressed, amount: $amount');
-    final pin = await BiometricTransactionPinModal.show(context);
-    print(
-      '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-    );
-
-    if (pin != null && pin.length == 4) {
-      // Ensure PIN is a string
-      final pinString = pin.toString();
-      print(
-        '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}',
-      );
-
-      if (mounted) {
-        print('✅ PIN valid, calling _initiateTransfer');
-        _initiateTransfer(pinString, amount);
-      }
-    } else {
-      print('❌ PIN invalid or cancelled');
+      AppLogger.log('❌ PIN invalid or cancelled');
     }
   }
 
   _handleOnPressed() {
-    final user = ref.watch(userProvider);
-    final wallet =
-        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
-    final balance = wallet?.balance ?? 0.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    checkBalanceLeft(
-      context,
-      balance.toString(),
-      amountController.text.replaceAll(',', ''),
-    );
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder:
             (context) => ReuseableTransactionDetailsScreen(
+              totalAmount: double.parse(_amountController.text),
               hasBottom: false,
-              saveBeneficiary: saveBeneficiary,
+              saveBeneficiary: _saveBeneficiary,
               onSaveBeneficiaryChanged: (value) {
                 setState(() {
-                  saveBeneficiary = value;
+                  _saveBeneficiary = value;
                 });
               },
               topTitleText: 'Transaction',
@@ -200,12 +236,13 @@ class _InternalTransferAmountScreenState
                 buildDetailRow('Bank', 'ValarPay', isDark),
                 buildDetailRow(
                   'Amount',
-                  currencyFormatter(amountController.text),
+                  currencyFormatter(_amountController.text),
                   isDark,
                 ),
               ],
-              onButtonPressed: _handlePinEntry,
-              onBiometricButtonPressed: _handleBiometricPinEntry,
+              onButtonPressed: () => _handlePinEntry(biometric: false),
+              onBiometricButtonPressed: () => _handlePinEntry(biometric: true),
+              onAutomaticallyShowBiometric: () => _handlePinEntry(biometric: true),
             ),
       ),
     );
@@ -214,20 +251,31 @@ class _InternalTransferAmountScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+          final user = ref.read(userProvider);
+
 
     _onShareTransactionReceiptPressed() {
-      final user = ref.read(userProvider);
+      // Guard against null account details
+      if (widget.accountDetails.sessionId.isEmpty) {
+        AppMessenger.show(
+          context,
+          message: 'Transaction ID not available',
+          type: MessageType.error,
+        );
+        return;
+      }
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (_) => ReceiptShareScreen(
                 date:
-                    '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 transactionDetailList: [
                   ShareableTransactionReceiptDetail(
                     label: 'Amount',
-                    value: currencyFormatter(amountController.text.trim()),
+                    value: currencyFormatter(_amountController.text.trim()),
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Currency',
@@ -250,10 +298,10 @@ class _InternalTransferAmountScreenState
                     label: 'Beneficiary Bank',
                     value: 'ValarPay',
                   ),
-                  if (narrationController.text.isNotEmpty)
+                  if (_narrationController.text.isNotEmpty)
                     ShareableTransactionReceiptDetail(
                       label: 'Narration',
-                      value: narrationController.text,
+                      value: _narrationController.text,
                     ),
                   ShareableTransactionReceiptDetail(
                     label: 'Transaction ID',
@@ -272,29 +320,22 @@ class _InternalTransferAmountScreenState
 
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
-      print(
-        '🎧 ValarPay transfer listener triggered - isDataAvailable: ${next.isDataAvailable}, data: ${next.data}, message: ${next.message}',
-      );
-
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
-        print('✅ ValarPay transfer successful, navigating to receipt');
+        _hideLoading();
 
         if (!mounted) {
-          print('⚠️ Widget not mounted, skipping navigation');
           return;
         }
 
         // Small delay to ensure any dialogs are closed
         Future.delayed(const Duration(milliseconds: 100), () {
           if (!mounted) {
-            print('⚠️ Widget not mounted after delay, skipping navigation');
             return;
           }
 
-          print('🧾 Navigating to receipt screen');
           // Transfer successful - navigate to receipt
           final transferAmount =
-              double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+              double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;
 
           Navigator.push(
             context,
@@ -322,10 +363,10 @@ class _InternalTransferAmountScreenState
                         label: 'Amount',
                         value: currencyFormatter(transferAmount.toString()),
                       ),
-                      if (narrationController.text.trim().isNotEmpty)
+                      if (_narrationController.text.trim().isNotEmpty)
                         TransactionDetail(
                           label: 'Narration',
-                          value: narrationController.text.trim(),
+                          value: _narrationController.text.trim(),
                         ),
                     ],
                     onShareReceipt: _onShareTransactionReceiptPressed,
@@ -334,11 +375,14 @@ class _InternalTransferAmountScreenState
           );
         });
       } else if (next.message != null && !next.isDataAvailable) {
-        AppMessenger.show(
-          context,
-          message: next.message!,
-          type: MessageType.error,
-        );
+        _hideLoading();
+        if (mounted) {
+          AppMessenger.show(
+            context,
+            message: next.message!,
+            type: MessageType.error,
+          );
+        }
       }
     });
 
@@ -417,12 +461,12 @@ class _InternalTransferAmountScreenState
               ),
               SizedBox(height: 8.h),
               ReuseableAmountTextfield(
-                amountController: amountController,
+                amountController: _amountController,
                 prefixText: '₦',
                 hintText: 'Enter Amount',
               ),
-              if (isNotMinimumAmount) SizedBox(height: 5),
-              if (isNotMinimumAmount)
+              if (_isNotMinimumAmount) SizedBox(height: 5),
+              if (_isNotMinimumAmount)
                 Text(
                   'Minimum transfer amount is ₦50',
                   style: TextStyle(color: Colors.red, fontSize: 13),
@@ -473,8 +517,8 @@ class _InternalTransferAmountScreenState
               FullWidthButton(
                 text: 'Continue',
                 isEnabled:
-                    amountController.text.isNotEmpty &&
-                    int.parse(amountController.text.replaceAll(',', '')) >= 50,
+                    _amountController.text.isNotEmpty &&
+                    int.parse(_amountController.text.replaceAll(',', '')) >= 50,
                 onPressed: () {
                   _handleOnPressed();
                 },

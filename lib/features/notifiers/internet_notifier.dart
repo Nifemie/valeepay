@@ -9,7 +9,7 @@ class InternetPlansNotifier extends StateNotifier<DataState<InternetPlanInfo>> {
   final InternetRepository _repository;
 
   InternetPlansNotifier(this._repository)
-      : super(DataState<InternetPlanInfo>.initial());
+    : super(DataState<InternetPlanInfo>.initial());
 
   Future<void> getPlans({required String currency}) async {
     state = state.copyWith(isInitialLoading: true, message: null);
@@ -24,9 +24,10 @@ class InternetPlansNotifier extends StateNotifier<DataState<InternetPlanInfo>> {
     } catch (e, stack) {
       log('[InternetPlansNotifier getPlans Error] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load plans: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load plans: ${e.toString()}',
+      );
     }
   }
 
@@ -38,13 +39,14 @@ class InternetVariationNotifier
   final InternetRepository _repository;
 
   InternetVariationNotifier(this._repository)
-      : super(DataState<InternetVariationInfo>.initial());
+    : super(DataState<InternetVariationInfo>.initial());
 
   Future<void> getVariations({required String billerCode}) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final res =
-          await _repository.getInternetVariation(billerCode: billerCode);
+      final res = await _repository.getInternetVariation(
+        billerCode: billerCode,
+      );
       state = state.copyWith(
         isInitialLoading: false,
         data: res.data,
@@ -54,9 +56,10 @@ class InternetVariationNotifier
     } catch (e, stack) {
       log('[InternetVariationNotifier getVariations Error] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Failed to load variations: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Failed to load variations: ${e.toString()}',
+      );
     }
   }
 
@@ -68,23 +71,25 @@ class InternetPaymentNotifier
   final InternetRepository _repository;
 
   InternetPaymentNotifier(this._repository)
-      : super(DataState<InternetPaymentResponse>.initial());
+    : super(DataState<InternetPaymentResponse>.initial());
 
   Future<void> payInternet(InternetPayRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.payInternet(request);
       state = state.copyWith(
-          isInitialLoading: false,
-          data: [res],
-          isDataAvailable: true,
-          message: res.message);
+        isInitialLoading: false,
+        data: [res],
+        isDataAvailable: true,
+        message: res.message,
+      );
     } catch (e, stack) {
       log('[InternetPaymentNotifier payInternet Error] $e\n$stack');
       state = state.copyWith(
-          isInitialLoading: false,
-          isDataAvailable: false,
-          message: 'Payment failed: ${e.toString()}');
+        isInitialLoading: false,
+        isDataAvailable: false,
+        message: 'Payment failed: ${e.toString()}',
+      );
     }
   }
 
@@ -92,20 +97,27 @@ class InternetPaymentNotifier
 }
 
 // Providers
-final internetRepositoryProvider =
-    Provider((ref) => InternetRepository(ref.read(apiClientProvider)));
+final internetRepositoryProvider = Provider(
+  (ref) => InternetRepository(ref.read(apiClientProvider)),
+);
 
 final internetPlansNotifierProvider =
     StateNotifierProvider<InternetPlansNotifier, DataState<InternetPlanInfo>>(
-  (ref) => InternetPlansNotifier(ref.read(internetRepositoryProvider)),
-);
+      (ref) => InternetPlansNotifier(ref.read(internetRepositoryProvider)),
+    );
 
 final internetVariationNotifierProvider = StateNotifierProvider<
-    InternetVariationNotifier, DataState<InternetVariationInfo>>(
-  (ref) => InternetVariationNotifier(ref.read(internetRepositoryProvider)),
-);
+  InternetVariationNotifier,
+  DataState<InternetVariationInfo>
+>((ref) => InternetVariationNotifier(ref.read(internetRepositoryProvider)));
 
 final internetPaymentNotifierProvider = StateNotifierProvider<
-    InternetPaymentNotifier, DataState<InternetPaymentResponse>>(
-  (ref) => InternetPaymentNotifier(ref.read(internetRepositoryProvider)),
+  InternetPaymentNotifier,
+  DataState<InternetPaymentResponse>
+>((ref) => InternetPaymentNotifier(ref.read(internetRepositoryProvider)));
+
+// UI State Providers
+final internetSelectedProviderProvider = StateProvider<InternetPlanInfo?>(
+  (ref) => null,
 );
+final internetSelectedPlanProvider = StateProvider<String?>((ref) => null);

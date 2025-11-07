@@ -4,13 +4,14 @@ import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/features/models/beneficiary_models.dart';
 import 'package:valarpay/features/repositories/beneficiary_repository.dart';
 import 'package:valarpay/features/notifiers/user_notifier.dart'
-    show apiClientProvider;
+    show apiClientProvider, userNotifierProvider;
 
 class BeneficiaryNotifier extends StateNotifier<DataState<Beneficiary>> {
   final BeneficiaryRepository _repository;
+  final Ref _ref;
 
-  BeneficiaryNotifier(this._repository)
-      : super(DataState<Beneficiary>.initial());
+  BeneficiaryNotifier(this._repository, this._ref)
+    : super(DataState<Beneficiary>.initial());
 
   Future<void> getBeneficiaries({
     required String category,
@@ -18,9 +19,14 @@ class BeneficiaryNotifier extends StateNotifier<DataState<Beneficiary>> {
   }) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
+      final user = _ref.read(userNotifierProvider).data?.first;
+      final userId = user?.id;
+      log('Fetching beneficiaries for userId: $userId');
+
       final response = await _repository.getBeneficiaries(
         category: category,
         transferType: transferType,
+        userId: userId,
       );
 
       state = state.copyWith(
@@ -46,7 +52,7 @@ final beneficiaryRepositoryProvider = Provider(
   (ref) => BeneficiaryRepository(ref.read(apiClientProvider)),
 );
 
-final beneficiaryNotifierProvider =
-    StateNotifierProvider<BeneficiaryNotifier, DataState<Beneficiary>>(
-  (ref) => BeneficiaryNotifier(ref.read(beneficiaryRepositoryProvider)),
-);
+final beneficiaryNotifierProvider = StateNotifierProvider<
+  BeneficiaryNotifier,
+  DataState<Beneficiary>
+>((ref) => BeneficiaryNotifier(ref.read(beneficiaryRepositoryProvider), ref));

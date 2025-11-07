@@ -10,14 +10,21 @@ class BeneficiaryRepository {
   Future<BeneficiariesResponse> getBeneficiaries({
     required String category,
     required String transferType,
+    String? userId,
   }) async {
     try {
+      final queryParams = <String, dynamic>{
+        'category': category,
+        'transferType': transferType,
+      };
+
+      if (userId != null && userId.isNotEmpty) {
+        queryParams['userId'] = userId;
+      }
+
       final response = await apiClient.get(
         ApiEndpoints.getBeneficiaries,
-        query: {
-          'category': category,
-          'transferType': transferType,
-        },
+        query: queryParams,
       );
 
       return BeneficiariesResponse.fromJson(response.data);

@@ -44,20 +44,38 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     super.dispose();
   }
 
+  String _assetForProvider(String network) {
+    final n = network.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if (n.contains('mtn')) return 'assets/images/mtn.png';
+    if (n.contains('airtel')) return 'assets/images/airtel.png';
+    if (n.contains('9mobile') || n.contains('etisalat') || n.contains('9'))
+      return 'assets/images/9mobile.png';
+    if (n.contains('glo')) return 'assets/images/glo.png';
+    // fallback
+    return 'assets/images/default.png';
+  }
+
   void _showLoading() {
     if (_loadingShown) return;
     _loadingShown = true;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder:
+          (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
     );
   }
 
   void _hideLoading() {
-    if (!_loadingShown || !mounted) return;
-    if (Navigator.canPop(context)) Navigator.pop(context);
+    if (!_loadingShown) return;
     _loadingShown = false;
+
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 
   bool _isFormValid(String network, int operatorId) =>
@@ -81,11 +99,12 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
             : await TransactionPinModal.show(context);
 
     if (pin == null || pin.length != 4 || !mounted) return;
+    Navigator.pop(context);
     final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
 
-    try {
-      _showLoading();
+    _showLoading();
 
+    try {
       final request = AirtimePurchaseRequest(
         walletPin: pin,
         amount: Helpers.parsedAmount(_amountController.text),
@@ -98,29 +117,59 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       await ref
           .read(airtimePurchaseNotifierProvider.notifier)
           .purchase(request);
+
+      _hideLoading();
+
+      if (!mounted) return;
+
       final state = ref.read(airtimePurchaseNotifierProvider);
 
       if (state.isDataAvailable) {
         _navigateToReceipt();
       } else {
+        // Check if the error message indicates incorrect PIN
+        final errorMessage =
+            state.message ?? 'Transaction failed. Please try again.';
+
+        // Common patterns for incorrect PIN errors
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
+
         AppMessenger.show(
           context,
-          message: state.message ?? 'Transaction failed. Please try again.',
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : errorMessage,
           type: MessageType.error,
         );
       }
     } catch (e) {
+      _hideLoading();
+
+      if (!mounted) return;
+
+      // Check if the exception message indicates incorrect PIN
+      final errorMessage = e.toString();
+      final isIncorrectPin =
+          errorMessage.toLowerCase().contains('incorrect pin') ||
+          errorMessage.toLowerCase().contains('wrong pin') ||
+          errorMessage.toLowerCase().contains('invalid pin') ||
+          errorMessage.toLowerCase().contains('pin is incorrect');
+
       AppMessenger.show(
         context,
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message:
+            isIncorrectPin
+                ? 'Incorrect PIN. Please try again.'
+                : 'An unexpected error occurred: $errorMessage',
         type: MessageType.error,
       );
-    } finally {
-      _hideLoading();
     }
   }
-
-
 
   // ------------------- Navigation -------------------
   void _navigateToReceipt() {
@@ -214,6 +263,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       MaterialPageRoute(
         builder:
             (_) => ReuseableTransactionDetailsScreen(
+              totalAmount: double.parse(_amountController.text),
               hasBottom: false,
               saveBeneficiary: _saveBeneficiary,
               onSaveBeneficiaryChanged:
@@ -234,6 +284,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
               ],
               onButtonPressed: () => _handlePin(biometric: false),
               onBiometricButtonPressed: () => _handlePin(biometric: true),
+              onAutomaticallyShowBiometric: () => _handlePin(biometric: true),
             ),
       ),
     );
@@ -441,6 +492,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                       const SizedBox(height: 8),
                       ReuseableTextFieldWithCountry(
                         controller: _phoneController,
+                        maxLength: 11,
                         countryCode: '+234 ',
                         flagImagePath: 'assets/images/ngflag.png',
                         hintText: '812 345 6789',
@@ -510,22 +562,40 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                 )
                                 : plan == null
                                 ? const Text(
-                                  'Enter phone number to automatically detect  network provider',
+                                  'Enter phone number to automatically detect network provider',
                                   style: TextStyle(color: Colors.orange),
                                 )
                                 : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      plan.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                    SizedBox(
+                                      height: 80,
+                                      width: 80,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(
+                                            context,
+                                          ).cardColor.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: appTheme.primaryColor
+                                                .withOpacity(0.5),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 60,
+                                            height: 60,
+                                            child: Image.asset(
+                                              _assetForProvider(plan.name),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    Icon(
-                                      Icons.check_circle,
-                                      color: appTheme.primaryColor,
                                     ),
                                   ],
                                 ),

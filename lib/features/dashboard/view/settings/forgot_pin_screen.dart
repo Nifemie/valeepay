@@ -241,6 +241,7 @@ class _ForgotPinScreenState extends ConsumerState<ForgotPinScreen>
                   maxLength: 4,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
+                    counterText: '',
                     hintText: 'Enter your new pin',
                     hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
                     suffixIcon: IconButton(
@@ -295,6 +296,7 @@ class _ForgotPinScreenState extends ConsumerState<ForgotPinScreen>
                   maxLength: 4,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
+                    counterText: '',
                     hintText: 'Confirm your new pin',
                     hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
                     suffixIcon: IconButton(

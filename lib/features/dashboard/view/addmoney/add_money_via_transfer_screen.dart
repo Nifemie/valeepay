@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -127,9 +127,9 @@ class _AddMoneyTransferScreenState
                           ),
                         ),
                         onPressed: () {
-                          Share.share(
-                            'Bank Name: $bankName\nAccount Name: $accountName\nAccount Number: $accountNumber',
-                          );
+                          // Share.share(
+                          //   'Bank Name: $bankName\nAccount Name: $accountName\nAccount Number: $accountNumber',
+                          // );
                         },
                         icon: Icon(
                           Icons.share,

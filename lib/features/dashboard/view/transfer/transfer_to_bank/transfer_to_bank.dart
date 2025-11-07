@@ -319,6 +319,7 @@ class _TransferToBankScreenState extends ConsumerState<TransferToBankScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         decoration: InputDecoration(
+                          counterText: '',
                           hintText: 'Enter Bank account name/number',
                           hintStyle: TextStyle(
                             color: Colors.grey[500],

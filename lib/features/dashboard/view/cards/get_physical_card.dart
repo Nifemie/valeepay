@@ -34,10 +34,8 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
         elevation: 0,
         title: const Text(
           "Get Physical Card",
-           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
         centerTitle: false,
       ),
       body: Padding(
@@ -139,6 +137,41 @@ class _GetPhysicalCardScreenState extends State<GetPhysicalCardScreen> {
               ),
             ),
 
+            const SizedBox(height: 40),
+
+            FittedBox(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Licensed by CBN'),
+                      const SizedBox(width: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset('assets/images/cbn.png', height: 30),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Deposit issued by NDIC'),
+                      const SizedBox(width: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/images/ndic.png',
+                          height: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 40),
           ],
         ),

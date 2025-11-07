@@ -9,13 +9,14 @@ class ElectricityNotifier extends StateNotifier<DataState<ElectricityPlan>> {
   final ElectricityRepository _repository;
 
   ElectricityNotifier(this._repository)
-      : super(DataState<ElectricityPlan>.initial());
+    : super(DataState<ElectricityPlan>.initial());
 
   Future<void> getElectricityPlans({required String currency}) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
-      final response =
-          await _repository.getElectricityPlans(currency: currency);
+      final response = await _repository.getElectricityPlans(
+        currency: currency,
+      );
       state = state.copyWith(
         isInitialLoading: false,
         data: response.data,
@@ -40,7 +41,7 @@ class ElectricityBillInfoNotifier
   final ElectricityRepository _repository;
 
   ElectricityBillInfoNotifier(this._repository)
-      : super(DataState<ElectricityBillInfo>.initial());
+    : super(DataState<ElectricityBillInfo>.initial());
 
   Future<void> getBillInfo({required String billerCode}) async {
     state = state.copyWith(isInitialLoading: true, message: null);
@@ -70,10 +71,11 @@ class ElectricityPaymentNotifier
   final ElectricityRepository _repository;
 
   ElectricityPaymentNotifier(this._repository)
-      : super(DataState<ElectricityPaymentResponse>.initial());
+    : super(DataState<ElectricityPaymentResponse>.initial());
 
   Future<VerifyMeterNumberResponse?> verifyMeterNumber(
-      VerifyMeterNumberRequest request) async {
+    VerifyMeterNumberRequest request,
+  ) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final response = await _repository.verifyMeterNumber(request);
@@ -93,23 +95,32 @@ class ElectricityPaymentNotifier
     }
   }
 
-  Future<void> payElectricity(
-      ElectricityPaymentRequest request) async {
+  Future<void> payElectricity(ElectricityPaymentRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final response = await _repository.payElectricity(request);
-      state = state.copyWith(
-        isInitialLoading: false,
-        isDataAvailable: true,
-        singleData: response,
-        message: response.message,
-      );
+
+      // Check if the response indicates an error
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: false,
+          message: response.message,
+        );
+      } else {
+        state = state.copyWith(
+          isInitialLoading: false,
+          isDataAvailable: true,
+          singleData: response,
+          message: response.message,
+        );
+      }
     } catch (e, stack) {
       log('[ElectricityPaymentNotifier payElectricity Error] $e\n$stack');
       state = state.copyWith(
         isInitialLoading: false,
         isDataAvailable: false,
-        message: 'Payment failed: ${e.toString()}',
+        message: e.toString(),
       );
     }
   }
@@ -124,15 +135,25 @@ final electricityRepositoryProvider = Provider(
 
 final electricityNotifierProvider =
     StateNotifierProvider<ElectricityNotifier, DataState<ElectricityPlan>>(
-  (ref) => ElectricityNotifier(ref.read(electricityRepositoryProvider)),
-);
+      (ref) => ElectricityNotifier(ref.read(electricityRepositoryProvider)),
+    );
 
 final electricityBillInfoNotifierProvider = StateNotifierProvider<
-    ElectricityBillInfoNotifier, DataState<ElectricityBillInfo>>(
+  ElectricityBillInfoNotifier,
+  DataState<ElectricityBillInfo>
+>(
   (ref) => ElectricityBillInfoNotifier(ref.read(electricityRepositoryProvider)),
 );
 
 final electricityPaymentNotifierProvider = StateNotifierProvider<
-    ElectricityPaymentNotifier, DataState<ElectricityPaymentResponse>>(
-  (ref) => ElectricityPaymentNotifier(ref.read(electricityRepositoryProvider)),
+  ElectricityPaymentNotifier,
+  DataState<ElectricityPaymentResponse>
+>((ref) => ElectricityPaymentNotifier(ref.read(electricityRepositoryProvider)));
+
+// UI State Providers
+final electricitySelectedDiscoProvider = StateProvider<ElectricityPlan?>(
+  (ref) => null,
 );
+
+final electricitySelectedMeterTypeProvider =
+    StateProvider<ElectricityBillInfo?>((ref) => null);

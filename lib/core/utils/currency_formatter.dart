@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 ///  "50000.67" -> "₦50,000.67"
 ///  ".67"      -> "₦0.67"
 ///  "50000"    -> "₦50,000"
-String currencyFormatter(String amount, {String symbol = '₦ '}) {
+String currencyFormatter(String amount, {String symbol = '₦'}) {
   if (amount.trim().isEmpty) return amount;
 
   // Remove spaces and trim
