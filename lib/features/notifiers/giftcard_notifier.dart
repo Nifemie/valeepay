@@ -9,7 +9,7 @@ class GiftCardNotifier extends StateNotifier<DataState<GiftCardProduct>> {
   final GiftCardRepository _repository;
 
   GiftCardNotifier(this._repository)
-      : super(DataState<GiftCardProduct>.initial());
+    : super(DataState<GiftCardProduct>.initial());
 
   Future<void> getCategories() async {
     state = state.copyWith(isInitialLoading: true, message: null);
@@ -77,15 +77,14 @@ class GiftCardNotifier extends StateNotifier<DataState<GiftCardProduct>> {
       return await _repository.getFxRate(currency: currency, amount: amount);
     } catch (e, stack) {
       log('[GiftCardNotifier FX Rate Error] $e\n$stack');
-      state = state.copyWith(
-        message: 'Failed to get FX rate: ${e.toString()}',
-      );
+      state = state.copyWith(message: 'Failed to get FX rate: ${e.toString()}');
       return null;
     }
   }
 
-  Future<GiftCardRedeemCodeResponse?> getRedeemCode(
-      {required String transactionId}) async {
+  Future<GiftCardRedeemCodeResponse?> getRedeemCode({
+    required String transactionId,
+  }) async {
     try {
       return await _repository.getRedeemCode(transactionId: transactionId);
     } catch (e, stack) {
@@ -106,7 +105,7 @@ class GiftCardCategoriesNotifier
   final GiftCardRepository _repository;
 
   GiftCardCategoriesNotifier(this._repository)
-      : super(DataState<GiftCardCategory>.initial());
+    : super(DataState<GiftCardCategory>.initial());
 
   Future<void> getCategories() async {
     state = state.copyWith(isInitialLoading: true, message: null);
@@ -138,10 +137,27 @@ final giftCardRepositoryProvider = Provider(
 
 final giftCardNotifierProvider =
     StateNotifierProvider<GiftCardNotifier, DataState<GiftCardProduct>>(
-  (ref) => GiftCardNotifier(ref.read(giftCardRepositoryProvider)),
-);
+      (ref) => GiftCardNotifier(ref.read(giftCardRepositoryProvider)),
+    );
 
 final giftCardCategoriesNotifierProvider = StateNotifierProvider<
-    GiftCardCategoriesNotifier, DataState<GiftCardCategory>>(
-  (ref) => GiftCardCategoriesNotifier(ref.read(giftCardRepositoryProvider)),
+  GiftCardCategoriesNotifier,
+  DataState<GiftCardCategory>
+>((ref) => GiftCardCategoriesNotifier(ref.read(giftCardRepositoryProvider)));
+
+// UI State Providers
+final giftCardSelectedProductProvider = StateProvider<GiftCardProduct?>(
+  (ref) => null,
+);
+final giftCardSelectedBrandProvider = StateProvider<String>(
+  (ref) => 'Select Brand',
+);
+final giftCardSelectedCountryProvider = StateProvider<String>(
+  (ref) => 'Select Country',
+);
+final giftCardSelectedAmountProvider = StateProvider<String>(
+  (ref) => 'Select Amount',
+);
+final giftCardSelectedAmountValueProvider = StateProvider<double?>(
+  (ref) => null,
 );

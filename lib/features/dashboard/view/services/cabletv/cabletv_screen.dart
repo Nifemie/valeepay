@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
@@ -8,7 +9,6 @@ import 'package:valarpay/core/widgets/receipt_share_screen.dart';
 import 'package:valarpay/core/widgets/reusable_transaction_pin_modal.dart';
 import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
-import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'saved_beneficiary_screen.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/biometric_transaction_pin_modal.dart';
@@ -28,17 +28,17 @@ class CableTvScreen extends ConsumerStatefulWidget {
 }
 
 class _CableTvScreenState extends ConsumerState<CableTvScreen> {
-  String selectedProvider = 'Select a provider';
-  final TextEditingController smartcardController = TextEditingController();
-  String? selectedPlan;
-  String planAmount = ' Amount'; // This will need to be dynamic later
-  bool _showVerifyButton = false;
-  bool _isVerifying = false;
-  bool _hasError = false;
+  final TextEditingController _smartcardController = TextEditingController();
+  bool _saveBeneficiary = false;
+
   VerifyCableData? _verifyResponse;
   String? _verifiedUserName;
   String? _errorMessage;
-  bool saveBeneficiary = false;
+  bool _showVerifyButton = false;
+  bool _isVerifying = false;
+  bool _hasError = false;
+  String _planAmount = ' Amount';
+  bool _loadingShown = false;
 
   @override
   void initState() {
@@ -50,7 +50,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
 
   @override
   void dispose() {
-    smartcardController.dispose();
+    _smartcardController.dispose();
     super.dispose();
   }
 
@@ -60,15 +60,15 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
     final isBvnVerified = user?.isBvnVerified ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    int totalAmount = 0;
+    int _totalAmount = 0;
     try {
       final planAmountInt = int.parse(
-        planAmount.replaceAll(RegExp(r'[^\d]'), ''),
+        _planAmount.replaceAll(RegExp(r'[^\d]'), ''),
       );
       final feeAmount = double.parse(_verifyResponse?.fee.toString() ?? '0.0');
-      totalAmount = (planAmountInt + feeAmount).toInt();
+      _totalAmount = (planAmountInt + feeAmount).toInt();
     } catch (e) {
-      totalAmount = 0;
+      _totalAmount = 0;
     }
 
     // cable plans are read when needed (e.g. in modal builders)
@@ -80,11 +80,11 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
           builder:
               (_) => ReceiptShareScreen(
                 date:
-                    '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                    '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 transactionDetailList: [
                   ShareableTransactionReceiptDetail(
                     label: 'Amount',
-                    value: currencyFormatter(planAmount),
+                    value: currencyFormatter(_planAmount),
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Currency',
@@ -96,11 +96,11 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Plan',
-                    value: selectedPlan ?? '',
+                    value: ref.read(cableSelectedPlanProvider) ?? '',
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Smartcard Number',
-                    value: smartcardController.text.trim(),
+                    value: _smartcardController.text.trim(),
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Customer Name',
@@ -109,7 +109,8 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
 
                   ShareableTransactionReceiptDetail(
                     label: 'Provider',
-                    value: selectedProvider,
+                    value:
+                        ref.read(cableSelectedProviderProvider)?.planName ?? '',
                   ),
                   ShareableTransactionReceiptDetail(
                     label: 'Transaction ID',
@@ -126,140 +127,95 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       );
     }
 
-    _handlePinEntry() async {
-      final hasEnoughBalance = checkBalanceLeft(
-        context,
-        user?.wallets.first.balance.toString() ?? '0',
-        totalAmount.toString(),
-      );
-
-      if (!hasEnoughBalance) return;
-      final pin = await TransactionPinModal.show(context);
-      if (pin == null || pin.length != 4) return;
-
-      // find selected variation
-      final variations = ref.read(cableVariationNotifierProvider).data;
-      if (variations == null || variations.isEmpty) {
-        AppMessenger.show(
-          context,
-          message: 'Selected plan not available',
-          type: MessageType.warning,
-        );
-
-        return;
-      }
-      final selectedVar = variations.firstWhere(
-        (v) => v.name == selectedPlan,
-        orElse: () => variations.first,
-      );
-
-      try {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => const Center(child: CircularProgressIndicator()),
-        );
-        await ref
-            .read(cablePaymentNotifierProvider.notifier)
-            .payCable(
-              CablePayRequest(
-                itemCode: selectedVar.itemCode,
-                billerCode: selectedVar.billerCode,
-                currency: 'NGN',
-                billerNumber: smartcardController.text,
-                amount: selectedVar.payAmount ?? selectedVar.amount,
-                walletPin: pin,
-              ),
-            );
-        Navigator.pop(context);
-
-        final paymentState = ref.read(cablePaymentNotifierProvider);
-        if (paymentState.isDataAvailable) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => TransactionReceiptWidget(
-                    headerText: 'Transaction',
-                    amount: planAmount,
-                    topDetails: [
-                      TransactionDetail(
-                        label: 'Plan',
-                        value: selectedPlan ?? '',
-                      ),
-                      TransactionDetail(
-                        label: 'Amount',
-                        value: currencyFormatter(planAmount),
-                      ),
-                      TransactionDetail(
-                        label: 'Fee',
-                        value: currencyFormatter(
-                          _verifyResponse?.fee.toString() ?? '0.0',
-                        ),
-                      ),
-                      TransactionDetail(
-                        label: 'Total Debit',
-                        value: currencyFormatter(totalAmount.toString()),
-                      ),
-                    ],
-                    bottomDetails: [
-                      TransactionDetail(
-                        label: 'Provider',
-                        value: selectedProvider,
-                      ),
-                      TransactionDetail(
-                        label: 'Smartcard Number',
-                        value: smartcardController.text,
-                      ),
-                      TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true,
-                      ),
-                      TransactionDetail(
-                        label: 'Payment Source',
-                        value: 'ValarPay Account',
-                      ),
-                      TransactionDetail(
-                        label: 'Date & Time',
-                        value:
-                            '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                      ),
-                    ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
-                  ),
+    void _showLoading() {
+      if (_loadingShown) return;
+      _loadingShown = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: const Center(child: CircularProgressIndicator()),
             ),
-          );
-        } else {
-          AppMessenger.show(
-            context,
-            message: paymentState.message ?? 'An error has occured',
-            type: MessageType.error,
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          AppMessenger.show(
-            context,
-            message: e.toString(),
-            type: MessageType.error,
-          );
-        }
+      );
+    }
+
+    void _hideLoading() {
+      if (!_loadingShown) return;
+      _loadingShown = false;
+
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context, rootNavigator: true).pop();
       }
     }
 
-    _handleBiometricPinEntry() async {
-      final hasEnoughBalance = checkBalanceLeft(
+    void _navigateToReceipt() {
+      Navigator.push(
         context,
-        user?.wallets.first.balance.toString() ?? '0',
-        totalAmount.toString(),
+        MaterialPageRoute(
+          builder:
+              (context) => TransactionReceiptWidget(
+                headerText: 'Transaction',
+                amount: _planAmount,
+                topDetails: [
+                  TransactionDetail(
+                    label: 'Plan',
+                    value: ref.read(cableSelectedPlanProvider) ?? '',
+                  ),
+                  TransactionDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(_planAmount),
+                  ),
+                  TransactionDetail(
+                    label: 'Fee',
+                    value: currencyFormatter(
+                      _verifyResponse?.fee.toString() ?? '0.0',
+                    ),
+                  ),
+                  TransactionDetail(
+                    label: 'Total Debit',
+                    value: currencyFormatter(_totalAmount.toString()),
+                  ),
+                ],
+                bottomDetails: [
+                  TransactionDetail(
+                    label: 'Provider',
+                    value:
+                        ref.read(cableSelectedProviderProvider)?.planName ?? '',
+                  ),
+                  TransactionDetail(
+                    label: 'Smartcard Number',
+                    value: _smartcardController.text,
+                  ),
+                  TransactionDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    showCopyIcon: true,
+                  ),
+                  TransactionDetail(
+                    label: 'Payment Source',
+                    value: 'ValarPay Account',
+                  ),
+                  TransactionDetail(
+                    label: 'Date & Time',
+                    value:
+                        '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  ),
+                ],
+                onShareReceipt: _onShareTransactionReceiptPressed,
+              ),
+        ),
       );
+    }
 
-      if (!hasEnoughBalance) return;
-      final pin = await BiometricTransactionPinModal.show(context);
-      if (pin == null || pin.length != 4) return;
+    Future<void> _processPayment(String pin) async {
+      if (_smartcardController.text.isEmpty ||
+          _planAmount.isEmpty ||
+          _verifyResponse == null) {
+        return;
+      }
 
-      // find selected variation
       final variations = ref.read(cableVariationNotifierProvider).data;
       if (variations == null || variations.isEmpty) {
         AppMessenger.show(
@@ -267,20 +223,17 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
           message: 'Selected plan not available',
           type: MessageType.warning,
         );
-
         return;
       }
+
       final selectedVar = variations.firstWhere(
-        (v) => v.name == selectedPlan,
+        (v) => v.name == ref.read(cableSelectedPlanProvider),
         orElse: () => variations.first,
       );
 
+      _showLoading();
+
       try {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => const Center(child: CircularProgressIndicator()),
-        );
         await ref
             .read(cablePaymentNotifierProvider.notifier)
             .payCable(
@@ -288,86 +241,84 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                 itemCode: selectedVar.itemCode,
                 billerCode: selectedVar.billerCode,
                 currency: 'NGN',
-                billerNumber: smartcardController.text,
+                billerNumber: _smartcardController.text,
                 amount: selectedVar.payAmount ?? selectedVar.amount,
                 walletPin: pin,
               ),
             );
-        Navigator.pop(context);
 
-        final paymentState = ref.read(cablePaymentNotifierProvider);
-        if (paymentState.isDataAvailable) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => TransactionReceiptWidget(
-                    headerText: 'Transaction',
-                    amount: planAmount,
-                    topDetails: [
-                      TransactionDetail(
-                        label: 'Plan',
-                        value: selectedPlan ?? '',
-                      ),
-                      TransactionDetail(
-                        label: 'Amount',
-                        value: currencyFormatter(planAmount),
-                      ),
-                      TransactionDetail(
-                        label: 'Fee',
-                        value: currencyFormatter(
-                          _verifyResponse?.fee.toString() ?? '0.0',
-                        ),
-                      ),
-                      TransactionDetail(
-                        label: 'Total Debit',
-                        value: currencyFormatter(totalAmount.toString()),
-                      ),
-                    ],
-                    bottomDetails: [
-                      TransactionDetail(
-                        label: 'Provider',
-                        value: selectedProvider,
-                      ),
-                      TransactionDetail(
-                        label: 'Smartcard Number',
-                        value: smartcardController.text,
-                      ),
-                      TransactionDetail(
-                        label: 'Transaction ID',
-                        value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                        showCopyIcon: true,
-                      ),
-                      TransactionDetail(
-                        label: 'Payment Source',
-                        value: 'ValarPay Account',
-                      ),
-                      TransactionDetail(
-                        label: 'Date & Time',
-                        value:
-                            '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
-                      ),
-                    ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
-                  ),
-            ),
-          );
+        _hideLoading();
+
+        if (!mounted) return;
+
+        final state = ref.read(cablePaymentNotifierProvider);
+
+        if (state.isDataAvailable && state.singleData != null) {
+          _navigateToReceipt();
         } else {
+          final errorMessage =
+              state.message ?? 'Payment failed. Please try again.';
+
+          final isIncorrectPin =
+              errorMessage.toLowerCase().contains('incorrect pin') ||
+              errorMessage.toLowerCase().contains('wrong pin') ||
+              errorMessage.toLowerCase().contains('invalid pin') ||
+              errorMessage.toLowerCase().contains('pin is incorrect');
+
           AppMessenger.show(
             context,
-            message: paymentState.message ?? 'An error has occured',
+            message:
+                isIncorrectPin
+                    ? 'Incorrect PIN. Please try again.'
+                    : errorMessage,
             type: MessageType.error,
           );
         }
       } catch (e) {
-        if (mounted) {
-          AppMessenger.show(
-            context,
-            message: e.toString(),
-            type: MessageType.error,
-          );
-        }
+        _hideLoading();
+
+        if (!mounted) return;
+
+        final errorMessage = e.toString();
+
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
+
+        AppMessenger.show(
+          context,
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : 'Payment failed: $errorMessage',
+          type: MessageType.error,
+        );
       }
+    }
+
+    _handlePin({bool biometric = false}) async {
+      final user = ref.read(userProvider);
+      final hasEnoughBalance = checkBalanceLeft(
+        context,
+        user?.wallets.first.balance.toString() ?? '0',
+        _totalAmount.toString(),
+      );
+
+      if (!hasEnoughBalance) return;
+
+      final pin =
+          biometric
+              ? await BiometricTransactionPinModal.show(context)
+              : await TransactionPinModal.show(context);
+
+      if (pin == null || pin.length != 4 || !mounted) return;
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      await _processPayment(pin);
     }
 
     return Scaffold(
@@ -438,7 +389,10 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              selectedProvider,
+                              ref
+                                      .watch(cableSelectedProviderProvider)
+                                      ?.planName ??
+                                  'Select Provider',
                               style: TextStyle(fontSize: 16),
                             ),
                             ref
@@ -473,13 +427,13 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                     ),
                     const SizedBox(height: 8),
                     ReuseableTextFieldWithCountry(
-                      controller: smartcardController,
+                      controller: _smartcardController,
                       hintText: 'Smartcard Number ',
-                      isReadOnly: selectedProvider == 'Select a provider',
+                      isReadOnly:
+                          ref.watch(cableSelectedProviderProvider) == null,
                       textInputType: TextInputType.number,
                       showCountryLabel: false,
                       onChanged: (value) async {
-                        // Show verify button when user starts typing and clear any previous response
                         setState(() {
                           _verifyResponse = null;
                           _showVerifyButton = value.isNotEmpty;
@@ -527,7 +481,9 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                     }
 
                                     final selectedVar = variations.firstWhere(
-                                      (v) => v.name == selectedPlan,
+                                      (v) =>
+                                          v.name ==
+                                          ref.read(cableSelectedPlanProvider),
                                       orElse: () => variations.first,
                                     );
 
@@ -543,7 +499,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                               billerCode:
                                                   selectedVar.billerCode,
                                               billerNumber:
-                                                  smartcardController.text,
+                                                  _smartcardController.text,
                                             ),
                                           );
 
@@ -646,7 +602,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap:
-                          selectedProvider == 'Select a provider'
+                          ref.watch(cableSelectedProviderProvider) == null
                               ? null
                               : () => _showPlanSelector(context),
                       child: Container(
@@ -662,7 +618,8 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              selectedPlan ?? 'Select a plan',
+                              ref.watch(cableSelectedPlanProvider) ??
+                                  'Select a plan',
                               style: TextStyle(fontSize: 16),
                             ),
                             ref
@@ -707,9 +664,9 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            planAmount == ' Amount'
-                                ? planAmount
-                                : currencyFormatter(planAmount),
+                            _planAmount == ' Amount'
+                                ? _planAmount
+                                : currencyFormatter(_planAmount),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -725,22 +682,21 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                     FullWidthButton(
                       text: 'Pay Cable TV',
                       onPressed: () async {
-                        if (smartcardController.text.isEmpty ||
-                            planAmount.isEmpty ||
+                        if (_smartcardController.text.isEmpty ||
+                            _planAmount.isEmpty ||
                             _verifyResponse == null) {
                           return;
                         }
 
-                        // show details and ask for PIN
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => ReuseableTransactionDetailsScreen(
-                                  saveBeneficiary: saveBeneficiary,
+                                  saveBeneficiary: _saveBeneficiary,
                                   onSaveBeneficiaryChanged: (value) {
                                     setState(() {
-                                      saveBeneficiary = value;
+                                      _saveBeneficiary = value;
                                     });
                                   },
                                   hasBottom: false,
@@ -748,22 +704,27 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                   topTransactionsDetailsList: [
                                     buildDetailRow(
                                       'Smartcard Number',
-                                      smartcardController.text,
+                                      _smartcardController.text,
                                       isDark,
                                     ),
                                     buildDetailRow(
                                       'Provider',
-                                      selectedProvider,
+                                      ref
+                                              .read(
+                                                cableSelectedProviderProvider,
+                                              )
+                                              ?.planName ??
+                                          '',
                                       isDark,
                                     ),
                                     buildDetailRow(
                                       'Package',
-                                      selectedPlan ?? '',
+                                      ref.read(cableSelectedPlanProvider) ?? '',
                                       isDark,
                                     ),
                                     buildDetailRow(
                                       'Amount',
-                                      currencyFormatter(planAmount),
+                                      currencyFormatter(_planAmount),
                                       isDark,
                                     ),
                                     buildDetailRow(
@@ -777,14 +738,16 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                                     const Divider(),
                                     buildDetailRow(
                                       'Total Amount',
-                                      currencyFormatter(totalAmount.toString()),
+                                      currencyFormatter(
+                                        _totalAmount.toString(),
+                                      ),
                                       isDark,
                                       isTotal: true,
                                     ),
                                   ],
-                                  onButtonPressed: _handlePinEntry,
+                                  onButtonPressed: () => _handlePin(),
                                   onBiometricButtonPressed:
-                                      _handleBiometricPinEntry,
+                                      () => _handlePin(biometric: true),
                                 ),
                           ),
                         );
@@ -804,21 +767,20 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
         final plans = ref.read(cablePlansNotifierProvider).data;
         final providers =
             plans != null && plans.isNotEmpty
-                ? plans.map((e) => e.planName).toSet().toList()
-                : [''];
+                ? plans.map((e) => e.planName).toSet().toList().cast<String>()
+                : <String>[];
         return CableTvProviderSelectorModal(
-          selectedProvider: selectedProvider,
+          selectedProvider:
+              ref.read(cableSelectedProviderProvider)?.planName ??
+              'Select Provider',
           providers: providers,
-          onProviderSelected: (provider) {
-            setState(() {
-              selectedProvider = provider;
-            });
-            // fetch matching biller code and load variations
+          onProviderSelected: (providerName) {
             if (plans != null && plans.isNotEmpty) {
               final match = plans.firstWhere(
-                (p) => p.planName == provider,
+                (p) => p.planName == providerName,
                 orElse: () => plans.first,
               );
+              ref.read(cableSelectedProviderProvider.notifier).state = match;
               ref
                   .read(cableVariationNotifierProvider.notifier)
                   .getVariations(billerCode: match.billerCode);
@@ -837,20 +799,20 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
       backgroundColor: Colors.transparent,
       builder:
           (context) => CableTvPlanSelectorModal(
-            selectedPlan: selectedPlan ?? '',
+            selectedPlan: ref.read(cableSelectedPlanProvider) ?? '',
             plans: planNames,
             onPlanSelected: (plan) {
-              setState(() {
-                selectedPlan = plan;
-                if (variations != null && variations.isNotEmpty) {
-                  final selectedVar = variations.firstWhere(
-                    (v) => v.name == plan,
-                    orElse: () => variations.first,
-                  );
-                  planAmount = (selectedVar.payAmount ?? selectedVar.amount)
+              ref.read(cableSelectedPlanProvider.notifier).state = plan;
+              if (variations != null && variations.isNotEmpty) {
+                final selectedVar = variations.firstWhere(
+                  (v) => v.name == plan,
+                  orElse: () => variations.first,
+                );
+                setState(() {
+                  _planAmount = (selectedVar.payAmount ?? selectedVar.amount)
                       .toStringAsFixed(0);
-                }
-              });
+                });
+              }
             },
           ),
     );

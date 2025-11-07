@@ -18,12 +18,14 @@ Widget buildDetailRow(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isDark ? Colors.white70 : Colors.grey[600],
-            fontSize: 12,
-            fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.grey[600],
+              fontSize: 12,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -35,7 +37,8 @@ Widget buildDetailRow(
               fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
             ),
             textAlign: TextAlign.right,
-            overflow: TextOverflow.visible,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 3,
             softWrap: true,
           ),
         ),

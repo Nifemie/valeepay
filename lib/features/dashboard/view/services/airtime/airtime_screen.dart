@@ -44,16 +44,28 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     super.dispose();
   }
 
+  String _assetForProvider(String network) {
+    final n = network.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if (n.contains('mtn')) return 'assets/images/mtn.png';
+    if (n.contains('airtel')) return 'assets/images/airtel.png';
+    if (n.contains('9mobile') || n.contains('etisalat') || n.contains('nine'))
+      return 'assets/images/9mobile.png';
+    if (n.contains('glo')) return 'assets/images/glo.png';
+    // fallback
+    return 'assets/images/default.png';
+  }
+
   void _showLoading() {
     if (_loadingShown) return;
     _loadingShown = true;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
-        child: const Center(child: CircularProgressIndicator()),
-      ),
+      builder:
+          (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
     );
   }
 
@@ -82,9 +94,9 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     if (!hasEnough) return;
 
     final pin =
-    biometric
-        ? await BiometricTransactionPinModal.show(context)
-        : await TransactionPinModal.show(context);
+        biometric
+            ? await BiometricTransactionPinModal.show(context)
+            : await TransactionPinModal.show(context);
 
     if (pin == null || pin.length != 4 || !mounted) return;
     final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
@@ -115,17 +127,22 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
         _navigateToReceipt();
       } else {
         // Check if the error message indicates incorrect PIN
-        final errorMessage = state.message ?? 'Transaction failed. Please try again.';
+        final errorMessage =
+            state.message ?? 'Transaction failed. Please try again.';
 
         // Common patterns for incorrect PIN errors
-        final isIncorrectPin = errorMessage.toLowerCase().contains('incorrect pin') ||
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
             errorMessage.toLowerCase().contains('wrong pin') ||
             errorMessage.toLowerCase().contains('invalid pin') ||
             errorMessage.toLowerCase().contains('pin is incorrect');
 
         AppMessenger.show(
           context,
-          message: isIncorrectPin ? 'Incorrect PIN. Please try again.' : errorMessage,
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : errorMessage,
           type: MessageType.error,
         );
       }
@@ -136,21 +153,22 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
 
       // Check if the exception message indicates incorrect PIN
       final errorMessage = e.toString();
-      final isIncorrectPin = errorMessage.toLowerCase().contains('incorrect pin') ||
+      final isIncorrectPin =
+          errorMessage.toLowerCase().contains('incorrect pin') ||
           errorMessage.toLowerCase().contains('wrong pin') ||
           errorMessage.toLowerCase().contains('invalid pin') ||
           errorMessage.toLowerCase().contains('pin is incorrect');
 
       AppMessenger.show(
         context,
-        message: isIncorrectPin
-            ? 'Incorrect PIN. Please try again.'
-            : 'An unexpected error occurred: $errorMessage',
+        message:
+            isIncorrectPin
+                ? 'Incorrect PIN. Please try again.'
+                : 'An unexpected error occurred: $errorMessage',
         type: MessageType.error,
       );
     }
   }
-
 
   // ------------------- Navigation -------------------
   void _navigateToReceipt() {
@@ -540,24 +558,37 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                 )
                                 : plan == null
                                 ? const Text(
-                                  'Enter phone number to automatically detect  network provider',
+                                  'Enter phone number to automatically detect network provider',
                                   style: TextStyle(color: Colors.orange),
                                 )
-                                : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      plan.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                : Center(
+                                  child: SizedBox(
+                                    height: 80,
+                                    width: 80,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).cardColor.withOpacity(0.7),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: appTheme.primaryColor
+                                              .withOpacity(0.5),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: 60,
+                                          height: 60,
+                                          child: Image.asset(
+                                            _assetForProvider(plan.name),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    Icon(
-                                      Icons.check_circle,
-                                      color: appTheme.primaryColor,
-                                    ),
-                                  ],
+                                  ),
                                 ),
                       ),
                       const SizedBox(height: 24),

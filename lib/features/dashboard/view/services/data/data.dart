@@ -1,8 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
@@ -16,8 +15,6 @@ import 'package:valarpay/core/widgets/reuseable_text_field_with_country.dart';
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 import 'package:valarpay/core/widgets/transaction_receipt_widget.dart';
-import 'package:valarpay/features/dashboard/view/me/account_statement.dart';
-import 'package:valarpay/features/dashboard/view/services/giftcard/gift_card.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/contact_access_dialog.dart';
 import 'package:valarpay/features/dashboard/widgets/services_widgets/mobile_data_services_section.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
@@ -36,26 +33,53 @@ class DataScreen extends ConsumerStatefulWidget {
 }
 
 class _DataScreenState extends ConsumerState<DataScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final TextEditingController amountController = TextEditingController(
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController(
     text: '0',
   );
-  bool _useCashback = false;
-  String _selectedNetwork = '';
-  int _selectedOperatorId = 0;
-  String _selectedPlan = '';
-  bool saveBeneficiary = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  bool _saveBeneficiary = false;
+  bool _loadingShown = false;
 
   @override
   void dispose() {
-    _controller.dispose();
-    amountController.dispose();
+    _phoneController.dispose();
+    _amountController.dispose();
     super.dispose();
+  }
+
+  void _showLoading() {
+    if (_loadingShown) return;
+    _loadingShown = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+    );
+  }
+
+  void _hideLoading() {
+    if (!_loadingShown) return;
+    _loadingShown = false;
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  bool _isFormValid() {
+    final selectedNetwork = ref.read(dataSelectedNetworkProvider);
+    final selectedOperatorId = ref.read(dataSelectedOperatorIdProvider);
+    final selectedPlan = ref.read(dataSelectedPlanProvider);
+
+    return _phoneController.text.isNotEmpty &&
+        _amountController.text.isNotEmpty &&
+        _amountController.text != '0' &&
+        selectedNetwork.isNotEmpty &&
+        selectedPlan.isNotEmpty &&
+        selectedOperatorId > 0;
   }
 
   @override
@@ -64,62 +88,10 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     final isBvnVerified = user?.isBvnVerified ?? false;
     final plansState = ref.watch(dataPlansNotifierProvider);
     final availablePlans = plansState.data ?? <DataPlanInfo>[];
+    final selectedNetwork = ref.watch(dataSelectedNetworkProvider);
 
-    // Extract unique networks from plans
     final uniqueNetworks =
         availablePlans.map((plan) => plan.network).toSet().toList();
-    // Listen for plan errors
-    ref.listen<DataState<DataPlanInfo>>(dataPlansNotifierProvider, (
-      prev,
-      next,
-    ) {
-      if (next.message != null &&
-          !next.isInitialLoading &&
-          !next.isDataAvailable) {
-        AppMessenger.show(
-          context,
-          message: next.message!,
-          type: MessageType.error,
-        );
-      }
-    });
-
-    // Listen for variation updates to set amount
-    ref.listen<DataState<DataPlan>>(dataVariationNotifierProvider, (
-      prev,
-      next,
-    ) {
-      if (!next.isInitialLoading &&
-          next.isDataAvailable &&
-          next.data != null &&
-          next.data!.isNotEmpty) {
-        final variation = next.data!.first;
-        if (variation.fixedAmounts.isNotEmpty) {
-          setState(() {
-            amountController.text = variation.fixedAmounts.first
-                .toStringAsFixed(0);
-          });
-        }
-      }
-    });
-
-    // Listen for purchase results
-    ref.listen<DataState<DataPurchaseResponse>>(dataPurchaseNotifierProvider, (
-      prev,
-      next,
-    ) {
-      if (!next.isInitialLoading &&
-          next.message != null &&
-          !next.isDataAvailable) {
-        if (mounted) {
-          AppMessenger.show(
-            context,
-            message: next.message!,
-            type: MessageType.error,
-          );
-        }
-      }
-    });
 
     return Scaffold(
       appBar: AppBar(
@@ -170,7 +142,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                     ),
                     const SizedBox(height: 12),
                     ReuseableTextFieldWithCountry(
-                      controller: _controller,
+                      controller: _phoneController,
                       hintText: "123 567 890",
                       countryCode: '+234',
                       flagImagePath: 'assets/images/ngflag.png',
@@ -178,15 +150,31 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                       textInputType: TextInputType.phone,
                       showCountryLabel: true,
                       onChanged: (value) {
-                        // Auto-fetch plans when phone number is complete (10 digits)
-                        if (value.length >= 10) {
-                          // setState(() {
-                          //   availablePlans = [];
-                          // });
+                        if (value.replaceAll(RegExp(r'\D'), '').length >= 10) {
                           ref
                               .read(dataPlansNotifierProvider.notifier)
-                              .getPlans(phone: value, currency: 'NGN');
+                              .getPlans(phone: value, currency: 'NGN')
+                              .then((_) {
+                                final state = ref.read(
+                                  dataPlansNotifierProvider,
+                                );
+                                if (state.isDataAvailable &&
+                                    state.data!.isNotEmpty) {
+                                  final plan = state.data!.first;
+                                  ref
+                                      .read(
+                                        dataSelectedNetworkProvider.notifier,
+                                      )
+                                      .state = plan.network;
+                                  ref
+                                      .read(
+                                        dataSelectedOperatorIdProvider.notifier,
+                                      )
+                                      .state = plan.operatorId;
+                                }
+                              });
                         }
+                        setState(() {});
                       },
                       suffixWidget: IconButton(
                         onPressed: _showContactAccessDialog,
@@ -215,49 +203,11 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                     const SizedBox(height: 24),
 
                     // Data Amount Selection (from fixed amounts)
-                    if (_selectedNetwork.isNotEmpty) ...[
+                    if (selectedNetwork.isNotEmpty) ...[
                       _buildDataAmountSection(),
                       const SizedBox(height: 24),
                     ],
 
-                    // Cashback Section
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     const Expanded(
-                    //       child: Text(
-                    //         'Use Cashback',
-                    //         style: TextStyle(
-                    //           color: Colors.grey,
-                    //           fontSize: 14,
-                    //           fontWeight: FontWeight.w500,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //     Row(
-                    //       mainAxisSize: MainAxisSize.min,
-                    //       children: [
-                    //         const Text(
-                    //           '₦50.00',
-                    //           style: TextStyle(
-                    //             color: Colors.grey,
-                    //             fontSize: 14,
-                    //           ),
-                    //         ),
-                    //         const SizedBox(width: 8),
-                    //         Switch(
-                    //           value: _useCashback,
-                    //           onChanged: (value) {
-                    //             setState(() {
-                    //               _useCashback = value;
-                    //             });
-                    //           },
-                    //           activeColor: appTheme.primaryColor,
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ],
-                    // ),
                     const SizedBox(height: 32),
 
                     // Continue Button
@@ -317,14 +267,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
         return;
       }
 
-      // ✅ Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
-
-      // ✅ Fetch contacts
+      //
       final contacts = await FlutterContacts.getContacts(withProperties: true);
 
       if (Navigator.canPop(context)) Navigator.pop(context); // close loading
@@ -450,7 +393,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                                       onTap: () async {
                                         final formatted = _formatTo11(phone);
                                         setState(() {
-                                          _controller.text = formatted;
+                                          _phoneController.text = formatted;
                                         });
 
                                         final digitsOnly = formatted.replaceAll(
@@ -522,10 +465,6 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     List<String> uniqueNetworks,
     List<DataPlanInfo> availablePlans,
   ) {
-    // Debug: Check if plans are loaded
-    print('Available Plans Count: ${availablePlans.length}');
-    print('Unique Networks: $uniqueNetworks');
-
     if ((plansState?.isInitialLoading ?? false) && availablePlans.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -599,8 +538,12 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                               )
                               .toList();
 
+                      final selectedNetwork = ref.watch(
+                        dataSelectedNetworkProvider,
+                      );
+
                       return NetworkProviderSelector(
-                        selectedNetwork: _selectedNetwork,
+                        selectedNetwork: selectedNetwork,
                         providers: providerModels,
                         onNetworkSelected: (value) async {
                           if (value.isEmpty) return;
@@ -608,19 +551,20 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                             final plan = availablePlans.firstWhere(
                               (p) => p.network == value,
                             );
-                            setState(() {
-                              _selectedNetwork = value;
-                              _selectedPlan = '';
-                              _selectedOperatorId = plan.operatorId;
-                            });
+                            ref
+                                .read(dataSelectedNetworkProvider.notifier)
+                                .state = value;
+                            ref.read(dataSelectedPlanProvider.notifier).state =
+                                '';
+                            ref
+                                .read(dataSelectedOperatorIdProvider.notifier)
+                                .state = plan.operatorId;
 
                             await ref
                                 .read(dataVariationNotifierProvider.notifier)
                                 .getVariation(operatorId: plan.operatorId);
                           } catch (e) {
-                            print(
-                              '⚠️ [Data] Selected provider not found: $value',
-                            );
+                            // Provider not found
                           }
                         },
                       );
@@ -686,7 +630,10 @@ class _DataScreenState extends ConsumerState<DataScreen> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: _selectedPlan.isEmpty ? null : _selectedPlan,
+              value:
+                  ref.watch(dataSelectedPlanProvider).isEmpty
+                      ? null
+                      : ref.watch(dataSelectedPlanProvider),
               hint: Text(
                 'Select Data Plan',
                 style: TextStyle(
@@ -720,9 +667,9 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                   }).toList(),
               onChanged: (value) {
                 if (value != null) {
+                  ref.read(dataSelectedPlanProvider.notifier).state = value;
                   setState(() {
-                    _selectedPlan = value;
-                    amountController.text = double.parse(
+                    _amountController.text = double.parse(
                       value,
                     ).toStringAsFixed(0);
                   });
@@ -735,35 +682,29 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     );
   }
 
-  // Check if form is valid
-  bool _isFormValid() {
-    return _controller.text.isNotEmpty &&
-        _selectedNetwork.isNotEmpty &&
-        _selectedPlan.isNotEmpty &&
-        _selectedOperatorId > 0;
-  }
-
   _onShareTransactionReceiptPressed() {
+    final selectedNetwork = ref.read(dataSelectedNetworkProvider);
+    final selectedPlan = ref.read(dataSelectedPlanProvider);
     final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
     final descriptions =
         dataVariations.isNotEmpty
             ? dataVariations.first.fixedAmountsDescriptions
             : <String, dynamic>{};
-    final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
+    final amountKey = double.parse(selectedPlan).toStringAsFixed(0);
     final planDescription =
-        descriptions[amountKey] ?? '₦ ${amountController.text} Data';
+        descriptions[amountKey] ?? '₦${_amountController.text} Data';
     Navigator.push(
       context,
       MaterialPageRoute(
         builder:
             (_) => ReceiptShareScreen(
               date:
-                  '${DateTime.now().day} ${getMonthName(DateTime.now().month)} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
               transactionDetailList: [
                 ShareableTransactionReceiptDetail(
                   label: 'Amount',
                   value: currencyFormatter(
-                    amountController.text..replaceAll(',', ''),
+                    _amountController.text.replaceAll(',', ''),
                   ),
                 ),
                 ShareableTransactionReceiptDetail(
@@ -776,7 +717,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                 ),
                 ShareableTransactionReceiptDetail(
                   label: 'Provider',
-                  value: _selectedNetwork,
+                  value: selectedNetwork,
                 ),
                 ShareableTransactionReceiptDetail(
                   label: 'Plan',
@@ -784,7 +725,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                 ),
                 ShareableTransactionReceiptDetail(
                   label: 'Phone Number',
-                  value: _controller.text.trim(),
+                  value: _phoneController.text.trim(),
                 ),
 
                 ShareableTransactionReceiptDetail(
@@ -815,6 +756,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedNetwork = ref.read(dataSelectedNetworkProvider);
+    final selectedPlan = ref.read(dataSelectedPlanProvider);
     final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
     final descriptions =
         dataVariations.isNotEmpty
@@ -822,291 +765,171 @@ class _DataScreenState extends ConsumerState<DataScreen> {
             : <String, dynamic>{};
 
     // Get description for selected amount
-    final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
+    final amountKey = double.parse(selectedPlan).toStringAsFixed(0);
     final planDescription =
-        descriptions[amountKey] ?? '₦${amountController.text} Data';
+        descriptions[amountKey] ?? '₦${_amountController.text} Data';
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ReuseableTransactionDetailsScreen(
-          saveBeneficiary: saveBeneficiary,
-          onSaveBeneficiaryChanged: (value) {
-            setState(() {
-              saveBeneficiary = value;
-            });
-          },
-          hasBottom: false,
-          topTitleText: 'Transaction',
-          topTransactionsDetailsList: [
-            buildDetailRow('Recipient Number', _controller.text, isDark),
-            buildDetailRow('Provider', _selectedNetwork, isDark),
-            buildDetailRow('Data Plan', planDescription, isDark),
-            buildDetailRow('Amount', '₦${amountController.text}', isDark),
-          ],
-          onButtonPressed: _handlePinEntry,
-          onBiometricButtonPressed: _handleBiometricPinEntry,
-        ),
+        builder:
+            (context) => ReuseableTransactionDetailsScreen(
+              saveBeneficiary: _saveBeneficiary,
+              onSaveBeneficiaryChanged: (value) {
+                setState(() {
+                  _saveBeneficiary = value;
+                });
+              },
+              hasBottom: false,
+              topTitleText: 'Transaction',
+              topTransactionsDetailsList: [
+                buildDetailRow(
+                  'Recipient Number',
+                  _phoneController.text,
+                  isDark,
+                ),
+                buildDetailRow('Provider', selectedNetwork, isDark),
+                buildDetailRow('Data Plan', planDescription, isDark),
+                buildDetailRow('Amount', '₦${_amountController.text}', isDark),
+              ],
+              onButtonPressed: _handlePin,
+              onBiometricButtonPressed: () => _handlePin(biometric: true),
+            ),
       ),
     );
   }
 
-  // Handle PIN entry and purchase
-  Future<void> _handlePinEntry() async {
+  Future<void> _handlePin({bool biometric = false}) async {
     final user = ref.read(userProvider);
     final hasEnoughBalance = checkBalanceLeft(
-                                    context,
-                                    user?.wallets.first.balance.toString() ??
-                                        '0',
-                                    amountController.text.replaceAll(',', ''));
-          if (!hasEnoughBalance) return;
-    final pin = await TransactionPinModal.show(context);
-    if (pin == null || pin.length != 4) return;
-
-    if (!mounted) return;
-    Navigator.pop(context); // Close transaction details screen
-
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      context,
+      user?.wallets.first.balance.toString() ?? '0',
+      _amountController.text.replaceAll(',', ''),
     );
+    if (!hasEnoughBalance) return;
+
+    final pin =
+        biometric
+            ? await BiometricTransactionPinModal.show(context)
+            : await TransactionPinModal.show(context);
+
+    if (pin == null || pin.length != 4 || !mounted) return;
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    final selectedOperatorId = ref.read(dataSelectedOperatorIdProvider);
+    _showLoading();
 
     try {
-      final amount = double.tryParse(amountController.text) ?? 0;
+      final amount = double.tryParse(_amountController.text) ?? 0;
 
       final request = DataPurchaseRequest(
         walletPin: pin,
         amount: amount,
-        operatorId: _selectedOperatorId,
-        phone: _controller.text,
+        operatorId: selectedOperatorId,
+        phone: _phoneController.text,
         currency: 'NGN',
         addBeneficiary: false,
       );
 
-      print('🔐 [Data] Initiating data purchase...');
       await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
-      print('📤 [Data] Data purchase request sent');
+      _hideLoading();
 
-      // Use post frame callback to close dialog and navigate after frame completes
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) {
-            print('⚠️ [Data] Widget not mounted in postFrameCallback');
-            return;
-          }
+      if (!mounted) return;
 
-          // Close loading dialog
-          if (Navigator.canPop(context)) {
-            print('📤 [Data] Closing loading dialog');
-            Navigator.pop(context);
-          }
+      final state = ref.read(dataPurchaseNotifierProvider);
 
-          // Small delay to ensure loading dialog is fully closed
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (!mounted) {
-              print('⚠️ [Data] Widget not mounted after delay');
-              return;
-            }
+      if (state.isDataAvailable) {
+        _navigateToReceipt();
+      } else {
+        // Check if the error message indicates incorrect PIN
+        final errorMessage =
+            state.message ?? 'Transaction failed. Please try again.';
 
-            // Check the state and navigate
-            final state = ref.read(dataPurchaseNotifierProvider);
-            print('🎧 [Data] State check:');
-            print('   - isDataAvailable: ${state.isDataAvailable}');
-            print('   - message: ${state.message}');
-            print('   - data: ${state.data}');
+        // Common patterns for incorrect PIN errors
+        final isIncorrectPin =
+            errorMessage.toLowerCase().contains('incorrect pin') ||
+            errorMessage.toLowerCase().contains('wrong pin') ||
+            errorMessage.toLowerCase().contains('invalid pin') ||
+            errorMessage.toLowerCase().contains('pin is incorrect');
 
-            // Check for success via message (like airtime)
-            final isSuccessMessage =
-                state.message != null &&
-                state.message!.toLowerCase().contains('success');
-
-            if ((state.isDataAvailable &&
-                    state.data != null &&
-                    state.data!.isNotEmpty) ||
-                isSuccessMessage) {
-              print('✅ [Data] Purchase successful, navigating to receipt');
-              // Get description for selected amount
-              final dataVariations =
-                  ref.read(dataVariationNotifierProvider).data ?? [];
-              final descriptions =
-                  dataVariations.isNotEmpty
-                      ? dataVariations.first.fixedAmountsDescriptions
-                      : <String, dynamic>{};
-              final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
-              final planDescription =
-                  descriptions[amountKey] ?? '₦ ${amountController.text} Data';
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => TransactionReceiptWidget(
-                    headerText: 'Transaction',
-                    amount: currencyFormatter(amountController.text..replaceAll(',', '')),
-                    topDetails: [
-                      TransactionDetail(
-                          label: 'Transaction ID',
-                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                          showCopyIcon: true),
-                      TransactionDetail(
-                          label: 'Recipient Number', value: _controller.text),
-                      TransactionDetail(
-                          label: 'Network', value: _selectedNetwork),
-                      TransactionDetail(
-                          label: 'Data Plan', value: planDescription),
-                      TransactionDetail(
-                          label: 'Amount', value: currencyFormatter(amountController.text..replaceAll(',', ''))),
-                    ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
-                  ),
-                ),
-              );
-            } else if (state.message != null) {
-              AppMessenger.show(
-                context,
-                message: state.message!,
-                type: MessageType.error,
-              );
-            }
-          });
-        });
-      }
-    } catch (e) {
-      if (mounted) Navigator.pop(context); // close loading
-      if (mounted) {
         AppMessenger.show(
           context,
-          message: 'Purchase failed: ${e.toString()}',
+          message:
+              isIncorrectPin
+                  ? 'Incorrect PIN. Please try again.'
+                  : errorMessage,
           type: MessageType.error,
         );
       }
+    } catch (e) {
+      _hideLoading();
+
+      if (!mounted) return;
+
+      // Check if the exception message indicates incorrect PIN
+      final errorMessage = e.toString();
+      final isIncorrectPin =
+          errorMessage.toLowerCase().contains('incorrect pin') ||
+          errorMessage.toLowerCase().contains('wrong pin') ||
+          errorMessage.toLowerCase().contains('invalid pin') ||
+          errorMessage.toLowerCase().contains('pin is incorrect');
+
+      AppMessenger.show(
+        context,
+        message:
+            isIncorrectPin
+                ? 'Incorrect PIN. Please try again.'
+                : 'An unexpected error occurred: $errorMessage',
+        type: MessageType.error,
+      );
     }
   }
 
-Future<void> _handleBiometricPinEntry() async {
-    final user = ref.read(userProvider);
-    final hasEnoughBalance = checkBalanceLeft(
-                                    context,
-                                    user?.wallets.first.balance.toString() ??
-                                        '0',
-                                    amountController.text.replaceAll(',', ''));
-          if (!hasEnoughBalance) return;
-    final pin = await BiometricTransactionPinModal.show(context);
-    if (pin == null || pin.length != 4) return;
+  void _navigateToReceipt() {
+    final selectedNetwork = ref.read(dataSelectedNetworkProvider);
+    final selectedPlan = ref.read(dataSelectedPlanProvider);
+    final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
+    final descriptions =
+        dataVariations.isNotEmpty
+            ? dataVariations.first.fixedAmountsDescriptions
+            : <String, dynamic>{};
 
-    if (!mounted) return;
-    Navigator.pop(context); // Close transaction details screen
+    final amountKey = double.parse(selectedPlan).toStringAsFixed(0);
+    final planDescription =
+        descriptions[amountKey] ?? '₦${_amountController.text} Data';
 
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      final amount = double.tryParse(amountController.text) ?? 0;
-
-      final request = DataPurchaseRequest(
-        walletPin: pin,
-        amount: amount,
-        operatorId: _selectedOperatorId,
-        phone: _controller.text,
-        currency: 'NGN',
-        addBeneficiary: false,
-      );
-
-      print('🔐 [Data] Initiating data purchase...');
-      await ref.read(dataPurchaseNotifierProvider.notifier).purchase(request);
-      print('📤 [Data] Data purchase request sent');
-
-      // Use post frame callback to close dialog and navigate after frame completes
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) {
-            print('⚠️ [Data] Widget not mounted in postFrameCallback');
-            return;
-          }
-
-          // Close loading dialog
-          if (Navigator.canPop(context)) {
-            print('📤 [Data] Closing loading dialog');
-            Navigator.pop(context);
-          }
-
-          // Small delay to ensure loading dialog is fully closed
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (!mounted) {
-              print('⚠️ [Data] Widget not mounted after delay');
-              return;
-            }
-
-            // Check the state and navigate
-            final state = ref.read(dataPurchaseNotifierProvider);
-            print('🎧 [Data] State check:');
-            print('   - isDataAvailable: ${state.isDataAvailable}');
-            print('   - message: ${state.message}');
-            print('   - data: ${state.data}');
-
-            // Check for success via message (like airtime)
-            final isSuccessMessage = state.message != null &&
-                state.message!.toLowerCase().contains('success');
-
-            if ((state.isDataAvailable &&
-                    state.data != null &&
-                    state.data!.isNotEmpty) ||
-                isSuccessMessage) {
-              print('✅ [Data] Purchase successful, navigating to receipt');
-              // Get description for selected amount
-              final dataVariations =
-                  ref.read(dataVariationNotifierProvider).data ?? [];
-              final descriptions = dataVariations.isNotEmpty
-                  ? dataVariations.first.fixedAmountsDescriptions
-                  : <String, dynamic>{};
-              final amountKey = double.parse(_selectedPlan).toStringAsFixed(0);
-              final planDescription =
-                  descriptions[amountKey] ?? '₦ ${amountController.text} Data';
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => TransactionReceiptWidget(
-                    headerText: 'Transaction',
-                    amount: currencyFormatter(amountController.text..replaceAll(',', '')),
-                    topDetails: [
-                      TransactionDetail(
-                          label: 'Transaction ID',
-                          value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
-                          showCopyIcon: true),
-                      TransactionDetail(
-                          label: 'Recipient Number', value: _controller.text),
-                      TransactionDetail(
-                          label: 'Network', value: _selectedNetwork),
-                      TransactionDetail(
-                          label: 'Data Plan', value: planDescription),
-                      TransactionDetail(
-                          label: 'Amount', value: currencyFormatter(amountController.text..replaceAll(',', ''))),
-                    ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => TransactionReceiptWidget(
+              headerText: 'Transaction',
+              amount: currencyFormatter(
+                _amountController.text.replaceAll(',', ''),
+              ),
+              topDetails: [
+                TransactionDetail(
+                  label: 'Transaction ID',
+                  value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                  showCopyIcon: true,
+                ),
+                TransactionDetail(
+                  label: 'Recipient Number',
+                  value: _phoneController.text,
+                ),
+                TransactionDetail(label: 'Network', value: selectedNetwork),
+                TransactionDetail(label: 'Data Plan', value: planDescription),
+                TransactionDetail(
+                  label: 'Amount',
+                  value: currencyFormatter(
+                    _amountController.text.replaceAll(',', ''),
                   ),
                 ),
-              );
-            } else if (state.message != null) {
-              AppMessenger.show(context,
-                  message: state.message!, type: MessageType.error);
-            }
-          });
-        });
-      }
-    } catch (e) {
-      if (mounted) Navigator.pop(context); // close loading
-      if (mounted) {
-        AppMessenger.show(context,
-            message: 'Purchase failed: ${e.toString()}',
-            type: MessageType.error);
-      }
-    }
-
-}
+              ],
+              onShareReceipt: _onShareTransactionReceiptPressed,
+            ),
+      ),
+    );
+  }
 }

@@ -42,139 +42,213 @@ class TransactionReceiptWidget extends ConsumerStatefulWidget {
 
 class _TransactionReceiptWidgetState
     extends ConsumerState<TransactionReceiptWidget> {
+  bool _isLoading = false;
+
+  Future<void> _handleDoneButton() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final freshedUser =
+          await ref.read(userNotifierProvider.notifier).refreshUserProfile();
+
+      if (freshedUser != null) {
+        ref.read(userProvider.notifier).setUser(freshedUser);
+      }
+    } catch (e) {
+      // Handle error silently or log it
+      debugPrint('Error refreshing user profile: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    }
+  }
+
+  void _handleCopyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    AppMessenger.show(
+      context,
+      type: MessageType.success,
+      message: 'Copied to clipboard',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                // Success Icon
-                SvgPicture.asset(
-                  'assets/icons/tick-circle.svg',
-                  width: 48,
-                  height: 48,
-                ),
-                const SizedBox(height: 16),
-                // Transaction Successful Text
-                 Text(
-                  '${widget.headerText} Successful',
-                  style: TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontFamily: 'SF Pro',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    height: 1.43,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Amount
-                Text(
-                  currencyFormatter(widget.amount),
-                  style: const TextStyle(
-                    fontFamily: 'SF Pro',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // Top Details Card
-                _buildDetailsCard(context, widget.topDetails),
-                const SizedBox(height: 16),
-                // Bottom Details Card
-                if (widget.bottomDetails != null)
-                  _buildDetailsCard(context, widget.bottomDetails ?? []),
-                const SizedBox(height: 32),
-                // Share Receipt Button
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF76301),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: TextButton(
-                    onPressed: widget.onShareReceipt,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.all(10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+                    // Success Icon
+                    SvgPicture.asset(
+                      'assets/icons/tick-circle.svg',
+                      width: 48,
+                      height: 48,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.share,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Share Receipt',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'SF Pro',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Done Button
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAFBFC),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: TextButton(
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-
-                    final freshedUser =  await ref
-                          .read(userNotifierProvider.notifier)
-                          .refreshUserProfile();
-          if (freshedUser != null) {
-            ref.read(userProvider.notifier).setUser(freshedUser);
-          }
-                      Navigator.pop(context);
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.all(10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      'Done',
-                      style: TextStyle(
-                        color: Color(0xFF111827),
+                    const SizedBox(height: 16),
+                    // Transaction Successful Text
+                    Text(
+                      '${widget.headerText} Successful',
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
                         fontFamily: 'SF Pro',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        height: 1.43,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    // Amount
+                    Text(
+                      currencyFormatter(widget.amount),
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // Top Details Card
+                    _buildDetailsCard(context, widget.topDetails),
+                    const SizedBox(height: 16),
+                    // Bottom Details Card
+                    if (widget.bottomDetails != null)
+                      _buildDetailsCard(context, widget.bottomDetails ?? []),
+                    const SizedBox(height: 32),
+                    // Share and View Receipt Buttons Row
+                    _buildActionButtons(),
+                    const SizedBox(height: 12),
+                    // Done Button
+                    _buildDoneButton(),
+                    const SizedBox(height: 20),
+                  ],
                 ),
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
+            // Loading Overlay
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        // View Receipt Button
+        Expanded(
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFBFC),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+            ),
+            child: TextButton(
+              onPressed: _isLoading ? null : widget.onShareReceipt,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.all(10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.receipt_long, size: 16, color: Color(0xFF111827)),
+                  SizedBox(width: 8),
+                  Text(
+                    'View Receipt',
+                    style: TextStyle(
+                      color: Color(0xFF111827),
+                      fontFamily: 'SF Pro',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Share Button
+        Expanded(
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF76301),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: TextButton(
+              onPressed: _isLoading ? null : widget.onShareReceipt,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.all(10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.share, size: 16, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text(
+                    'Share',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'SF Pro',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDoneButton() {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFBFC),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: TextButton(
+        onPressed: _isLoading ? null : _handleDoneButton,
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.all(10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
+        child: const Text(
+          'Done',
+          style: TextStyle(
+            color: Color(0xFF111827),
+            fontFamily: 'SF Pro',
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
@@ -182,7 +256,9 @@ class _TransactionReceiptWidgetState
   }
 
   Widget _buildDetailsCard(
-      BuildContext context, List<TransactionDetail> details) {
+    BuildContext context,
+    List<TransactionDetail> details,
+  ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
       decoration: BoxDecoration(
@@ -190,18 +266,19 @@ class _TransactionReceiptWidgetState
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
-        children: details.asMap().entries.map((entry) {
-          final index = entry.key;
-          final detail = entry.value;
-          final isLast = index == details.length - 1;
+        children:
+            details.asMap().entries.map((entry) {
+              final index = entry.key;
+              final detail = entry.value;
+              final isLast = index == details.length - 1;
 
-          return Column(
-            children: [
-              _buildDetailRow(context, detail),
-              if (!isLast) const SizedBox(height: 20),
-            ],
-          );
-        }).toList(),
+              return Column(
+                children: [
+                  _buildDetailRow(context, detail),
+                  if (!isLast) const SizedBox(height: 20),
+                ],
+              );
+            }).toList(),
       ),
     );
   }
@@ -227,36 +304,38 @@ class _TransactionReceiptWidgetState
         ),
         const SizedBox(width: 16),
         // Value with optional copy icon
-        Row(
-          children: [
-            Text(
-              detail.value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontFamily: 'SF Pro',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                height: 1.33,
-                letterSpacing: 0.06,
-              ),
-            ),
-            if (detail.showCopyIcon) ...[
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: detail.value));
-                  AppMessenger.show(context,
-                      type: MessageType.success,
-                      message: 'Copied to clipboard');
-                },
-                child: const Icon(
-                  Icons.copy,
-                  size: 14,
-                  color: Color(0xFF9CA3AF),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Text(
+                  detail.value,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  style: const TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    height: 1.33,
+                    letterSpacing: 0.06,
+                  ),
                 ),
               ),
+              if (detail.showCopyIcon) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => _handleCopyToClipboard(detail.value),
+                  child: const Icon(
+                    Icons.copy,
+                    size: 14,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ],
     );

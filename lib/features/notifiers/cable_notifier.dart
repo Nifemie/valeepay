@@ -9,7 +9,7 @@ class CablePlansNotifier extends StateNotifier<DataState<CablePlanInfo>> {
   final CableRepository _repository;
 
   CablePlansNotifier(this._repository)
-      : super(DataState<CablePlanInfo>.initial());
+    : super(DataState<CablePlanInfo>.initial());
 
   Future<void> getPlans({required String currency}) async {
     state = state.copyWith(isInitialLoading: true, message: null);
@@ -39,7 +39,7 @@ class CableVariationNotifier
   final CableRepository _repository;
 
   CableVariationNotifier(this._repository)
-      : super(DataState<CableVariationInfo>.initial());
+    : super(DataState<CableVariationInfo>.initial());
 
   Future<void> getVariations({required String billerCode}) async {
     state = state.copyWith(isInitialLoading: true, message: null);
@@ -69,16 +69,13 @@ class CablePaymentNotifier
   final CableRepository _repository;
 
   CablePaymentNotifier(this._repository)
-      : super(DataState<CablePaymentResponse>.initial());
+    : super(DataState<CablePaymentResponse>.initial());
 
   Future<VerifyCableResponse> verifyNumber(VerifyCableRequest request) async {
     state = state.copyWith(isInitialLoading: true, message: null);
     try {
       final res = await _repository.verifyCableNumber(request);
-      state = state.copyWith(
-        isInitialLoading: false,
-        message: res.message,
-      );
+      state = state.copyWith(isInitialLoading: false, message: res.message);
       return res;
     } catch (e, stack) {
       log('[CablePaymentNotifier verifyNumber Error] $e\n$stack');
@@ -115,20 +112,27 @@ class CablePaymentNotifier
 }
 
 // Providers
-final cableRepositoryProvider =
-    Provider((ref) => CableRepository(ref.read(apiClientProvider)));
+final cableRepositoryProvider = Provider(
+  (ref) => CableRepository(ref.read(apiClientProvider)),
+);
 
 final cablePlansNotifierProvider =
     StateNotifierProvider<CablePlansNotifier, DataState<CablePlanInfo>>(
-  (ref) => CablePlansNotifier(ref.read(cableRepositoryProvider)),
-);
+      (ref) => CablePlansNotifier(ref.read(cableRepositoryProvider)),
+    );
 
 final cableVariationNotifierProvider = StateNotifierProvider<
-    CableVariationNotifier, DataState<CableVariationInfo>>(
-  (ref) => CableVariationNotifier(ref.read(cableRepositoryProvider)),
-);
+  CableVariationNotifier,
+  DataState<CableVariationInfo>
+>((ref) => CableVariationNotifier(ref.read(cableRepositoryProvider)));
 
-final cablePaymentNotifierProvider = StateNotifierProvider<CablePaymentNotifier,
-    DataState<CablePaymentResponse>>(
-  (ref) => CablePaymentNotifier(ref.read(cableRepositoryProvider)),
+final cablePaymentNotifierProvider = StateNotifierProvider<
+  CablePaymentNotifier,
+  DataState<CablePaymentResponse>
+>((ref) => CablePaymentNotifier(ref.read(cableRepositoryProvider)));
+
+// UI State Providers
+final cableSelectedProviderProvider = StateProvider<CablePlanInfo?>(
+  (ref) => null,
 );
+final cableSelectedPlanProvider = StateProvider<String?>((ref) => null);
