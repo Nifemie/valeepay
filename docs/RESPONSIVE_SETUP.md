@@ -223,7 +223,7 @@ padding: ResponsiveUtils.paddingAll24
 ### Debug Tips
 ```dart
 // Check current screen dimensions
-print('Screen width: ${ScreenUtil().screenWidth}');
-print('Screen height: ${ScreenUtil().screenHeight}');
-print('Device pixel ratio: ${ScreenUtil().pixelRatio}');
+AppLogger.log('Screen width: ${ScreenUtil().screenWidth}');
+AppLogger.log('Screen height: ${ScreenUtil().screenHeight}');
+AppLogger.log('Device pixel ratio: ${ScreenUtil().pixelRatio}');
 ```

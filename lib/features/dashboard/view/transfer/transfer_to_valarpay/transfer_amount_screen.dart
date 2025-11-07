@@ -19,6 +19,8 @@ import 'package:valarpay/features/models/transfer_models.dart';
 import 'package:valarpay/features/notifiers/transfer_notifier.dart';
 import 'package:valarpay/features/providers/user_provider.dart';
 
+import '../../../../../core/utils/logger.dart';
+
 class InternalTransferAmountScreen extends ConsumerStatefulWidget {
   final AccountDetails accountDetails;
   InternalTransferAmountScreen({required this.accountDetails, super.key});
@@ -103,8 +105,8 @@ class _InternalTransferAmountScreenState
     _showLoading();
 
     try {
-      print('🔐 Initiating ValarPay transfer with PIN...');
-      print(
+      AppLogger.log('🔐 Initiating ValarPay transfer with PIN...');
+      AppLogger.log(
         '📤 Transfer details - Account: ${widget.accountDetails.accountNumber}, Amount: $amount',
       );
 
@@ -176,72 +178,42 @@ class _InternalTransferAmountScreenState
     }
   }
 
-  _handlePinEntry() async {
-    final amount =
+  _handlePinEntry({bool biometric = false}) async {
+     final amount =
         double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;
-    print('🔘 ValarPay transfer button pressed, amount: $amount');
-    final pin = await TransactionPinModal.show(context);
-    print(
-      '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-    );
+    final user = ref.watch(userProvider);
+      final wallet =
+          user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+      final balance = wallet?.balance ?? 0.0;
+      final hasEnoughBalance = checkBalanceLeft(
+        context,
+        balance.toString(),
+        amount.toString()
+      );
+
+      if (!hasEnoughBalance) return;
+    final pin = biometric ? await BiometricTransactionPinModal.show(context) : await TransactionPinModal.show(context);
 
     if (pin != null && pin.length == 4) {
       // Ensure PIN is a string
       final pinString = pin.toString();
-      print(
-        '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}',
-      );
-
+      Navigator.pop(context);
       if (mounted) {
-        print('✅ PIN valid, calling _initiateTransfer');
         _initiateTransfer(pinString, amount);
       }
     } else {
-      print('❌ PIN invalid or cancelled');
-    }
-  }
-
-  _handleBiometricPinEntry() async {
-    final amount =
-        double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;
-    print('🔘 ValarPay transfer button pressed, amount: $amount');
-    final pin = await BiometricTransactionPinModal.show(context);
-    print(
-      '🔐 PIN received: ${pin != null ? "****" : "null"}, length: ${pin?.length}',
-    );
-
-    if (pin != null && pin.length == 4) {
-      // Ensure PIN is a string
-      final pinString = pin.toString();
-      print(
-        '🔐 PIN type check: ${pin.runtimeType}, converted: ${pinString.runtimeType}',
-      );
-
-      if (mounted) {
-        print('✅ PIN valid, calling _initiateTransfer');
-        _initiateTransfer(pinString, amount);
-      }
-    } else {
-      print('❌ PIN invalid or cancelled');
+      AppLogger.log('❌ PIN invalid or cancelled');
     }
   }
 
   _handleOnPressed() {
-    final user = ref.watch(userProvider);
-    final wallet =
-        user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
-    final balance = wallet?.balance ?? 0.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    checkBalanceLeft(
-      context,
-      balance.toString(),
-      _amountController.text.replaceAll(',', ''),
-    );
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder:
             (context) => ReuseableTransactionDetailsScreen(
+              totalAmount: double.parse(_amountController.text),
               hasBottom: false,
               saveBeneficiary: _saveBeneficiary,
               onSaveBeneficiaryChanged: (value) {
@@ -268,8 +240,9 @@ class _InternalTransferAmountScreenState
                   isDark,
                 ),
               ],
-              onButtonPressed: _handlePinEntry,
-              onBiometricButtonPressed: _handleBiometricPinEntry,
+              onButtonPressed: () => _handlePinEntry(biometric: false),
+              onBiometricButtonPressed: () => _handlePinEntry(biometric: true),
+              onAutomaticallyShowBiometric: () => _handlePinEntry(biometric: true),
             ),
       ),
     );
@@ -278,10 +251,10 @@ class _InternalTransferAmountScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+          final user = ref.read(userProvider);
+
 
     _onShareTransactionReceiptPressed() {
-      final user = ref.read(userProvider);
-
       // Guard against null account details
       if (widget.accountDetails.sessionId.isEmpty) {
         AppMessenger.show(
@@ -347,27 +320,19 @@ class _InternalTransferAmountScreenState
 
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
-      print(
-        '🎧 ValarPay transfer listener triggered - isDataAvailable: ${next.isDataAvailable}, data: ${next.data}, message: ${next.message}',
-      );
-
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
-        print('✅ ValarPay transfer successful, navigating to receipt');
         _hideLoading();
 
         if (!mounted) {
-          print('⚠️ Widget not mounted, skipping navigation');
           return;
         }
 
         // Small delay to ensure any dialogs are closed
         Future.delayed(const Duration(milliseconds: 100), () {
           if (!mounted) {
-            print('⚠️ Widget not mounted after delay, skipping navigation');
             return;
           }
 
-          print('🧾 Navigating to receipt screen');
           // Transfer successful - navigate to receipt
           final transferAmount =
               double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;

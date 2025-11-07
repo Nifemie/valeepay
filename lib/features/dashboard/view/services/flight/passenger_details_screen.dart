@@ -116,6 +116,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReuseableTransactionDetailsScreen(
+                          totalAmount: double.parse((int.parse('45000') + int.parse(serviceFee) + int.parse(serviceFee) + int.parse('35000') + int.parse('25000')).toString()),
                           saveBeneficiary: saveBeneficiary,
                           onSaveBeneficiaryChanged: (value) {
                         setState(() {

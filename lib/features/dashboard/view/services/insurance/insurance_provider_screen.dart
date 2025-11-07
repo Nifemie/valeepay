@@ -174,6 +174,7 @@ class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
+                                totalAmount: double.parse(amountController.text),
                                 saveBeneficiary: saveBeneficiary,
                                 onSaveBeneficiaryChanged: (value) {
                                   setState(() {

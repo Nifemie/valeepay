@@ -484,15 +484,14 @@ class _DataScreenState extends ConsumerState<DataScreen> {
           ),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Theme.of(context).cardColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue),
             ),
             child: const Text(
-              'Enter phone number to see available networks',
-              style: TextStyle(color: Colors.blue),
+              'Enter phone number to automatically detect network provider',
+              style: TextStyle(color: Colors.orange),
             ),
           ),
         ],
@@ -774,6 +773,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
       MaterialPageRoute(
         builder:
             (context) => ReuseableTransactionDetailsScreen(
+              totalAmount: double.parse(_amountController.text),
               saveBeneficiary: _saveBeneficiary,
               onSaveBeneficiaryChanged: (value) {
                 setState(() {
@@ -792,8 +792,9 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                 buildDetailRow('Data Plan', planDescription, isDark),
                 buildDetailRow('Amount', '₦${_amountController.text}', isDark),
               ],
-              onButtonPressed: _handlePin,
+              onButtonPressed: () => _handlePin(biometric: false),
               onBiometricButtonPressed: () => _handlePin(biometric: true),
+              onAutomaticallyShowBiometric: () => _handlePin(biometric: true),
             ),
       ),
     );

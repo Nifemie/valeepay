@@ -47,9 +47,10 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
   void _filterBanks() {
     final query = searchController.text.toLowerCase();
     setState(() {
-      filteredBanks = allBanks
-          .where((bank) => bank.name.toLowerCase().contains(query))
-          .toList();
+      filteredBanks =
+          allBanks
+              .where((bank) => bank.name.toLowerCase().contains(query))
+              .toList();
     });
   }
 
@@ -82,10 +83,7 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
         ),
         title: const Text(
           "Select Bank",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       body: Padding(
@@ -110,80 +108,79 @@ class _SelectBankScreenState extends ConsumerState<SelectBankScreen> {
 
             // Banks List
             Expanded(
-              child: banksState.isInitialLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : banksState.message != null && !banksState.isDataAvailable
+              child:
+                  banksState.isInitialLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : banksState.message != null &&
+                          !banksState.isDataAvailable
                       ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                size: 48,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              banksState.message!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 16,
                                 color: Colors.grey,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                banksState.message!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              FullWidthButton(text: 'Retry', onPressed: _retry)
-                            ],
-                          ),
-                        )
-                      : filteredBanks.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No banks found',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: sortedBanks.length,
-                              itemBuilder: (context, index) {
-                                final bank = sortedBanks[index];
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: appTheme.primaryColor
-                                          .withValues(alpha: 0.1),
-                                      child: Text(
-                                        bank.name.substring(0, 2).toUpperCase(),
-                                        style: TextStyle(
-                                          color: appTheme.primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    title: Text(
-                                      bank.name,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context, bank);
-                                    },
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    tileColor: Theme.of(context)
-                                        .cardColor
-                                        .withValues(alpha: 0.5),
-                                  ),
-                                );
-                              },
                             ),
+                            const SizedBox(height: 16),
+                            FullWidthButton(text: 'Retry', onPressed: _retry),
+                          ],
+                        ),
+                      )
+                      : filteredBanks.isEmpty
+                      ? const Center(
+                        child: Text(
+                          'No banks found',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                      : ListView.builder(
+                        itemCount: sortedBanks.length,
+                        itemBuilder: (context, index) {
+                          final bank = sortedBanks[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8, top: 8),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: appTheme.primaryColor
+                                    .withValues(alpha: 0.1),
+                                child: Text(
+                                  bank.name.substring(0, 1).toUpperCase(),
+                                  style: TextStyle(
+                                    color: appTheme.primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                bank.name,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context, bank);
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              // tileColor: Theme.of(context)
+                              //     .cardColor
+                              //     .withValues(alpha: 0.5),
+                            ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),

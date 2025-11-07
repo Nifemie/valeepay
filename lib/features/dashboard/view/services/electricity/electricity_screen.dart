@@ -801,6 +801,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                                   (
                                     context,
                                   ) => ReuseableTransactionDetailsScreen(
+                                    totalAmount: double.parse(_totalAmount.toString()),
                                     saveBeneficiary: _saveBeneficiary,
                                     onSaveBeneficiaryChanged: (value) {
                                       setState(() {

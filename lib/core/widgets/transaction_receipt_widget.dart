@@ -127,7 +127,7 @@ class _TransactionReceiptWidgetState
                     const SizedBox(height: 32),
                     // Share and View Receipt Buttons Row
                     _buildActionButtons(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 30),
                     // Done Button
                     _buildDoneButton(),
                     const SizedBox(height: 20),
@@ -186,7 +186,7 @@ class _TransactionReceiptWidgetState
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 25),
         // Share Button
         Expanded(
           child: Container(

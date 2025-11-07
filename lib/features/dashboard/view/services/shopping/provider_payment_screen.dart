@@ -138,6 +138,7 @@ class _ShoppingProviderPaymentScreenState
                       MaterialPageRoute(
                           builder: (context) =>
                               ReuseableTransactionDetailsScreen(
+                                totalAmount: double.parse(amountController.text),
                                 saveBeneficiary: saveBeneficiary,
                                 onSaveBeneficiaryChanged: (value) {
                                   setState(() {

@@ -48,7 +48,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
     final n = network.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     if (n.contains('mtn')) return 'assets/images/mtn.png';
     if (n.contains('airtel')) return 'assets/images/airtel.png';
-    if (n.contains('9mobile') || n.contains('etisalat') || n.contains('nine'))
+    if (n.contains('9mobile') || n.contains('etisalat') || n.contains('9'))
       return 'assets/images/9mobile.png';
     if (n.contains('glo')) return 'assets/images/glo.png';
     // fallback
@@ -99,6 +99,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
             : await TransactionPinModal.show(context);
 
     if (pin == null || pin.length != 4 || !mounted) return;
+    Navigator.pop(context);
     final operatorId = ref.read(airtimeSelectedOperatorIdProvider);
 
     _showLoading();
@@ -262,6 +263,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
       MaterialPageRoute(
         builder:
             (_) => ReuseableTransactionDetailsScreen(
+              totalAmount: double.parse(_amountController.text),
               hasBottom: false,
               saveBeneficiary: _saveBeneficiary,
               onSaveBeneficiaryChanged:
@@ -282,6 +284,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
               ],
               onButtonPressed: () => _handlePin(biometric: false),
               onBiometricButtonPressed: () => _handlePin(biometric: true),
+              onAutomaticallyShowBiometric: () => _handlePin(biometric: true),
             ),
       ),
     );
@@ -489,6 +492,7 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                       const SizedBox(height: 8),
                       ReuseableTextFieldWithCountry(
                         controller: _phoneController,
+                        maxLength: 11,
                         countryCode: '+234 ',
                         flagImagePath: 'assets/images/ngflag.png',
                         hintText: '812 345 6789',
@@ -561,34 +565,39 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                                   'Enter phone number to automatically detect network provider',
                                   style: TextStyle(color: Colors.orange),
                                 )
-                                : Center(
-                                  child: SizedBox(
-                                    height: 80,
-                                    width: 80,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).cardColor.withOpacity(0.7),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: appTheme.primaryColor
-                                              .withOpacity(0.5),
-                                          width: 2,
+                                : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      height: 80,
+                                      width: 80,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(
+                                            context,
+                                          ).cardColor.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: appTheme.primaryColor
+                                                .withOpacity(0.5),
+                                            width: 2,
+                                          ),
                                         ),
-                                      ),
-                                      child: Center(
-                                        child: SizedBox(
-                                          width: 60,
-                                          height: 60,
-                                          child: Image.asset(
-                                            _assetForProvider(plan.name),
-                                            fit: BoxFit.cover,
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 60,
+                                            height: 60,
+                                            child: Image.asset(
+                                              _assetForProvider(plan.name),
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                       ),
                       const SizedBox(height: 24),

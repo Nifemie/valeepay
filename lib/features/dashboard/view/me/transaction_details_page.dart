@@ -5,7 +5,7 @@ import 'package:valarpay/core/widgets/transaction_details_screen.dart';
 class TransactionDetailsPage extends StatelessWidget {
   final TransactionModel transaction;
   const TransactionDetailsPage({Key? key, required this.transaction})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +102,7 @@ class TransactionDetailsPage extends StatelessWidget {
     }
 
     return ReuseableTransactionDetailsScreen(
+      totalAmount: 0.0,
       saveBeneficiary: false,
       onSaveBeneficiaryChanged: (value) {},
       topTransactionsDetailsList: topDetails,

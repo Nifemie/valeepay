@@ -358,7 +358,7 @@ class _BeneficiaryTransferAmountScreenState
                 double.tryParse(_amountController.text.replaceAll(',', '')) ??
                 0;
 
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(
                 builder:
@@ -425,6 +425,17 @@ class _BeneficiaryTransferAmountScreenState
     });
 
     Future<void> _handlePin(double amount, {bool biometric = false}) async {
+      final user = ref.watch(userProvider);
+      final wallet =
+          user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
+      final balance = wallet?.balance ?? 0.0;
+      final hasEnoughBalance = checkBalanceLeft(
+        context,
+        balance.toString(),
+        totalAmount.toString(),
+      );
+
+      if (!hasEnoughBalance) return;
       final pin =
           biometric
               ? await BiometricTransactionPinModal.show(context)
@@ -433,7 +444,7 @@ class _BeneficiaryTransferAmountScreenState
       if (pin != null && pin.length == 4) {
         // Ensure PIN is a string
         final pinString = pin.toString();
-
+        Navigator.pop(context);
         if (mounted) {
           _initiateTransfer(pinString, amount);
         }
@@ -441,23 +452,14 @@ class _BeneficiaryTransferAmountScreenState
     }
 
     _handleOnPressed() {
-      final user = ref.watch(userProvider);
-      final wallet =
-          user?.wallets.isNotEmpty == true ? user!.wallets.first : null;
-      final balance = wallet?.balance ?? 0.0;
       final isDark = Theme.of(context).brightness == Brightness.dark;
-      final hasEnoughBalance = checkBalanceLeft(
-        context,
-        balance.toString(),
-        totalAmount.toString(),
-      );
 
-      if (!hasEnoughBalance) return;
       Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (context) => ReuseableTransactionDetailsScreen(
+                totalAmount: totalAmount,
                 hasBottom: false,
                 saveBeneficiary: _saveBeneficiary,
                 onSaveBeneficiaryChanged: (value) {
@@ -501,6 +503,8 @@ class _BeneficiaryTransferAmountScreenState
                 ],
                 onButtonPressed: () => _handlePin(amount),
                 onBiometricButtonPressed:
+                    () => _handlePin(amount, biometric: true),
+                onAutomaticallyShowBiometric:
                     () => _handlePin(amount, biometric: true),
               ),
         ),

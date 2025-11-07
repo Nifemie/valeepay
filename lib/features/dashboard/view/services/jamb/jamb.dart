@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 
+import '../../../../../core/utils/logger.dart';
+
 // Import your reusable button
 // import '../widgets/reusable_buttons.dart';
 
@@ -19,9 +21,8 @@ class JAMBPaymentPage extends ConsumerWidget {
     final profileCode = ref.watch(profileCodeProvider);
     final phoneNumber = ref.watch(phoneNumberProvider);
 
-    final isFormValid = serviceType != null &&
-        profileCode.isNotEmpty &&
-        phoneNumber.isNotEmpty;
+    final isFormValid =
+        serviceType != null && profileCode.isNotEmpty && phoneNumber.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -117,30 +118,25 @@ class JAMBPaymentPage extends ConsumerWidget {
                           height: 1.4,
                         ),
                         children: [
-                          TextSpan(
-                            text: 'Text NIN Epin 11-digit NIN# to ',
-                          ),
+                          TextSpan(text: 'Text NIN Epin 11-digit NIN# to '),
                           TextSpan(
                             text: '55019',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           TextSpan(
-                            text: ' to get your confirmation code (Example: send ',
+                            text:
+                                ' to get your confirmation code (Example: send ',
                           ),
                           TextSpan(
                             text: 'NIN 01111111111',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
-                          TextSpan(
-                            text: ' to ',
-                          ),
+                          TextSpan(text: ' to '),
                           TextSpan(
                             text: '55019',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
-                          TextSpan(
-                            text: ')',
-                          ),
+                          TextSpan(text: ')'),
                         ],
                       ),
                     ),
@@ -151,7 +147,10 @@ class JAMBPaymentPage extends ConsumerWidget {
               // Current Rate Section
               Container(
                 width: 335,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE3F2FD),
                   borderRadius: BorderRadius.circular(8),
@@ -188,7 +187,7 @@ class JAMBPaymentPage extends ConsumerWidget {
                   isEnabled: isFormValid,
                   onPressed: () {
                     // Process payment
-                    print('Continue to payment');
+                    AppLogger.log('Continue to payment');
                   },
                 ),
               ),
@@ -200,13 +199,13 @@ class JAMBPaymentPage extends ConsumerWidget {
   }
 
   Widget _buildDropdownField(
-      BuildContext context,
-      WidgetRef ref, {
-        required String label,
-        required String? value,
-        required List<String> items,
-        required Function(String?) onChanged,
-      }) {
+    BuildContext context,
+    WidgetRef ref, {
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,12 +253,13 @@ class JAMBPaymentPage extends ConsumerWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                );
-              }).toList(),
+              items:
+                  items.map((String item) {
+                    return DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item),
+                    );
+                  }).toList(),
               onChanged: onChanged,
             ),
           ),
@@ -269,14 +269,14 @@ class JAMBPaymentPage extends ConsumerWidget {
   }
 
   Widget _buildInputField(
-      BuildContext context,
-      WidgetRef ref, {
-        required String label,
-        required String placeholder,
-        required String value,
-        required Function(String) onChanged,
-        TextInputType? keyboardType,
-      }) {
+    BuildContext context,
+    WidgetRef ref, {
+    required String label,
+    required String placeholder,
+    required String value,
+    required Function(String) onChanged,
+    TextInputType? keyboardType,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -327,4 +327,3 @@ class JAMBPaymentPage extends ConsumerWidget {
     );
   }
 }
-

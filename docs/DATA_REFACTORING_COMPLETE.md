@@ -58,12 +58,12 @@ Future<void> _handlePin({bool biometric = false}) async {
 **Savings:** ~70 lines of duplicate code eliminated
 
 ### 4. **Removed Debug Logging**
-All `print()` statements removed:
-- ❌ `print('🔐 [Data] Initiating data purchase...');`
-- ❌ `print('📤 [Data] Data purchase request sent');`
-- ❌ `print('⚠️ [Data] Widget not mounted...');`
-- ❌ `print('🎧 [Data] State check:');`
-- ❌ `print('✅ [Data] Purchase successful...');`
+All `AppLogger.log()` statements removed:
+- ❌ `AppLogger.log('🔐 [Data] Initiating data purchase...');`
+- ❌ `AppLogger.log('📤 [Data] Data purchase request sent');`
+- ❌ `AppLogger.log('⚠️ [Data] Widget not mounted...');`
+- ❌ `AppLogger.log('🎧 [Data] State check:');`
+- ❌ `AppLogger.log('✅ [Data] Purchase successful...');`
 
 ### 5. **Simplified Async Flow**
 Removed unnecessary callbacks:
@@ -144,7 +144,7 @@ The refactored `data.dart` now follows the **Airtime Pattern** standard:
 ✅ No `WidgetsBinding` or `Future.delayed()` callbacks
 ✅ Direct state checks with `ref.read()` after operations
 ✅ All selections stored in Riverpod providers
-✅ No debug/print statements
+✅ No debug/AppLogger.log statements
 ✅ Consistent naming conventions
 
 ## Next Steps
@@ -161,7 +161,7 @@ This refactoring serves as a template for standardizing other service screens:
 ✅ Zero compilation errors
 ✅ All providers correctly referenced
 ✅ No orphaned variable references
-✅ All print statements removed
+✅ All AppLogger.log statements removed
 ✅ No WidgetsBinding usage
 ✅ No Future.delayed usage
 ✅ File structure validated

@@ -221,6 +221,22 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                         isLoading: giftCardState.isInitialLoading,
                       ),
 
+                      const SizedBox(height: 14),
+
+                      if (_selectedProduct != null && _isBuySelected)
+                        InkWell(
+                          onTap: () {
+                            _showRedemeptionDetails(context);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline),
+                              SizedBox(width: 10),
+                              Text('Tap to view redemption instructions'),
+                            ],
+                          ),
+                        ),
+
                       const SizedBox(height: 20),
 
                       // Select Country
@@ -313,6 +329,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     required VoidCallback? onTap,
     bool isLoading = false,
   }) {
+    final country = _selectedCountry.toLowerCase();
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -334,7 +351,11 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                       (context, error, stackTrace) => ClipRRect(
                         borderRadius: BorderRadius.circular(2),
                         child: Image.asset(
-                          'assets/images/ngflag.png',
+                          country == 'nigeria'
+                              ? 'assets/images/ngflag.png'
+                              : country == 'united states'
+                              ? 'assets/images/USA.png'
+                              : 'assets/images/blank.png',
                           height: 14,
                         ),
                       ),
@@ -374,6 +395,69 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _showRedemeptionDetails(BuildContext context) async {
+    if (_selectedProduct == null) return; // extra safety
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // lets sheet grow with content
+      isDismissible: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(20, 15, 20, 20),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.arrow_back, size: 24),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            _selectedProduct?.brand.brandName ?? '',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 16),
+
+                  // Title / instructions
+                  Text(
+                    _selectedProduct?.redeemInstruction.verbose ??
+                        'No redemption instructions found',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                  ),
+
+                  SizedBox(height: 14),
+
+                  // Subtitle
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -522,6 +606,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
       MaterialPageRoute(
         builder:
             (context) => ReuseableTransactionDetailsScreen(
+              totalAmount: double.parse(_currentRate),
               saveBeneficiary: _saveBeneficiary,
               onSaveBeneficiaryChanged: (value) {
                 setState(() {
@@ -545,8 +630,10 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                   isDark,
                 ),
               ],
-              onButtonPressed: () => _handlePin(rateValue),
+              onButtonPressed: () => _handlePin(rateValue, biometric: false),
               onBiometricButtonPressed:
+                  () => _handlePin(rateValue, biometric: true),
+              onAutomaticallyShowBiometric:
                   () => _handlePin(rateValue, biometric: true),
             ),
       ),

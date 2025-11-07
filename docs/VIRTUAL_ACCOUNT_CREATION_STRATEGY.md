@@ -213,11 +213,11 @@ Future<void> _createVirtualAccount() async {
     final dateOfBirth = user?.dateOfBirth;
     
     if (dateOfBirth == null || dateOfBirth.isEmpty) {
-      print('⚠️ Date of birth not available, skipping virtual account creation');
+      AppLogger.log('⚠️ Date of birth not available, skipping virtual account creation');
       return;
     }
     
-    print('🏦 Creating virtual account for user...');
+    AppLogger.log('🏦 Creating virtual account for user...');
     
     final request = CreateVirtualAccountRequest(
       bvn: widget.bvn,
@@ -229,14 +229,14 @@ Future<void> _createVirtualAccount() async {
         .createVirtualAccount(request);
     
     if (response != null && response.isSuccess) {
-      print('✅ Virtual account created successfully');
+      AppLogger.log('✅ Virtual account created successfully');
       // User profile will be refreshed in the notifier
     } else {
-      print('⚠️ Virtual account creation failed: ${response?.message}');
+      AppLogger.log('⚠️ Virtual account creation failed: ${response?.message}');
       // Don't block the flow - user can still use the app
     }
   } catch (e) {
-    print('❌ Error creating virtual account: $e');
+    AppLogger.log('❌ Error creating virtual account: $e');
     // Don't block the flow - user can still proceed
   }
 }
@@ -313,7 +313,7 @@ try {
   await _createVirtualAccount();
 } catch (e) {
   // Log error but don't stop the flow
-  print('⚠️ Virtual account creation failed: $e');
+  AppLogger.log('⚠️ Virtual account creation failed: $e');
   // Optionally show a non-blocking snackbar
 }
 ```

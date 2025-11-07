@@ -161,6 +161,7 @@ class _BettingScreenState extends ConsumerState<BettingScreen> {
                               builder:
                                   (context) =>
                                       ReuseableTransactionDetailsScreen(
+                                        totalAmount: double.parse(amountController.text),
                                         saveBeneficiary: saveBeneficiary,
                                         onSaveBeneficiaryChanged: (value) {
                                           setState(() {

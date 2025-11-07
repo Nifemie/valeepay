@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:valarpay/core/utils/logger.dart';
 
 class ProfileSetupSuccessDialog extends StatelessWidget {
   final VoidCallback onContinue;
 
-  const ProfileSetupSuccessDialog({
-    Key? key,
-    required this.onContinue,
-  }) : super(key: key);
+  const ProfileSetupSuccessDialog({Key? key, required this.onContinue})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -27,11 +24,7 @@ class ProfileSetupSuccessDialog extends StatelessWidget {
                 color: const Color(0xFF10B981),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 28,
-              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 28),
             ),
             const SizedBox(height: 20),
             // Title
@@ -102,7 +95,7 @@ void showProfileSetupSuccessDialog(BuildContext context) {
         onContinue: () {
           Navigator.of(context).pop();
           // Navigate to passcode setup
-          print('Navigate to passcode setup');
+          AppLogger.log('Navigate to passcode setup');
         },
       );
     },

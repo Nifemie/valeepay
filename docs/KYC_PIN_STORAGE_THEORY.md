@@ -33,7 +33,7 @@ Currently there's a placeholder:
 // lib/controller/pin_controller.dart
 Future<void> savePinSecurely(String pin) async {
   // TODO: Implement secure storage
-  print('Saving PIN securely: $pin');
+  AppLogger.log('Saving PIN securely: $pin');
 }
 ```
 
@@ -268,9 +268,9 @@ class PinNotifier extends StateNotifier<PinState> {
     try {
       // Save encrypted PIN
       await _secureStorage.write(key: 'wallet_pin', value: pin);
-      print('PIN saved securely');
+      AppLogger.log('PIN saved securely');
     } catch (e) {
-      print('Error saving PIN: $e');
+      AppLogger.log('Error saving PIN: $e');
     }
   }
   
@@ -278,7 +278,7 @@ class PinNotifier extends StateNotifier<PinState> {
     try {
       return await _secureStorage.read(key: 'wallet_pin');
     } catch (e) {
-      print('Error reading PIN: $e');
+      AppLogger.log('Error reading PIN: $e');
       return null;
     }
   }

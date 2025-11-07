@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:valarpay/core/utils/logger.dart';
 
 // Security option model
 class SecurityOption {
   final String title;
   final String iconPath;
 
-  SecurityOption({
-    required this.title,
-    required this.iconPath,
-  });
+  SecurityOption({required this.title, required this.iconPath});
 }
 
-final securityOptionsProvider = StateProvider<List<SecurityOption>>((ref) => [
-  SecurityOption(
-    title: 'Report Scam',
-    iconPath: 'assets/images/me_icons/scam.svg',
-  ),
-  SecurityOption(
-    title: 'Transfer Dispute',
-    iconPath: 'assets/images/me_icons/Transfer.svg',
-  ),
-  SecurityOption(
-    title: 'Card Issue',
-    iconPath: 'assets/images/me_icons/card_issue.svg',
-  ),
-  SecurityOption(
-    title: 'Phone/Card Stolen',
-    iconPath: 'assets/images/me_icons/phone_stolen.svg',
-  ),
-]);
+final securityOptionsProvider = StateProvider<List<SecurityOption>>(
+  (ref) => [
+    SecurityOption(
+      title: 'Report Scam',
+      iconPath: 'assets/images/me_icons/scam.svg',
+    ),
+    SecurityOption(
+      title: 'Transfer Dispute',
+      iconPath: 'assets/images/me_icons/Transfer.svg',
+    ),
+    SecurityOption(
+      title: 'Card Issue',
+      iconPath: 'assets/images/me_icons/card_issue.svg',
+    ),
+    SecurityOption(
+      title: 'Phone/Card Stolen',
+      iconPath: 'assets/images/me_icons/phone_stolen.svg',
+    ),
+  ],
+);
 
 class SecurityCentrePage extends ConsumerWidget {
   const SecurityCentrePage({Key? key}) : super(key: key);
@@ -90,7 +90,7 @@ class SecurityCentrePage extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         // Handle tap action
-        print('Tapped on ${option.title}');
+        AppLogger.log('Tapped on ${option.title}');
       },
       child: Container(
         width: 160,

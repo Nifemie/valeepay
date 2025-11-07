@@ -21,7 +21,7 @@
 //
 //             if (pin != null) {
 //               // PIN verified! Proceed with transaction
-//               print('PIN verified: $pin');
+//               AppLogger.log('PIN verified: $pin');
 //               // Call your transfer API here
 //               await _processTransfer();
 //             } else {
@@ -149,7 +149,7 @@
 //         );
 //
 //         if (pin != null) {
-//           print('User entered PIN: $pin');
+//           AppLogger.log('User entered PIN: $pin');
 //           // Use PIN locally
 //         }
 //       },

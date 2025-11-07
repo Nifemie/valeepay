@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valarpay/core/utils/logger.dart';
+import 'package:valarpay/core/widgets/all_time_reusable_button.dart';
 // import 'package:valarpay/app.dart'; // unused
 import '../../widgets/me_widgets/modal/calendar_picker_moadal.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
@@ -7,7 +9,8 @@ import 'package:valarpay/core/utils/app_messenger.dart';
 // State providers
 final startDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final endDateProvider = StateProvider<DateTime>(
-    (ref) => DateTime.now().add(const Duration(days: 5)));
+  (ref) => DateTime.now().add(const Duration(days: 5)),
+);
 final selectedAccountProvider = StateProvider<String>((ref) => 'NGN Account');
 final emailProvider = StateProvider<String>((ref) => '');
 
@@ -34,8 +37,7 @@ class AccountStatementPage extends ConsumerWidget {
             fontFamily: 'SF Pro',
             fontSize: 18,
             fontWeight: FontWeight.w400,
-            height: 1.43,
-            letterSpacing: 0.035,
+           
           ),
         ),
         centerTitle: false,
@@ -53,8 +55,7 @@ class AccountStatementPage extends ConsumerWidget {
                 fontFamily: 'SF Pro',
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
-                height: 1.33,
-                letterSpacing: 0.06,
+                
               ),
             ),
             const SizedBox(height: 8),
@@ -70,8 +71,10 @@ class AccountStatementPage extends ConsumerWidget {
               },
               child: Container(
                 height: 40,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
@@ -86,8 +89,7 @@ class AccountStatementPage extends ConsumerWidget {
                         fontFamily: 'SF Pro',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        height: 1.43,
-                        letterSpacing: 0.035,
+                       
                       ),
                     ),
                     const Icon(
@@ -109,8 +111,7 @@ class AccountStatementPage extends ConsumerWidget {
                 fontFamily: 'SF Pro',
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
-                height: 1.33,
-                letterSpacing: 0.06,
+               
               ),
             ),
             const SizedBox(height: 8),
@@ -126,8 +127,10 @@ class AccountStatementPage extends ConsumerWidget {
               },
               child: Container(
                 height: 40,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
@@ -142,8 +145,7 @@ class AccountStatementPage extends ConsumerWidget {
                         fontFamily: 'SF Pro',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        height: 1.43,
-                        letterSpacing: 0.035,
+                       
                       ),
                     ),
                     const Icon(
@@ -165,8 +167,7 @@ class AccountStatementPage extends ConsumerWidget {
                 fontFamily: 'SF Pro',
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
-                height: 1.33,
-                letterSpacing: 0.06,
+               
               ),
             ),
             const SizedBox(height: 8),
@@ -176,8 +177,10 @@ class AccountStatementPage extends ConsumerWidget {
               },
               child: Container(
                 height: 40,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(8),
@@ -198,8 +201,7 @@ class AccountStatementPage extends ConsumerWidget {
                           fontFamily: 'SF Pro',
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          height: 1.33,
-                          letterSpacing: 0.06,
+                        
                         ),
                       ),
                     ),
@@ -222,14 +224,13 @@ class AccountStatementPage extends ConsumerWidget {
                 fontFamily: 'SF Pro',
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
-                height: 1.33,
-                letterSpacing: 0.06,
+                
               ),
             ),
             const SizedBox(height: 8),
             Container(
               height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               decoration: BoxDecoration(
                 color: const Color(0xFFFAFBFC),
                 borderRadius: BorderRadius.circular(8),
@@ -248,8 +249,7 @@ class AccountStatementPage extends ConsumerWidget {
                     fontFamily: 'SF Pro',
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
-                    height: 1.43,
-                    letterSpacing: 0.035,
+                   
                   ),
                 ),
                 style: const TextStyle(
@@ -257,40 +257,17 @@ class AccountStatementPage extends ConsumerWidget {
                   fontFamily: 'SF Pro',
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
-                  height: 1.43,
-                  letterSpacing: 0.035,
+                 
                 ),
               ),
             ),
             const Spacer(),
 
             // Generate Button
-            GestureDetector(
-              onTap: () {
-                _handleGenerate(context, ref);
-              },
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF76301),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Generate',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'SF Pro',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: 1.43,
-                      letterSpacing: 0.035,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+            FullWidthButton(text: 'Generate', onPressed: () {
+               _handleGenerate(context, ref);
+            }),
+            SizedBox(height: 20),
           ],
         ),
       ),
@@ -310,7 +287,7 @@ class AccountStatementPage extends ConsumerWidget {
       'September',
       'October',
       'November',
-      'December'
+      'December',
     ];
     return '${date.day} ${months[date.month - 1]}, ${date.year}';
   }
@@ -396,11 +373,7 @@ class AccountStatementPage extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Image.asset(
-              iconPath,
-              width: 20,
-              height: 20,
-            ),
+            Image.asset(iconPath, width: 20, height: 20),
             const SizedBox(width: 8),
             Text(
               accountName,
@@ -436,11 +409,11 @@ class AccountStatementPage extends ConsumerWidget {
     }
 
     // Handle generate statement logic
-    print('Generating statement:');
-    print('Start Date: ${_formatDate(startDate)}');
-    print('End Date: ${_formatDate(endDate)}');
-    print('Account: $account');
-    print('Email: $email');
+    AppLogger.log('Generating statement:');
+    AppLogger.log('Start Date: ${_formatDate(startDate)}');
+    AppLogger.log('End Date: ${_formatDate(endDate)}');
+    AppLogger.log('Account: $account');
+    AppLogger.log('Email: $email');
 
     // Show success message
     AppMessenger.show(

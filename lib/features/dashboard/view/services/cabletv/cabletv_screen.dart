@@ -693,6 +693,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                           MaterialPageRoute(
                             builder:
                                 (context) => ReuseableTransactionDetailsScreen(
+                                  totalAmount: double.parse(_totalAmount.toString()),
                                   saveBeneficiary: _saveBeneficiary,
                                   onSaveBeneficiaryChanged: (value) {
                                     setState(() {

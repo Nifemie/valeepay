@@ -6,22 +6,25 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
   String? countryCode;
   TextEditingController controller;
   Widget? suffixWidget;
+  int? maxLength;
   void Function(String)? onChanged;
   bool isReadOnly;
   String hintText;
   bool showCountryLabel;
   TextInputType textInputType;
-  ReuseableTextFieldWithCountry(
-      {this.countryCode,
-      this.flagImagePath,
-      required this.controller,
-      required this.hintText,
-      this.onChanged,
-      required this.isReadOnly,
-      required this.textInputType,
-      this.suffixWidget,
-      required this.showCountryLabel,
-      super.key});
+  ReuseableTextFieldWithCountry({
+    this.countryCode,
+    this.flagImagePath,
+    required this.controller,
+    required this.hintText,
+    this.onChanged,
+    required this.isReadOnly,
+    required this.textInputType,
+    this.suffixWidget,
+    required this.showCountryLabel,
+    this.maxLength,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +35,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
         // Country Code Selector
         if (showCountryLabel)
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 16,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             decoration: BoxDecoration(
               // border: Border.all(color: Colors.grey.shade300),
               color: Theme.of(context).cardColor.withOpacity(0.5),
@@ -44,18 +44,10 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  '🇳🇬',
-                  style: TextStyle(fontSize: 18),
-                ),
+                const Text('🇳🇬', style: TextStyle(fontSize: 18)),
                 const SizedBox(width: 8),
                 if (countryCode != null)
-                  Text(
-                    countryCode ?? '',
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
+                  Text(countryCode ?? '', style: const TextStyle(fontSize: 16)),
               ],
             ),
           ),
@@ -67,7 +59,9 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
             controller: controller,
             keyboardType: textInputType,
             readOnly: isReadOnly,
+            maxLength: maxLength,
             decoration: InputDecoration(
+              counterText: '',
               hintText: hintText,
               hintStyle: TextStyle(
                 color: isDark ? Colors.white38 : Colors.grey[400],
@@ -83,9 +77,7 @@ class ReuseableTextFieldWithCountry extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: appTheme.primaryColor,
-                ),
+                borderSide: BorderSide(color: appTheme.primaryColor),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,

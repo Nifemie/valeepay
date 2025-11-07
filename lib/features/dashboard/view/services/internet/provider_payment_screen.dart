@@ -435,6 +435,7 @@ class _InternetProviderPaymentScreenState
                   MaterialPageRoute(
                     builder:
                         (context) => ReuseableTransactionDetailsScreen(
+                          totalAmount: double.parse((int.parse(_amountController.text) + int.parse(_serviceFee)).toString()),
                           hasBottom: false,
                           saveBeneficiary: _saveBeneficiary,
                           onSaveBeneficiaryChanged: (value) {
@@ -477,6 +478,7 @@ class _InternetProviderPaymentScreenState
                           onButtonPressed: () => _handlePin(),
                           onBiometricButtonPressed:
                               () => _handlePin(biometric: true),
+                          onAutomaticallyShowBiometric:  () => _handlePin(biometric: true),
                         ),
                   ),
                 );
