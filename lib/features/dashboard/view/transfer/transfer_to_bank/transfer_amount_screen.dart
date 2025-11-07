@@ -69,6 +69,23 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
         });
       }
     });
+
+    // Setup listener for transfer fee updates
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.listenManual(transferFeeNotifierProvider, (previous, next) {
+          if (next.isDataAvailable &&
+              next.data != null &&
+              next.data!.isNotEmpty) {
+            if (mounted) {
+              setState(() {
+                _transferFee = next.data!.first;
+              });
+            }
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -210,15 +227,6 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     final amount =
         double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;
     final totalAmount = amount + (_transferFee?.fee ?? 0);
-
-    // Listen to transfer fee state
-    ref.listen(transferFeeNotifierProvider, (previous, next) {
-      if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
-        setState(() {
-          _transferFee = next.data!.first;
-        });
-      }
-    });
 
     final String _userFullname = ref.read(userProvider)?.fullname ?? '';
 
