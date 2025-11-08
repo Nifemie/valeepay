@@ -144,10 +144,10 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-all.zip  #
 | _captureAndShare() | Code | Uncommented | ✅ |
 | FAB onPressed | Code | null → _captureAndShare | ✅ |
 | _hideLoading() calls | Code | Added to listener | ✅ |
-| screenshot package | Dependency | Uncommented | ✅ |
-| share_plus package | Dependency | Uncommented | ✅ |
+| screenshot package | Dependency | Uncommented (^3.0.0) | ✅ |
+| share_plus package | Dependency | Uncommented (^7.2.0) | ✅ |
 | Android Gradle | Build Tool | 8.3.2 → 8.6.0 | ✅ |
-| Kotlin Version | Build Tool | 1.9.22 → 2.0.0 | ✅ |
+| Kotlin Version | Build Tool | 1.9.22 (compatible) | ✅ |
 | Gradle Wrapper | Build Tool | 8.5 → 8.7 | ✅ |
 
 **Total Files Modified**: 5

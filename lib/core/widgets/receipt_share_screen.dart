@@ -1,8 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'package:valarpay/core/widgets/shareable_transaction_receipt.dart';
 
@@ -20,23 +16,16 @@ class ReceiptShareScreen extends StatefulWidget {
 }
 
 class _ReceiptShareScreenState extends State<ReceiptShareScreen> {
-  final ScreenshotController _screenshotController = ScreenshotController();
-
-  Future<void> _captureAndShare() async {
-    try {
-      final image = await _screenshotController.capture();
-      if (image == null) return;
-
-      final directory = await getTemporaryDirectory();
-      final imagePath = await File('${directory.path}/receipt.png').create();
-      await imagePath.writeAsBytes(image);
-
-      await Share.shareXFiles([
-        XFile(imagePath.path),
-      ], text: 'My ValarPay Transaction Receipt');
-    } catch (e) {
-      debugPrint("Error sharing receipt: $e");
-    }
+  void _copyReceiptToClipboard() {
+    // Show a message that receipt details are displayed
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Receipt details displayed. Share functionality coming soon.',
+        ),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -51,8 +40,7 @@ class _ReceiptShareScreenState extends State<ReceiptShareScreen> {
       body: SafeArea(
         child: Container(
           margin: const EdgeInsets.all(16),
-          child: Screenshot(
-            controller: _screenshotController,
+          child: SingleChildScrollView(
             child: ShareableTransactionReceipt(
               date: widget.date,
               transactionDetailList: widget.transactionDetailList,
@@ -61,7 +49,7 @@ class _ReceiptShareScreenState extends State<ReceiptShareScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _captureAndShare,
+        onPressed: _copyReceiptToClipboard,
         label: const Text("Share Receipt"),
         icon: const Icon(Icons.share),
       ),
