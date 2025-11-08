@@ -353,9 +353,12 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
+        _hideLoading();
         if (!mounted) return;
         _navigateToReceipt();
       } else if (next.message != null && !next.isDataAvailable) {
+        _hideLoading();
+        if (!mounted) return;
         AppMessenger.show(
           context,
           message: next.message!,
@@ -440,7 +443,8 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                 onButtonPressed: () => _handlePinEntry(biometric: false),
                 onBiometricButtonPressed:
                     () => _handlePinEntry(biometric: true),
-                onAutomaticallyShowBiometric: () => _handlePinEntry(biometric: true),
+                onAutomaticallyShowBiometric:
+                    () => _handlePinEntry(biometric: true),
               ),
         ),
       );
