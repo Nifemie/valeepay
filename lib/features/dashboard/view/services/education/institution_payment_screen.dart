@@ -266,6 +266,9 @@ class _InstitutionPaymentScreenState extends State<InstitutionPaymentScreen> {
                     ),
                   ],
                   onShareReceipt: () {},
+                  onViewReceipt: () {
+                    
+                  },
                 ),
           ),
         );

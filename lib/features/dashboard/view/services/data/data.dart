@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/network/data_state.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
@@ -39,6 +44,24 @@ class _DataScreenState extends ConsumerState<DataScreen> {
   );
   bool _saveBeneficiary = false;
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -681,7 +704,7 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     );
   }
 
-  _onShareTransactionReceiptPressed() {
+  _onViewTransactionReceiptPressed() {
     final selectedNetwork = ref.read(dataSelectedNetworkProvider);
     final selectedPlan = ref.read(dataSelectedPlanProvider);
     final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
@@ -742,6 +765,66 @@ class _DataScreenState extends ConsumerState<DataScreen> {
     );
   }
 
+
+_onShareTransactionReceiptPressed() {
+    final selectedNetwork = ref.read(dataSelectedNetworkProvider);
+    final selectedPlan = ref.read(dataSelectedPlanProvider);
+    final dataVariations = ref.read(dataVariationNotifierProvider).data ?? [];
+    final descriptions =
+        dataVariations.isNotEmpty
+            ? dataVariations.first.fixedAmountsDescriptions
+            : <String, dynamic>{};
+    final amountKey = double.parse(selectedPlan).toStringAsFixed(0);
+    final planDescription =
+        descriptions[amountKey] ?? '₦${_amountController.text} Data';
+   Screenshot(
+    controller: _screenshotController,
+     child: ShareableTransactionReceipt(
+                date:
+                    '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                transactionDetailList: [
+                  ShareableTransactionReceiptDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(
+                      _amountController.text.replaceAll(',', ''),
+                    ),
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Currency',
+                    value: 'NGN',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Transaction Type',
+                    value: 'Mobile Data Purchase',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Provider',
+                    value: selectedNetwork,
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Plan',
+                    value: planDescription,
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Phone Number',
+                    value: _phoneController.text.trim(),
+                  ),
+     
+                  ShareableTransactionReceiptDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Status',
+                    value: 'Successful',
+                    isSuccessful: true,
+                  ),
+                ],
+              ),
+   );
+  }
+
+ 
   // Handle continue button press
   void _handleContinue() {
     if (!_isFormValid()) {
@@ -928,7 +1011,8 @@ class _DataScreenState extends ConsumerState<DataScreen> {
                   ),
                 ),
               ],
-              onShareReceipt: _onShareTransactionReceiptPressed,
+              onViewReceipt: _onViewTransactionReceiptPressed,
+              onShareReceipt: _captureAndShare,
             ),
       ),
     );

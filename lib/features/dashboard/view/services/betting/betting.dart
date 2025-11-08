@@ -239,6 +239,9 @@ class _BettingScreenState extends ConsumerState<BettingScreen> {
                     ),
                   ],
                   onShareReceipt: () {},
+                  onViewReceipt: () {
+                    
+                  },
                 ),
           ),
         );
@@ -282,7 +285,8 @@ _handleBiometricPinEntry() async {
                       value: '29 Sep 2025 | 8:15 pm',
                     ),
                   ],
-                  onShareReceipt: () {},
+                  onShareReceipt: () {}, 
+                  onViewReceipt: () {  },
                 ),
           ),
         );

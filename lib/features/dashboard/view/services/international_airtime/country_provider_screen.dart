@@ -260,6 +260,9 @@ class _CountryProviderScreenState extends ConsumerState<CountryProviderScreen> {
                                   ),
                                 ],
                                 onShareReceipt: () {},
+                                onViewReceipt: () {
+                                  
+                                },
                               ),
                         ),
                       );

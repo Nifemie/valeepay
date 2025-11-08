@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
@@ -39,6 +44,24 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
   bool _hasError = false;
   String _planAmount = ' Amount';
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void initState() {
@@ -73,7 +96,7 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
 
     // cable plans are read when needed (e.g. in modal builders)
 
-    _onShareTransactionReceiptPressed() {
+    _onViewTransactionReceiptPressed() {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -124,6 +147,57 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                 ],
               ),
         ),
+      );
+    }
+
+     _onShareTransactionReceiptPressed() {
+      Screenshot(
+        controller: _screenshotController,
+        child: ShareableTransactionReceipt(
+                  date:
+                      '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                      label: 'Amount',
+                      value: currencyFormatter(_planAmount),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Currency',
+                      value: 'NGN',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction Type',
+                      value: 'Cable TV Purchase',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Plan',
+                      value: ref.read(cableSelectedPlanProvider) ?? '',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Smartcard Number',
+                      value: _smartcardController.text.trim(),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Customer Name',
+                      value: _verifiedUserName ?? '',
+                    ),
+        
+                    ShareableTransactionReceiptDetail(
+                      label: 'Provider',
+                      value:
+                          ref.read(cableSelectedProviderProvider)?.planName ?? '',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction ID',
+                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Status',
+                      value: 'Successful',
+                      isSuccessful: true,
+                    ),
+                  ],
+                ),
       );
     }
 
@@ -203,7 +277,8 @@ class _CableTvScreenState extends ConsumerState<CableTvScreen> {
                         '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                   ),
                 ],
-                onShareReceipt: _onShareTransactionReceiptPressed,
+                onViewReceipt: _onViewTransactionReceiptPressed,
+                onShareReceipt: _captureAndShare,
               ),
         ),
       );

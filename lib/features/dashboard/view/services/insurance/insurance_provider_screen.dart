@@ -262,6 +262,9 @@ class _InsuranceProviderScreenState extends State<InsuranceProviderScreen> {
                                                               '29 Sep 2025 | 8:15 pm')
                                                     ],
                                                     onShareReceipt: () {},
+                                                    onViewReceipt: () {
+                                                      
+                                                    },
                                                   )));
                                     }
                                   }

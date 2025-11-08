@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
@@ -41,6 +46,24 @@ class _InternetProviderPaymentScreenState
   String _serviceFee = '0';
   bool _saveBeneficiary = false;
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void initState() {
@@ -74,7 +97,7 @@ class _InternetProviderPaymentScreenState
 
     final planNames = variationsState.data?.map((v) => v.name).toList() ?? [];
 
-    _onShareTransactionReceiptPressed() {
+    _onViewTransactionReceiptPressed() {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -120,6 +143,49 @@ class _InternetProviderPaymentScreenState
       );
     }
 
+
+_onShareTransactionReceiptPressed() {
+      Screenshot(
+        controller: _screenshotController,
+        child: ShareableTransactionReceipt(
+                  date:
+                      '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                      label: 'Amount',
+                      value: currencyFormatter(
+                        _amountController.text..replaceAll(',', ''),
+                      ),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Currency',
+                      value: 'NGN',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction Type',
+                      value: 'Internet',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Beneficiary Number',
+                      value: _accountController.text.trim(),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Provider',
+                      value: _selectedProvider,
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction ID',
+                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Status',
+                      value: 'Successful',
+                      isSuccessful: true,
+                    ),
+                  ],
+                ));    }
+
+   
     void _showLoading() {
       if (_loadingShown) return;
       _loadingShown = true;
@@ -191,7 +257,8 @@ class _InternetProviderPaymentScreenState
                         '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                   ),
                 ],
-                onShareReceipt: _onShareTransactionReceiptPressed,
+                onViewReceipt: _onViewTransactionReceiptPressed,
+                onShareReceipt: _captureAndShare
               ),
         ),
       );
