@@ -247,6 +247,9 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                                               onShareReceipt: () {
                                                 // TODO: Implement share receipt functionality
                                               },
+                                              onViewReceipt: () {
+                                                
+                                              },
                                             )));
                               }
                             }

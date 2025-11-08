@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
@@ -36,6 +41,24 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
   final _amountController = TextEditingController();
   bool _saveBeneficiary = false;
   bool _loadingShown = false;
+    final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -206,8 +229,17 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                   ),
                 ),
               ],
-              onShareReceipt: () {
-                Navigator.push(
+              onViewReceipt: () => _viewReceiptPressed(),
+              onShareReceipt: () => _captureAndShare(),
+            ),
+      ),
+    );
+  }
+
+  _viewReceiptPressed() {
+        final selectedNetwork = ref.read(airtimeSelectedNetworkProvider);
+     final now = DateTime.now();
+    Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder:
@@ -250,11 +282,57 @@ class _AirtimeScreenState extends ConsumerState<AirtimeScreen> {
                         ),
                   ),
                 );
-              },
-            ),
-      ),
-    );
+              
   }
+
+
+_shareReceipt() {
+        final selectedNetwork = ref.read(airtimeSelectedNetworkProvider);
+     final now = DateTime.now();
+  Screenshot(
+    controller: _screenshotController,
+    child: ShareableTransactionReceipt(
+                            date:
+                                '${now.day} ${Helpers.getMonthName(now.month)} ${now.year} | ${DateFormat.jm().format(now)}',
+                            transactionDetailList: [
+                              ShareableTransactionReceiptDetail(
+                                label: 'Amount',
+                                value: currencyFormatter(
+                                  _amountController.text.replaceAll(',', ''),
+                                ),
+                              ),
+                              ShareableTransactionReceiptDetail(
+                                label: 'Currency',
+                                value: 'NGN',
+                              ),
+                              ShareableTransactionReceiptDetail(
+                                label: 'Transaction Type',
+                                value: 'Airtime Purchase',
+                              ),
+                              ShareableTransactionReceiptDetail(
+                                label: 'Provider',
+                                value: selectedNetwork.toUpperCase(),
+                              ),
+                              ShareableTransactionReceiptDetail(
+                                label: 'Phone Number',
+                                value: _phoneController.text.trim(),
+                              ),
+                              ShareableTransactionReceiptDetail(
+                                label: 'Transaction ID',
+                                value: 'TXN${now.millisecondsSinceEpoch}',
+                              ),
+                              ShareableTransactionReceiptDetail(
+                                label: 'Status',
+                                value: 'Successful',
+                                isSuccessful: true,
+                              ),
+                            ],
+                          ),
+  );
+              
+  }
+
+ 
 
   void _navigateToDetails(String network, int operatorId) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
@@ -41,6 +46,24 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
   bool _hasError = false;
   bool _isNotMinimumAmount = false;
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void initState() {
@@ -101,7 +124,7 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       _totalAmount = 0;
     }
 
-    _onShareTransactionReceiptPressed() {
+    _onViewTransactionReceiptPressed() {
       final paymentResponse =
           ref.read(electricityPaymentNotifierProvider).singleData;
 
@@ -165,6 +188,69 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
       );
     }
 
+
+ _onShareTransactionReceiptPressed() {
+      final paymentResponse =
+          ref.read(electricityPaymentNotifierProvider).singleData;
+
+      Screenshot(
+        controller: _screenshotController,
+        child: ShareableTransactionReceipt(
+                  date:
+                      '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                      label: 'Amount',
+                      value: currencyFormatter(
+                        _amountController.text..replaceAll(',', ''),
+                      ),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Fee',
+                      value: currencyFormatter(_serviceFee),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Currency',
+                      value: 'NGN',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction Type',
+                      value: 'Electricity Purchase',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Token',
+                      value: paymentResponse!.data.rechargeToken,
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Meter Details',
+                      value:
+                          '${_meterNumberController.text.trim()}\n${ref.read(electricitySelectedMeterTypeProvider)?.categoryName}',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Customer Name',
+                      value: _verifyMeterNumberData?.name ?? '',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Discos',
+                      value:
+                          ref.read(electricitySelectedDiscoProvider)?.planName ??
+                          '',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction ID',
+                      value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Status',
+                      value: 'Successful',
+                      isSuccessful: true,
+                    ),
+                  ],
+                ),
+      );
+    }
+
+    
     bool _canProceed() {
       return ref.read(electricitySelectedDiscoProvider) != null &&
           ref.read(electricitySelectedMeterTypeProvider) != null &&
@@ -311,7 +397,8 @@ class _ElectricityScreenState extends ConsumerState<ElectricityScreen> {
                         '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                   ),
                 ],
-                onShareReceipt: _onShareTransactionReceiptPressed,
+                onViewReceipt: _onViewTransactionReceiptPressed,
+                onShareReceipt: _captureAndShare,
               ),
         ),
       );

@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/themes/color_utils.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
@@ -39,6 +44,24 @@ class _InternalTransferAmountScreenState
   bool _isNotMinimumAmount = false;
   bool _saveBeneficiary = false;
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void initState() {
@@ -254,7 +277,7 @@ class _InternalTransferAmountScreenState
           final user = ref.read(userProvider);
 
 
-    _onShareTransactionReceiptPressed() {
+    _onViewTransactionReceiptPressed() {
       // Guard against null account details
       if (widget.accountDetails.sessionId.isEmpty) {
         AppMessenger.show(
@@ -318,6 +341,59 @@ class _InternalTransferAmountScreenState
       );
     }
 
+_onShareTransactionReceiptPressed() {
+
+       Screenshot(
+        controller: _screenshotController,
+         child: ShareableTransactionReceipt(
+                  date:
+                      '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                      label: 'Amount',
+                      value: currencyFormatter(_amountController.text.trim()),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Currency',
+                      value: 'NGN',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction Type',
+                      value: 'Intra-bank Transfer',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Sender Name',
+                      value: user?.fullname ?? '',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Beneficiary Details',
+                      value:
+                          '${widget.accountDetails.accountName} \n${widget.accountDetails.accountNumber}',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Beneficiary Bank',
+                      value: 'ValarPay',
+                    ),
+                    if (_narrationController.text.isNotEmpty)
+                      ShareableTransactionReceiptDetail(
+                        label: 'Narration',
+                        value: _narrationController.text,
+                      ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction ID',
+                      value: widget.accountDetails.sessionId,
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Status',
+                      value: 'Successful',
+                      isSuccessful: true,
+                    ),
+                  ],
+                ),
+       );
+    }
+
+   
     // Listen to transfer state
     ref.listen(transferNotifierProvider, (previous, next) {
       if (next.isDataAvailable && next.data != null && next.data!.isNotEmpty) {
@@ -369,7 +445,8 @@ class _InternalTransferAmountScreenState
                           value: _narrationController.text.trim(),
                         ),
                     ],
-                    onShareReceipt: _onShareTransactionReceiptPressed,
+                    onViewReceipt: _onViewTransactionReceiptPressed,
+                    onShareReceipt: _captureAndShare,
                   ),
             ),
           );

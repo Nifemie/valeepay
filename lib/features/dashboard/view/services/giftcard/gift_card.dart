@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/currency_formatter.dart';
@@ -45,6 +50,24 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
   bool _isLoadingRate = false;
   bool _saveBeneficiary = false;
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void initState() {
@@ -755,7 +778,8 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
                       '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
                 ),
               ],
-              onShareReceipt: _onShareBuyTransactionReceiptPressed,
+              onViewReceipt: _onViewBuyTransactionReceiptPressed,
+              onShareReceipt: _captureAndShare,
             ),
       ),
     );
@@ -783,7 +807,7 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
     }
   }
 
-  _onShareBuyTransactionReceiptPressed() {
+  _onViewBuyTransactionReceiptPressed() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -834,4 +858,55 @@ class _GiftCardScreenState extends ConsumerState<GiftCardScreen> {
       ),
     );
   }
+
+
+_onShareBuyTransactionReceiptPressed() {
+    Screenshot(
+      controller: _screenshotController,
+      child: ShareableTransactionReceipt(
+                date:
+                    '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                transactionDetailList: [
+                  ShareableTransactionReceiptDetail(
+                    label: 'Amount',
+                    value: currencyFormatter(_currentRate),
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Currency',
+                    value: 'NGN',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Transaction Type',
+                    value: 'Buy Giftcard',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Card Type',
+                    value:
+                        _selectedProduct != null
+                            ? _selectedProduct!.productName
+                            : '',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Country',
+                    value: _selectedCountry,
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Card',
+                    value: 'Card number',
+                  ),
+      
+                  ShareableTransactionReceiptDetail(
+                    label: 'Transaction ID',
+                    value: 'TXN${DateTime.now().millisecondsSinceEpoch}',
+                  ),
+                  ShareableTransactionReceiptDetail(
+                    label: 'Status',
+                    value: 'Successful',
+                    isSuccessful: true,
+                  ),
+                ],
+              ),
+    );
+  }
+
 }

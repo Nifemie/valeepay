@@ -222,6 +222,9 @@ class _ShoppingProviderPaymentScreenState
                                                               '29 Sep 2025 | 8:15 pm')
                                                     ],
                                                     onShareReceipt: () {},
+                                                    onViewReceipt: () {
+                                                      
+                                                    },
                                                   )));
                                     }
                                   }

@@ -24,6 +24,7 @@ class TransactionReceiptWidget extends ConsumerStatefulWidget {
   final List<TransactionDetail> topDetails;
   final List<TransactionDetail>? bottomDetails;
   final VoidCallback onShareReceipt;
+  final VoidCallback onViewReceipt;
   final String headerText;
 
   const TransactionReceiptWidget({
@@ -33,6 +34,7 @@ class TransactionReceiptWidget extends ConsumerStatefulWidget {
     this.bottomDetails,
     required this.headerText,
     required this.onShareReceipt,
+    required this.onViewReceipt
   }) : super(key: key);
 
   @override
@@ -160,7 +162,7 @@ class _TransactionReceiptWidgetState
               border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
             ),
             child: TextButton(
-              onPressed: _isLoading ? null : widget.onShareReceipt,
+              onPressed: _isLoading ? null : widget.onViewReceipt,
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.all(10),
                 shape: RoundedRectangleBorder(

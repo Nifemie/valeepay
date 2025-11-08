@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:valarpay/core/utils/app_messenger.dart';
 import 'package:valarpay/core/utils/check_balance.dart';
 import 'package:valarpay/core/utils/color_utils.dart';
@@ -41,6 +46,24 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
   bool _isNotMinimumAmount = false;
   bool _saveBeneficiary = false;
   bool _loadingShown = false;
+   final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _captureAndShare() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image == null) return;
+
+      final directory = await getTemporaryDirectory();
+      final imagePath = await File('${directory.path}/receipt.png').create();
+      await imagePath.writeAsBytes(image);
+
+      await Share.shareXFiles([
+        XFile(imagePath.path),
+      ], text: 'My ValarPay Transaction Receipt');
+    } catch (e) {
+      debugPrint("Error sharing receipt: $e");
+    }
+  }
 
   @override
   void initState() {
@@ -230,7 +253,7 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
 
     final String _userFullname = ref.read(userProvider)?.fullname ?? '';
 
-    _onShareTransactionReceiptPressed() {
+    _onViewTransactionReceiptPressed() {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -283,6 +306,58 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
         ),
       );
     }
+
+_onShareTransactionReceiptPressed() {
+      Screenshot(
+        controller: _screenshotController,
+        child: ShareableTransactionReceipt(
+                  date:
+                      '${DateTime.now().day} ${DateFormat('MMMM').format(DateTime.now())} ${DateTime.now().year} | ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'pm' : 'am'}',
+                  transactionDetailList: [
+                    ShareableTransactionReceiptDetail(
+                      label: 'Amount',
+                      value: currencyFormatter(amount.toString()),
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Currency',
+                      value: 'NGN',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction Type',
+                      value: 'Inter-bank Transfer',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Sender Name',
+                      value: _userFullname,
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Beneficiary Details',
+                      value:
+                          '${widget.accountDetails.accountName} \n${widget.accountDetails.accountNumber}',
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Beneficiary Bank',
+                      value: widget.selectedBank.name,
+                    ),
+                    if (_descriptionController.text.isNotEmpty)
+                      ShareableTransactionReceiptDetail(
+                        label: 'Narration',
+                        value: _descriptionController.text,
+                      ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Transaction ID',
+                      value: widget.accountDetails.sessionId,
+                    ),
+                    ShareableTransactionReceiptDetail(
+                      label: 'Status',
+                      value: 'Successful',
+                      isSuccessful: true,
+                    ),
+                  ],
+                ),
+      );
+    }
+
 
     _navigateToReceipt() {
       // Small delay to ensure any dialogs are closed
@@ -343,7 +418,8 @@ class _TransferAmountScreenState extends ConsumerState<TransferAmountScreen> {
                               : _descriptionController.text.trim(),
                     ),
                   ],
-                  onShareReceipt: _onShareTransactionReceiptPressed,
+                  onViewReceipt: _onViewTransactionReceiptPressed,
+                  onShareReceipt: _captureAndShare,
                 ),
           ),
         );
