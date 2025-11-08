@@ -27,7 +27,7 @@ class AppTheme {
           color: Colors.black,
         ),
       ),
-      bottomAppBarTheme: const BottomAppBarData(color: Colors.white),
+      bottomAppBarTheme: const BottomAppBarTheme(color: Colors.white),
       cardColor: Colors.grey[200],
       textTheme: const TextTheme(
         labelSmall: TextStyle(color: Colors.black),
